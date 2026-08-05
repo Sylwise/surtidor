@@ -240,7 +240,14 @@ export function montarControles(
   sufijoDeposito.textContent = 'L';
   sufijoDeposito.setAttribute('aria-hidden', 'true');
 
-  campoDeposito.append(botonMenos, inputDeposito, sufijoDeposito, botonMas);
+  // El número y su "L" van juntos en su propia celda, con un solo borde que
+  // los separa de los botones −/+ a los lados. Sin esto, "L" quedaba pegado
+  // al botón "+" sin ninguna línea entre medias y parecía parte de él.
+  const campoNumero = document.createElement('div');
+  campoNumero.className = 'deposito__campo';
+  campoNumero.append(inputDeposito, sufijoDeposito);
+
+  campoDeposito.append(botonMenos, campoNumero, botonMas);
 
   contenedorIdentidad.append(bloqueZona, campoDeposito);
   contenedorRapidos.append(tabsCombustible, filtro);

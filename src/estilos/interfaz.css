@@ -416,20 +416,46 @@ input {
   background: var(--hair);
 }
 
-.deposito__input {
-  width: 3.4em;
+/* Número + "L" comparten esta celda y su borde; es lo único que separa a
+   los dos botones −/+. Antes el "L" no tenía ningún borde propio y quedaba
+   pegado al botón "+", como si fuera parte de él.
+   "L" no va en el flujo junto al número: dos elementos de tamaño de fuente
+   distinto (14,5px el número, 10px "L") centrados por caja dentro de una
+   fila no quedan a la misma altura de línea base — el desajuste depende de
+   cómo cada navegador centra verticalmente el texto de un <input>, que no
+   es igual en todos. En vez de perseguir eso, "L" se posiciona encima del
+   input y se centra por caja con la técnica estándar top:50%+translateY,
+   que no depende en absoluto de line-height ni de métricas de fuente. */
+.deposito__campo {
+  position: relative;
+  display: flex;
+  align-items: center;
   height: 40px;
-  padding: 0 4px;
-  border: none;
   border-left: 1px solid var(--hair);
   border-right: 1px solid var(--hair);
-  text-align: center;
+  background: var(--paper);
+}
+
+.deposito__input {
+  width: 3.8em;
+  height: 100%;
+  padding: 0 20px 0 8px;
+  border: none;
+  outline: none;
+  text-align: right;
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-4);
   font-weight: 700;
-  background: var(--paper);
+  background: transparent;
   -moz-appearance: textfield;
+}
+
+/* El foco lo marca .deposito:focus-within alrededor de todo el control; el
+   anillo nativo del propio input encima habría dibujado dos bordes a la
+   vez, uno pegado al otro. */
+.deposito__input:focus-visible {
+  outline: none;
 }
 
 .deposito__input::-webkit-outer-spin-button,
@@ -439,11 +465,12 @@ input {
 }
 
 .deposito__sufijo {
-  display: flex;
-  align-items: center;
-  height: 40px;
-  padding: 0 8px;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
   color: var(--muted);
+  pointer-events: none;
 }
 
 /* ---------- Lista ---------- */

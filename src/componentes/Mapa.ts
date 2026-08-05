@@ -136,7 +136,15 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     // mapa no se hace aquí: se hace en `render`, que reacciona igual al
     // cambio de estado venga de un clic en el mapa o de un clic en la
     // lista (RF-21, sincronía en los dos sentidos).
-    boton.addEventListener('click', () => {
+    //
+    // stopPropagation es imprescindible: el botón del marcador vive dentro
+    // del mismo contenedor donde MapLibre escucha los clics del mapa
+    // (.maplibregl-canvas-container), así que sin esto el clic también
+    // llegaba al handler de "tocar el mapa deselecciona" y deshacía la
+    // selección en el mismo instante — parecía que pulsar un marcador no
+    // hacía nada.
+    boton.addEventListener('click', (evento) => {
+      evento.stopPropagation();
       actualizarEstado({ estacionId: estacion.id });
     });
 
@@ -156,6 +164,12 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     const clases: string[] = [];
     let texto: string;
     let etiqueta: string;
+    // Con muchas estaciones muy juntas, los carteles se solapan (no hay
+    // agrupación de marcadores todavía, ver docs/03-arquitectura.md). Sin
+    // ningún criterio de apilado, el que se pinta último gana, y eso podía
+    // dejar un precio de verdad tapado por un "no vende" (--) que aporta
+    // mucho menos. Orden de prioridad, de menos a más encima.
+    let prioridad = 1; // sin dato
 
     if (precio === null) {
       // Criterio propio (no hay caso específico en los documentos): la
@@ -170,13 +184,18 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       clases.push(barata ? 'marcador--barata' : `marcador--${escala.banda(precio)}`);
       texto = formatearPrecio(precio);
       etiqueta = `${estacion.rotulo}, ${estacion.municipio}: ${texto} euros${barata ? ', la más barata de la zona' : ''}`;
+      prioridad = barata ? 3 : 2;
     }
 
     if (!abierta) {
       clases.push('marcador--cerrada');
       etiqueta += ', cerrada ahora';
     }
-    if (seleccionada) clases.push('marcador--activa');
+    if (seleccionada) {
+      clases.push('marcador--activa');
+      prioridad = 4; // la seleccionada siempre por encima, se ha pedido explícitamente
+    }
+    entrada.boton.style.zIndex = String(prioridad);
 
     // Nunca `className =`: MapLibre añade su propia clase `maplibregl-marker`
     // al elemento que le pasamos (de ahí saca su `position: absolute`, ver
@@ -292,6 +311,15 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       cargado = true;
       if (vigilante) clearTimeout(vigilante);
       render(obtenerEstado());
+    });
+
+    // Tocar el mapa fuera de un marcador deselecciona la estación activa
+    // (mismo patrón que Google Maps). Un marcador es un elemento aparte
+    // superpuesto al lienzo, no un descendiente del canvas: un clic sobre
+    // él nunca llega a este evento, así que no hace falta comprobar el
+    // objetivo del clic a mano.
+    mapa.on('click', () => {
+      if (obtenerEstado().estacionId) actualizarEstado({ estacionId: null });
     });
 
     // Un error antes de terminar de cargar el estilo (tiles.openfreemap.org
