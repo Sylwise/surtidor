@@ -1,0 +1,24 @@
+{
+  "provincia": { "id": "20", "nombre": "GIPUZKOA" },
+  "actualizado": "2026-08-05T09:00:00Z",
+  "fechaMiteco": "05/08/2026 11:00:00",
+  "mock": true,
+  "estaciones": [
+    {
+      "id": "3001",
+      "rotulo": "GALP",
+      "direccion": "PASEO DE ANOETA 3",
+      "municipio": "DONOSTIA/SAN SEBASTIAN",
+      "cp": "20014",
+      "lat": 43.3,
+      "lon": -1.9666,
+      "horario": "L-D: 24H",
+      "precios": {
+        "gasolina95e5": 1.449,
+        "gasoleoA": 1.519,
+        "gasolina98e5": 1.599,
+        "gasoleoPremium": 1.589
+      }
+    }
+  ]
+}

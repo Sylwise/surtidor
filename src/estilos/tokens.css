@@ -1,0 +1,41 @@
+/* Fuente única de verdad del diseño. Ningún color literal fuera de aquí.
+   Ver docs/05-diseno.md — este fichero es vinculante, no se cambia sin ADR. */
+:root {
+  /* Chrome: gasóleo */
+  --petrol: #16323b;
+  --paper: #edefef;
+  --hair: rgba(22, 50, 59, 0.14);
+  --hair-dark: rgba(255, 255, 255, 0.13);
+  --muted: #6b7b82;
+  --muted-light: rgba(255, 255, 255, 0.58);
+
+  /* Escala de precio: barata → cara */
+  --p1: #00786f;
+  --p2: #4e8c86;
+  --p3: #78838c;
+  --p4: #c06a2e;
+  --p5: #a6371f;
+
+  /* El tótem encendido: la más barata */
+  --signal: #f5b921;
+
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  /* Escala tipográfica, ver docs/05-diseno.md. Mantener estos valores. */
+  --fs-1: 10px;
+  --fs-2: 11px;
+  --fs-3: 12.5px;
+  --fs-4: 14.5px;
+  --fs-5: 17px;
+  --fs-6: 19px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

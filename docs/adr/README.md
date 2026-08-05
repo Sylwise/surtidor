@@ -1,0 +1,39 @@
+# Decisiones de arquitectura (ADR)
+
+Un ADR registra una decisión y, sobre todo, **por qué** se tomó. El valor está
+en el porqué: dentro de seis meses nadie recuerda qué alternativas se
+descartaron ni con qué argumento.
+
+Los ADR aceptados son vinculantes. Si crees que uno está equivocado, escribe uno
+nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
+
+| # | Decisión | Estado |
+|---|---|---|
+| [0001](0001-sin-backend.md) | Sitio estático sin backend | aceptado |
+| [0002](0002-maplibre-openfreemap.md) | MapLibre GL JS con tiles de OpenFreeMap | aceptado |
+| [0003](0003-escala-color-relativa.md) | Escala de color relativa a la provincia | aceptado |
+| [0004](0004-astro.md) | Astro como framework | aceptado |
+| [0005](0005-provincia-unidad-y-zonas.md) | La provincia almacena, la zona consulta | aceptado |
+
+## Plantilla
+
+```markdown
+# ADR-NNNN · Título
+
+**Fecha:** AAAA-MM-DD · **Estado:** propuesto | aceptado | superado por ADR-NNNN
+
+## Contexto
+Qué problema hay y qué restricciones aplican.
+
+## Decisión
+Qué se decide, en presente y sin rodeos.
+
+## Motivos
+Por qué esta y no otra.
+
+## Consecuencias
+Lo bueno, lo malo y lo que hay que vigilar.
+
+## Alternativas descartadas
+Qué más se miró y por qué no.
+```

@@ -1,0 +1,72 @@
+{
+  "provincia": { "id": "01", "nombre": "ARABA/ALAVA" },
+  "actualizado": "2026-08-05T09:00:00Z",
+  "fechaMiteco": "05/08/2026 11:00:00",
+  "mock": true,
+  "estaciones": [
+    {
+      "id": "1234",
+      "rotulo": "BALLENOIL",
+      "direccion": "PORTAL DE GAMARRA 42",
+      "municipio": "VITORIA-GASTEIZ",
+      "cp": "01013",
+      "lat": 42.8695,
+      "lon": -2.6716,
+      "horario": "L-D: 24H",
+      "precios": {
+        "gasolina95e5": 1.409,
+        "gasoleoA": 1.489,
+        "gasolina98e5": null,
+        "gasoleoPremium": null
+      }
+    },
+    {
+      "id": "1235",
+      "rotulo": "PLENOIL",
+      "direccion": "CALLE BEATO TOMAS DE ZUMARRAGA 1",
+      "municipio": "VITORIA-GASTEIZ",
+      "cp": "01009",
+      "lat": 42.8465,
+      "lon": -2.6784,
+      "horario": "L-D: 06:00-23:00",
+      "precios": {
+        "gasolina95e5": 1.399,
+        "gasoleoA": 1.469,
+        "gasolina98e5": 1.549,
+        "gasoleoPremium": null
+      }
+    },
+    {
+      "id": "1236",
+      "rotulo": "REPSOL",
+      "direccion": "AVENIDA GASTEIZ 100",
+      "municipio": "VITORIA-GASTEIZ",
+      "cp": "01008",
+      "lat": 42.851,
+      "lon": -2.685,
+      "horario": "L-V: 06:00-22:00; S: 08:00-14:00",
+      "precios": {
+        "gasolina95e5": 1.459,
+        "gasoleoA": 1.529,
+        "gasolina98e5": 1.599,
+        "gasoleoPremium": 1.579
+      }
+    },
+    {
+      "id": "1237",
+      "rotulo": "PETRONOR",
+      "direccion": "CARRETERA A LLODIO KM 3",
+      "municipio": "LLODIO",
+      "cp": "01400",
+      "lat": 43.1417,
+      "lon": -2.9639,
+      "horario": "",
+      "precios": {
+        "gasolina95e5": 1.429,
+        "gasoleoA": 1.499,
+        "gasolina98e5": null,
+        "gasoleoPremium": null
+      }
+    }
+  ]
+}

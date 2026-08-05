@@ -1,0 +1,86 @@
+# ADR-0005 · La provincia es la unidad de datos; la zona es la unidad de consulta
+
+**Fecha:** 2026-08-05 · **Estado:** aceptado
+
+## Contexto
+
+El primer diseño tenía un fichero JSON por provincia y una interfaz que solo
+dejaba mirar una a la vez. Las fronteras provinciales no significan nada para
+quien conduce: desde Vitoria-Gasteiz se reposta con normalidad en Llodio, en
+Miranda de Ebro o subiendo a Bizkaia, y ninguna de esas opciones aparecería en
+la misma pantalla.
+
+Hay además un problema más sutil. Por ADR-0003 la escala de color es relativa al
+conjunto mostrado. Si el conjunto es siempre una provincia, un verde en Álava y
+un verde en Bizkaia no son el mismo precio, y el usuario no tiene forma de
+saberlo.
+
+## Decisión
+
+Se separan dos conceptos que antes iban juntos:
+
+- **Provincia: unidad de almacenamiento.** Sigue habiendo un fichero por
+  provincia, `public/data/provincias/NN.json`. No cambia nada de la generación.
+- **Zona: unidad de consulta.** Una zona es una lista de provincias. La interfaz
+  siempre muestra una zona, descarga en paralelo los ficheros que la componen y
+  los fusiona en memoria.
+
+Una provincia suelta es simplemente una zona de un elemento, así que no hay dos
+caminos de código: **hay uno solo, y siempre trabaja sobre una lista**.
+
+Las zonas se declaran en `public/data/indice.json`. Salen tres familias:
+
+1. **Cada provincia**, como zona de un elemento. 52 zonas.
+2. **Cada comunidad autónoma**, con sus provincias. Euskadi es `01`, `48`, `20`.
+3. **Zonas transfronterizas** definidas a mano, donde la realidad de conducir no
+   coincide con el mapa administrativo. La primera es "Euskadi y alrededores":
+   `01`, `48`, `20`, `31` (Navarra) y `09` (Burgos, por Miranda de Ebro).
+
+## Motivos
+
+La zona no obliga a duplicar datos. Un fichero de provincia se descarga una vez
+y sirve para todas las zonas que lo incluyan, y el navegador lo cachea.
+
+La escala de color pasa a calcularse **sobre la zona mostrada**, que es
+justamente el conjunto de estaciones entre las que el usuario puede elegir de
+verdad. Con eso, ADR-0003 deja de tener el borde raro que tenía.
+
+Y el coste de mirar Euskadi entero son tres peticiones pequeñas y paralelas de
+unos 30-80 KB. No hace falta ningún fichero nuevo ni ningún endpoint agregado.
+
+## Consecuencias
+
+Buenas: se puede mirar una comunidad entera, o una zona a medida que cruza
+fronteras administrativas. La escala de color gana sentido. La generación de
+datos no cambia ni una línea.
+
+Malas: hay que gestionar varias descargas en paralelo, con su fallo parcial. Si
+uno de los tres ficheros de Euskadi falla, **se muestra lo que sí ha llegado y
+se avisa de qué falta**, en vez de fallar entero.
+
+Vigilar: una zona muy grande empieza a pesar. El listón es 300 KB comprimido de
+datos por zona; por encima, o se recorta la zona o se sirve un resumen con solo
+las coordenadas y el precio del combustible elegido.
+
+Ojo con Canarias: régimen fiscal distinto y precios mucho más bajos. **No
+mezclarla nunca en una zona con provincias peninsulares**, o la escala relativa
+pintaría toda la península de rojo.
+
+## Alternativas descartadas
+
+- **Un fichero por comunidad además del de provincia.** Duplica datos y obliga a
+  decidir cuál es la fuente de verdad. Y no resuelve las zonas a medida.
+- **Un único fichero con toda España.** Unos 8 MB. Rompe RNF-12 y RNF-13.
+- **Radio en kilómetros alrededor del usuario.** Es lo más correcto
+  conceptualmente, y probablemente el destino final. Se descarta para la v1
+  porque exige geolocalización concedida y un índice espacial, y deja sin
+  respuesta el caso de quien planifica desde casa un viaje a otra provincia. La
+  zona funciona sin permisos y es enlazable.
+
+## Nota de implementación
+
+Los identificadores de comunidad autónoma **no se escriben a mano**. Se leen del
+endpoint `Listados/ComunidadesAutonomas` del ministerio y se guardan en
+`indice.json` durante la generación. La numeración del MITECO no tiene por qué
+coincidir con la del INE, y ya hay una errata conocida en ese catálogo
+(`IDPovincia`, ver `docs/04-fuente-datos.md`).

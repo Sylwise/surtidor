@@ -1,0 +1,24 @@
+{
+  "provincia": { "id": "09", "nombre": "BURGOS" },
+  "actualizado": "2026-08-05T09:00:00Z",
+  "fechaMiteco": "05/08/2026 11:00:00",
+  "mock": true,
+  "estaciones": [
+    {
+      "id": "4001",
+      "rotulo": "CEPSA",
+      "direccion": "CALLE ESTACION 5",
+      "municipio": "MIRANDA DE EBRO",
+      "cp": "09200",
+      "lat": 42.687,
+      "lon": -2.947,
+      "horario": "L-S: 07:00-22:00",
+      "precios": {
+        "gasolina95e5": 1.379,
+        "gasoleoA": 1.449,
+        "gasolina98e5": null,
+        "gasoleoPremium": null
+      }
+    }
+  ]
+}
