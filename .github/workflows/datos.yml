@@ -1,0 +1,48 @@
+name: Datos y despliegue
+
+# Ver docs/06-roadmap.md#H9 y docs/03-arquitectura.md#Despliegue.
+#
+# Dos disparadores: cada dos horas (refresco de precios) y al hacer push a
+# main (cambios de código). Un mismo workflow para los dos casos: no hace
+# falta duplicar nada, el build siempre parte de datos frescos.
+#
+# Regla dura (RF-05): si `npm run data:fetch` falla, el job se detiene ahí.
+# No se llega al paso de build ni de despliegue, así que el sitio publicado
+# anteriormente se queda tal cual.
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Descargar y normalizar los precios del MITECO
+        run: npm run data:fetch
+
+      - name: Construir el sitio
+        run: npm run build
+
+      - name: Desplegar a Cloudflare Pages
+        run: npx wrangler pages deploy dist/ --project-name=surtidor
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

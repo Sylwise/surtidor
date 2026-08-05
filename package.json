@@ -10,7 +10,8 @@
     "check": "astro check && tsc -p scripts/tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types scripts/**/*.test.ts src/**/*.test.ts",
     "data:fetch": "node --experimental-strip-types scripts/descargar-datos.ts",
-    "data:mock": "node --experimental-strip-types scripts/datos-mock.ts"
+    "data:mock": "node --experimental-strip-types scripts/datos-mock.ts",
+    "deploy": "wrangler pages deploy dist/ --project-name=surtidor"
   },
   "dependencies": {
     "astro": "^7.1.6",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.0",
     "@types/node": "^26.1.2",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "wrangler": "^4.118.0"
   }
 }
