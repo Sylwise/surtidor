@@ -57,6 +57,7 @@ export function montarMapa(contenedor: HTMLElement): () => void {
   let fallido = false;
   let vigilante: ReturnType<typeof setTimeout> | null = null;
   let cancelarSuscripcion: () => void = () => {};
+  let observador: ResizeObserver | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
   let estacionAnterior: string | null = obtenerEstado().estacionId;
   let firmaEstacionesAnterior: string | null = null;
@@ -65,6 +66,7 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     if (fallido) return;
     fallido = true;
     if (vigilante) clearTimeout(vigilante);
+    observador?.disconnect();
     cancelarSuscripcion();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
@@ -151,7 +153,7 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     const abierta = estaAbierta(estacion.horario, new Date());
     const seleccionada = estacion.id === estado.estacionId;
 
-    const clases = ['marcador'];
+    const clases: string[] = [];
     let texto: string;
     let etiqueta: string;
 
@@ -176,7 +178,25 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     }
     if (seleccionada) clases.push('marcador--activa');
 
-    entrada.boton.className = clases.join(' ');
+    // Nunca `className =`: MapLibre añade su propia clase `maplibregl-marker`
+    // al elemento que le pasamos (de ahí saca su `position: absolute`, ver
+    // maplibre-gl.css). Sobrescribir className entero se la comía, el
+    // marcador caía al flujo normal del documento y todos se apilaban fuera
+    // de la vista salvo los primeros — el bug real de "los marcadores no
+    // están anclados a sus puntos". `classList.remove/add` toca solo las
+    // clases de estado que gestionamos aquí, deja el resto intacto.
+    entrada.boton.classList.remove(
+      'marcador--sin-dato',
+      'marcador--barata',
+      'marcador--p1',
+      'marcador--p2',
+      'marcador--p3',
+      'marcador--p4',
+      'marcador--p5',
+      'marcador--cerrada',
+      'marcador--activa',
+    );
+    entrada.boton.classList.add(...clases);
     entrada.boton.setAttribute('aria-label', etiqueta);
     entrada.boton.setAttribute('aria-pressed', String(seleccionada));
     entrada.cartel.textContent = texto;
@@ -247,14 +267,19 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       attributionControl: {},
     });
 
-    // Endurecimiento: si el contenedor todavía no tenía su tamaño final
-    // cuando se construyó el mapa (el `<script>` puede ejecutarse antes de
-    // que el layout flex termine de asentarse), MapLibre calcula el lienzo
-    // con un tamaño equivocado y se queda sin pedir los tiles del visor
-    // real, sin que ningún evento de error lo delate: el mapa se queda
-    // colgado hasta que salta el vigilante. Forzar un resize en el siguiente
-    // frame corrige el tamaño del lienzo sin coste si ya era correcto.
-    requestAnimationFrame(() => mapa?.resize());
+    // Endurecimiento: el contenedor vive dentro de un layout flex (RNF-24,
+    // rail que hace scroll interno) cuyo tamaño final puede no estar fijado
+    // todavía cuando se construye el mapa, y además puede seguir cambiando
+    // después (barra de scroll que aparece, fuentes que terminan de cargar,
+    // redimensionar la ventana). Si el tamaño interno que maneja MapLibre se
+    // queda desincronizado del tamaño real del contenedor, la proyección de
+    // coordenadas a píxel se calcula mal: los marcadores aparecen
+    // desplazados de su punto real y muchos caen fuera de lo visible. Un
+    // único resize() tras el primer frame no basta si el contenedor cambia
+    // más adelante, así que se vigila con un ResizeObserver mientras el mapa
+    // esté vivo, no solo una vez.
+    observador = new ResizeObserver(() => mapa?.resize());
+    observador.observe(lienzo);
 
     vigilante = setTimeout(() => {
       if (!cargado) fallar('está tardando demasiado en responder');
@@ -287,6 +312,7 @@ export function montarMapa(contenedor: HTMLElement): () => void {
   return () => {
     cancelarSuscripcion();
     if (vigilante) clearTimeout(vigilante);
+    observador?.disconnect();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
     try {
