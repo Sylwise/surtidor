@@ -1,0 +1,221 @@
+---
+// H10 · Una página estática por zona, para SEO (docs/06-roadmap.md#H10,
+// ADR-0004). Mismo contenido interactivo que src/pages/index.astro —
+// Controles, Lista y Totem, más el mismo hueco de mapa provisional hasta
+// H8 — pero con la zona activa fijada desde la URL, y <title>/<meta
+// description> propios por zona para que Google indexe cada una por
+// separado.
+//
+// El frontmatter corre en Node durante el build: lee public/data/indice.json
+// del disco (no por fetch) para generar un path estático por zona, igual que
+// scripts/descargar-datos.ts calcula sus rutas con import.meta.dirname.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import '../../estilos/tokens.css';
+import '../../estilos/interfaz.css';
+import type { Indice, Zona } from '../../../scripts/lib/tipos.ts';
+
+export async function getStaticPaths() {
+  const rutaIndice = join(import.meta.dirname, '..', '..', '..', 'public', 'data', 'indice.json');
+  const indice = JSON.parse(readFileSync(rutaIndice, 'utf-8')) as Indice;
+
+  return indice.zonas.map((zona) => ({
+    params: { zona: zona.id },
+    props: { zona },
+  }));
+}
+
+interface Props {
+  zona: Zona;
+}
+
+const { zona } = Astro.props;
+
+const titulo = `Precios de gasolina y diésel en ${zona.nombre} · Surtidor`;
+const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizados cada dos horas, sin anuncios ni registro.`;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+  </head>
+  <body>
+    <div class="app" id="app" data-zona-id={zona.id}>
+      <header class="cabecera">
+        <span class="marca">Surtidor</span>
+        <div id="controles" aria-label="Controles"></div>
+        <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
+      </header>
+
+      <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+
+      <div class="layout">
+        <aside class="rail">
+          <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
+          <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+        </aside>
+
+        <div class="mapa-hueco">
+          <p>El mapa llega en un hito posterior (H8). Mientras tanto, la lista y la ficha funcionan enteras.</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Orquestación de la página de zona. A diferencia de src/pages/index.astro
+      // (que elige la zona guardada en localStorage o la de por defecto), aquí
+      // la zona activa se fija a la de la URL antes de cargar nada, para que la
+      // página siempre enseñe la zona que prometen su <title> y su URL. Reusa
+      // los mismos módulos de src/logica/ y src/componentes/ que index.astro:
+      // nada de lógica de carga o fusión duplicada a mano.
+      import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../../logica/estado.ts';
+      import { cargarIndice, cargarZona } from '../../logica/zona.ts';
+      import { montarControles } from '../../componentes/Controles.ts';
+      import { montarLista } from '../../componentes/Lista.ts';
+      import { montarTotem } from '../../componentes/Totem.ts';
+      import type { FalloProvincia } from '../../logica/zona.ts';
+      import type { Indice } from '../../../scripts/lib/tipos.ts';
+
+      function elemento(id: string): HTMLElement {
+        const el = document.getElementById(id);
+        if (!el) throw new Error(`Falta el elemento #${id} en el HTML de la página.`);
+        return el;
+      }
+
+      const contenedorApp = elemento('app');
+      const contenedorControles = elemento('controles');
+      const contenedorTotem = elemento('totem');
+      const contenedorLista = elemento('lista');
+      const contenedorAvisos = elemento('avisos');
+      const insigniaMock = elemento('insignia-mock');
+
+      // Zona que promete esta página, tal y como la fijó getStaticPaths en el
+      // build. Si el selector de zona la cambia, no recargamos en sitio:
+      // navegamos a la URL de la otra zona, para que el <title> y la <meta
+      // description> sigan correspondiendo a lo que se ve.
+      const zonaDeLaPagina = contenedorApp.dataset.zonaId;
+      if (!zonaDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
+
+      actualizarEstado({ zonaId: zonaDeLaPagina });
+
+      function crearAviso(texto: string, tipo: 'error' | 'parcial', conReintentar: boolean): HTMLDivElement {
+        const div = document.createElement('div');
+        div.className = `aviso aviso--${tipo}`;
+        div.append(document.createTextNode(texto));
+        if (conReintentar) {
+          const boton = document.createElement('button');
+          boton.type = 'button';
+          boton.textContent = 'Reintentar';
+          boton.addEventListener('click', () => {
+            cargarTodo();
+          });
+          div.append(boton);
+        }
+        return div;
+      }
+
+      function renderAvisos(estado: EstadoApp): void {
+        contenedorAvisos.innerHTML = '';
+        insigniaMock.hidden = !estado.mock;
+
+        if (estado.error) {
+          contenedorAvisos.append(crearAviso(estado.error, 'error', true));
+          return;
+        }
+        if (estado.provinciasFallidas.length > 0) {
+          const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
+          contenedorAvisos.append(
+            crearAviso(
+              `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
+              'parcial',
+              true
+            )
+          );
+        }
+      }
+
+      let indice: Indice | null = null;
+      let controlesMontados = false;
+
+      // Carga (o recarga) el índice si hace falta, monta el selector de
+      // controles en cuanto hay índice, y carga la zona de la página. Fallo
+      // parcial de zona (RF-36): un fallo de provincia no tumba las demás.
+      // Sirve también como función de reintento desde el botón de los avisos.
+      async function cargarTodo(): Promise<void> {
+        actualizarEstado({ cargando: true, error: null });
+        try {
+          if (!indice) {
+            indice = await cargarIndice();
+          }
+          if (!controlesMontados) {
+            montarControles(contenedorControles, indice.zonas);
+            controlesMontados = true;
+          }
+
+          // Red de seguridad: si la zona de esta página ya no existe en el
+          // índice (los datos se regeneran cada dos horas), cae a la primera
+          // disponible. El cambio de zonaId dispara la navegación de abajo.
+          const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? indice.zonas[0];
+          if (!zona) throw new Error('No hay ninguna zona disponible en el índice.');
+          if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
+
+          const resultado = await cargarZona(zona, indice.provincias);
+          const estacionSeleccionada = obtenerEstado().estacionId;
+          const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
+            ? estacionSeleccionada
+            : null;
+
+          actualizarEstado({
+            zonaNombre: zona.nombre,
+            estaciones: resultado.estaciones,
+            provinciasFallidas: resultado.provinciasFallidas,
+            mock: resultado.mock,
+            cargando: false,
+            error:
+              resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
+                ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+                : null,
+            estacionId: siguienteSeleccion,
+          });
+        } catch (error) {
+          actualizarEstado({
+            cargando: false,
+            error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
+          });
+        }
+      }
+
+      // Regla dura 1 de CLAUDE.md: temporizador de rescate que resuelve el
+      // estado de carga pase lo que pase.
+      setTimeout(() => {
+        if (obtenerEstado().cargando) {
+          actualizarEstado({
+            cargando: false,
+            error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+          });
+        }
+      }, 12000);
+
+      suscribir((estado) => {
+        renderAvisos(estado);
+        // El selector de controles cambia zonaId en memoria (está pensado
+        // para index.astro, que sí recarga en sitio). Aquí cada página es de
+        // una sola zona: si zonaId se aparta de la de esta URL, navegamos a
+        // la página estática de la zona nueva en vez de mostrar datos que no
+        // corresponden al <title> ni a la <meta description> ya servidos.
+        if (estado.zonaId !== zonaDeLaPagina) {
+          location.href = `/${estado.zonaId}/`;
+        }
+      });
+      renderAvisos(obtenerEstado());
+
+      montarLista(contenedorLista);
+      montarTotem(contenedorTotem);
+
+      cargarTodo();
+    </script>
+  </body>
+</html>
