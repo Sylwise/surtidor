@@ -139,6 +139,13 @@ input {
   background: color-mix(in srgb, var(--p4) 12%, var(--paper));
 }
 
+/* Discreto a propósito (RF-43): no es un error, solo un dato a tener en
+   cuenta, así que no lleva el mismo tono de alarma que --error o --parcial. */
+.aviso--desactualizado {
+  background: color-mix(in srgb, var(--muted) 10%, var(--paper));
+  color: var(--muted);
+}
+
 .aviso button {
   margin-left: 8px;
   border: 1px solid var(--hair);
