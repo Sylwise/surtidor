@@ -1,0 +1,114 @@
+/* Estilos exclusivos del mapa y de sus marcadores (hito H8). Vive aparte de
+   interfaz.css y lo importa solo src/componentes/Mapa.ts, para que un fallo
+   de MapLibre nunca dependa de haber cargado CSS de más, y para no tocar el
+   fichero que comparten el resto de componentes (menos riesgo de choque al
+   fusionar con otras ramas que también tocan la interfaz).
+
+   Ningún color literal fuera de tokens.css: todo aquí sale de sus variables. */
+
+.mapa-lienzo {
+  position: absolute;
+  inset: 0;
+}
+
+/* MapLibre añade su propio control de atribución; se le da el aspecto del
+   resto de micro-etiquetas de la interfaz en vez del suyo por defecto. */
+.maplibregl-ctrl-attrib {
+  font-family: var(--sans);
+  font-size: var(--fs-1);
+}
+
+/* ---------- Marcador tótem (docs/05-diseno.md#Marcador) ---------- */
+
+.marcador {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  transform-origin: bottom center;
+}
+
+.marcador__cartel {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-2);
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1.5px solid #fff;
+  background: var(--p3);
+  color: #fff;
+  white-space: nowrap;
+  transition:
+    background 130ms,
+    color 130ms;
+}
+
+.marcador__poste {
+  width: 1.5px;
+  height: 9px;
+  background: var(--petrol);
+}
+
+/* Bandas de precio: mismos tokens que la píldora de la lista. */
+.marcador--p1 .marcador__cartel {
+  background: var(--p1);
+}
+.marcador--p2 .marcador__cartel {
+  background: var(--p2);
+}
+.marcador--p3 .marcador__cartel {
+  background: var(--p3);
+}
+.marcador--p4 .marcador__cartel {
+  background: var(--p4);
+}
+.marcador--p5 .marcador__cartel {
+  background: var(--p5);
+}
+
+/* Más barata de la zona: fondo --signal, texto oscuro, cartel más grande. */
+.marcador--barata .marcador__cartel {
+  background: var(--signal);
+  color: var(--petrol);
+  font-size: var(--fs-3);
+  padding: 4px 9px;
+}
+
+/* Cerrada: atenuada, nunca oculta (RF-15). */
+.marcador--cerrada {
+  opacity: 0.42;
+}
+
+/* Sin dato para el combustible activo: la estación existe y se ve en el
+   mapa (RF-11: se ancla igual a su punto exacto), pero no hay precio que
+   mostrar. Se atenúa y se usa un guion en vez de un número para no fingir
+   un precio de "0" ni dejar el cartel vacío (mismo criterio que "no vende"
+   en el tótem y la lista, RF-23). */
+.marcador--sin-dato .marcador__cartel {
+  background: var(--muted);
+  opacity: 0.75;
+}
+
+/* Seleccionada: contorno de 2,5 px en --petrol. */
+.marcador--activa .marcador__cartel {
+  outline: 2.5px solid var(--petrol);
+  outline-offset: 1px;
+}
+
+.marcador:focus-visible .marcador__cartel {
+  outline: 2.5px solid var(--petrol);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marcador__cartel {
+    transition-duration: 130ms;
+  }
+}
