@@ -1,5 +1,6 @@
 ---
 import '../estilos/tokens.css';
+import '../estilos/interfaz.css';
 ---
 
 <html lang="es">
@@ -7,8 +8,167 @@ import '../estilos/tokens.css';
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Surtidor · Precios de carburantes de España</title>
+    <meta
+      name="description"
+      content="Precios de gasolina y diésel por zona, sin anuncios ni registro."
+    />
   </head>
   <body>
-    <p>Surtidor. Andamiaje en marcha — todavía sin contenido (H1).</p>
+    <div class="app">
+      <header class="cabecera">
+        <span class="marca">Surtidor</span>
+        <div id="controles" aria-label="Controles"></div>
+        <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
+      </header>
+
+      <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+
+      <div class="layout">
+        <aside class="rail">
+          <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
+          <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+        </aside>
+
+        <div class="mapa-hueco">
+          <p>El mapa llega en un hito posterior (H8). Mientras tanto, la lista y la ficha funcionan enteras.</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Orquestación de la página: carga el índice, monta los componentes y
+      // mantiene la zona activa al día. No hay ni una línea de código de mapa
+      // (hito H6, docs/06-roadmap.md).
+      import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
+      import { cargarIndice, cargarZona } from '../logica/zona.ts';
+      import { montarControles } from '../componentes/Controles.ts';
+      import { montarLista } from '../componentes/Lista.ts';
+      import { montarTotem } from '../componentes/Totem.ts';
+      import type { FalloProvincia } from '../logica/zona.ts';
+      import type { Indice } from '../../scripts/lib/tipos.ts';
+
+      function elemento(id: string): HTMLElement {
+        const el = document.getElementById(id);
+        if (!el) throw new Error(`Falta el elemento #${id} en el HTML de la página.`);
+        return el;
+      }
+
+      const contenedorControles = elemento('controles');
+      const contenedorTotem = elemento('totem');
+      const contenedorLista = elemento('lista');
+      const contenedorAvisos = elemento('avisos');
+      const insigniaMock = elemento('insignia-mock');
+
+      let indice: Indice | null = null;
+      let controlesMontados = false;
+
+      function crearAviso(texto: string, tipo: 'error' | 'parcial', conReintentar: boolean): HTMLDivElement {
+        const div = document.createElement('div');
+        div.className = `aviso aviso--${tipo}`;
+        div.append(document.createTextNode(texto));
+        if (conReintentar) {
+          const boton = document.createElement('button');
+          boton.type = 'button';
+          boton.textContent = 'Reintentar';
+          boton.addEventListener('click', () => {
+            cargarTodo();
+          });
+          div.append(boton);
+        }
+        return div;
+      }
+
+      function renderAvisos(estado: EstadoApp): void {
+        contenedorAvisos.innerHTML = '';
+        insigniaMock.hidden = !estado.mock;
+
+        if (estado.error) {
+          contenedorAvisos.append(crearAviso(estado.error, 'error', true));
+          return;
+        }
+        if (estado.provinciasFallidas.length > 0) {
+          const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
+          contenedorAvisos.append(
+            crearAviso(
+              `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
+              'parcial',
+              true
+            )
+          );
+        }
+      }
+
+      // Carga (o recarga) el índice si hace falta, monta el selector de zona
+      // en cuanto hay índice, y carga la zona activa. Fallo parcial de zona
+      // (RF-36): un fallo de provincia no tumba las demás. Sirve también como
+      // función de reintento completa desde el botón de los avisos.
+      async function cargarTodo(): Promise<void> {
+        actualizarEstado({ cargando: true, error: null });
+        try {
+          if (!indice) {
+            indice = await cargarIndice();
+          }
+          if (!controlesMontados) {
+            montarControles(contenedorControles, indice.zonas);
+            controlesMontados = true;
+          }
+
+          const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? indice.zonas[0];
+          if (!zona) throw new Error('No hay ninguna zona disponible en el índice.');
+          if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
+
+          const resultado = await cargarZona(zona, indice.provincias);
+          const estacionSeleccionada = obtenerEstado().estacionId;
+          const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
+            ? estacionSeleccionada
+            : null;
+
+          actualizarEstado({
+            zonaNombre: zona.nombre,
+            estaciones: resultado.estaciones,
+            provinciasFallidas: resultado.provinciasFallidas,
+            mock: resultado.mock,
+            cargando: false,
+            error:
+              resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
+                ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+                : null,
+            estacionId: siguienteSeleccion,
+          });
+        } catch (error) {
+          actualizarEstado({
+            cargando: false,
+            error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
+          });
+        }
+      }
+
+      // Regla dura 1 de CLAUDE.md: temporizador de rescate que resuelve el
+      // estado de carga pase lo que pase, aunque algo se quede colgado más
+      // allá de los timeouts propios de cada petición.
+      setTimeout(() => {
+        if (obtenerEstado().cargando) {
+          actualizarEstado({
+            cargando: false,
+            error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+          });
+        }
+      }, 12000);
+
+      let zonaAnterior = obtenerEstado().zonaId;
+      suscribir((estado) => {
+        renderAvisos(estado);
+        if (estado.zonaId !== zonaAnterior) {
+          zonaAnterior = estado.zonaId;
+          cargarTodo();
+        }
+      });
+      renderAvisos(obtenerEstado());
+
+      montarLista(contenedorLista);
+      montarTotem(contenedorTotem);
+
+      cargarTodo();
+    </script>
   </body>
 </html>

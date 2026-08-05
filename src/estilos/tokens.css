@@ -8,6 +8,8 @@
   --hair-dark: rgba(255, 255, 255, 0.13);
   --muted: #6b7b82;
   --muted-light: rgba(255, 255, 255, 0.58);
+  /* Tótem: "no vende" en gris al 28%, ver docs/05-diseno.md#Tótem. */
+  --no-vende: rgba(255, 255, 255, 0.28);
 
   /* Escala de precio: barata → cara */
   --p1: #00786f;

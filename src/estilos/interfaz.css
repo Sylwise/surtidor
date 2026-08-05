@@ -1,0 +1,527 @@
+/* Layout y componentes de la interfaz (todo menos el mapa, hito H6).
+   Ningún color literal aquí: todo sale de tokens.css.
+
+   Nota de contraste (RNF-22): en las bandas de precio p2, p3 y p4 ni el texto
+   blanco ni --petrol llegan a 4,5:1 sobre el fondo (contrastes medidos entre
+   3,44 y 3,93). El texto de precio se fija por eso en --fs-6 (19px) con peso
+   700, que cumple el umbral AA de "texto grande" (3:1) en las cinco bandas y
+   supera 4,5:1 en p1, p5 y --signal. Ver docs/adr/0003-escala-color-relativa.md. */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--petrol);
+  font-family: var(--sans);
+  font-size: var(--fs-4);
+  line-height: 1.5;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--petrol);
+  outline-offset: 2px;
+}
+
+.micro {
+  text-transform: uppercase;
+  font-size: var(--fs-1);
+  font-weight: 650;
+  letter-spacing: 0.16em;
+}
+
+.precio,
+.totem__precio,
+.fila__precio {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-6);
+  font-weight: 700;
+}
+
+/* ---------- Estructura general ---------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--hair);
+}
+
+.marca {
+  font-size: var(--fs-4);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.insignia-mock {
+  font-size: var(--fs-1);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.rail {
+  width: 326px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--hair);
+  overflow-y: auto;
+}
+
+.mapa-hueco {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--paper);
+  color: var(--muted);
+  text-align: center;
+}
+
+.mapa-hueco p {
+  max-width: 32ch;
+  font-size: var(--fs-3);
+}
+
+/* ---------- Avisos (RF-36, RF-40) ---------- */
+
+.avisos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.avisos:empty {
+  display: none;
+}
+
+.aviso {
+  font-size: var(--fs-3);
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.aviso--error {
+  background: color-mix(in srgb, var(--p5) 12%, var(--paper));
+}
+
+.aviso--parcial {
+  background: color-mix(in srgb, var(--p4) 12%, var(--paper));
+}
+
+.aviso button {
+  margin-left: 8px;
+  border: 1px solid var(--hair);
+  background: transparent;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+/* ---------- Controles ---------- */
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  flex: 1;
+}
+
+.controles__zona {
+  position: relative;
+}
+
+.boton-zona {
+  border: 1px solid var(--hair);
+  background: var(--paper);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-zona__nombre {
+  text-transform: uppercase;
+}
+
+.panel-zona {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(320px, 90vw);
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--paper);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(22, 50, 59, 0.18);
+  padding: 10px;
+}
+
+.panel-zona__buscar {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.panel-zona__titulo-grupo {
+  margin: 10px 0 4px;
+  font-size: var(--fs-1);
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel-zona__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.panel-zona__opcion {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: var(--fs-3);
+}
+
+.panel-zona__opcion:hover {
+  background: var(--hair);
+}
+
+.controles__combustible {
+  display: flex;
+  gap: 4px;
+}
+
+.controles__pestana {
+  border: 1px solid var(--hair);
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 130ms, color 130ms;
+}
+
+.controles__pestana--activa {
+  background: var(--petrol);
+  color: var(--paper);
+  border-color: var(--petrol);
+}
+
+.controles__filtro,
+.controles__deposito {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-3);
+  white-space: nowrap;
+}
+
+.controles__deposito input {
+  width: 4.5em;
+  padding: 5px 6px;
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+}
+
+/* ---------- Lista ---------- */
+
+.lista {
+  padding: 10px 14px 18px;
+}
+
+.lista__titulo {
+  text-transform: uppercase;
+  font-size: var(--fs-1);
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  margin: 4px 0 8px;
+}
+
+.lista__aviso {
+  font-size: var(--fs-3);
+  color: var(--muted);
+}
+
+.lista__quitar-filtro {
+  border: 1px solid var(--hair);
+  background: transparent;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.lista__filas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1.5px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.fila:hover {
+  background: var(--hair);
+}
+
+.fila--activa {
+  border-color: var(--petrol);
+}
+
+.fila--cerrada {
+  opacity: 0.58;
+}
+
+.fila__orden {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  width: 1.6em;
+  flex: none;
+  text-align: right;
+}
+
+.fila__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fila__rotulo {
+  font-weight: 700;
+  font-size: var(--fs-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fila__municipio {
+  font-size: var(--fs-2);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fila__precio {
+  flex: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* Bandas de precio, compartidas entre lista y (más adelante) marcador. */
+.precio--p1 {
+  background: var(--p1);
+  color: #fff;
+}
+.precio--p2 {
+  background: var(--p2);
+  color: #fff;
+}
+.precio--p3 {
+  background: var(--p3);
+  color: #fff;
+}
+.precio--p4 {
+  background: var(--p4);
+  color: #fff;
+}
+.precio--p5 {
+  background: var(--p5);
+  color: #fff;
+}
+.precio--barata {
+  background: var(--signal);
+  color: var(--petrol);
+}
+
+/* ---------- Tótem ---------- */
+
+.totem {
+  background: var(--petrol);
+  color: var(--paper);
+  border-bottom: 3px solid var(--signal);
+  padding: 14px;
+}
+
+.totem__vacio {
+  color: var(--muted-light);
+  font-size: var(--fs-3);
+  padding: 4px 0;
+}
+
+.totem__rotulo {
+  margin: 0 0 4px;
+  font-size: var(--fs-5);
+}
+
+.totem__direccion,
+.totem__horario {
+  margin: 0 0 4px;
+  font-size: var(--fs-2);
+  color: var(--muted-light);
+  line-height: 1.5;
+}
+
+.totem__combustibles {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  border-top: 1px solid var(--hair-dark);
+}
+
+.totem__fila-combustible {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hair-dark);
+}
+
+.totem__etiqueta-combustible {
+  font-size: var(--fs-3);
+}
+
+.totem__fila-combustible--activa .totem__etiqueta-combustible {
+  font-weight: 700;
+}
+
+.totem__precio {
+  color: #fff;
+}
+
+.totem__fila-combustible--activa .totem__precio {
+  color: var(--signal);
+}
+
+/* Misma especificidad que ".totem__fila-combustible--activa .totem__precio"
+   (dos clases) pero declarada después: "no vende" gana siempre, aunque sea el
+   combustible activo. La ausencia de dato no debe competir con --signal. */
+.totem__precio.totem__precio--ausente {
+  font-family: var(--sans);
+  font-variant-numeric: normal;
+  font-size: var(--fs-3);
+  font-weight: 400;
+  color: var(--no-vende);
+}
+
+.totem__puesto {
+  font-size: var(--fs-3);
+  color: var(--muted-light);
+  margin: 8px 0;
+}
+
+.totem__ahorro {
+  margin-top: 6px;
+}
+
+.totem__ahorro-cifra {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-6);
+  font-weight: 700;
+  color: var(--signal);
+  margin: 0;
+}
+
+.totem__ahorro-texto {
+  font-size: var(--fs-2);
+  color: var(--muted-light);
+  margin: 2px 0 0;
+}
+
+/* ---------- Responsive: móvil, controles en la mitad inferior ---------- */
+
+@media (max-width: 760px) {
+  /* El selector de combustible y el filtro son lo que más se toca: no pueden
+     quedar en la esquina superior (RNF-24). Se invierte el orden de TODO
+     `.app`, no solo del mapa/rail, para que la cabecera con los controles
+     caiga al final del flujo, al alcance del pulgar. */
+  .app {
+    flex-direction: column-reverse;
+  }
+
+  .layout {
+    flex-direction: column-reverse;
+  }
+
+  .rail {
+    width: auto;
+    max-height: 47vh;
+    border-right: none;
+    border-top: 1px solid var(--hair);
+  }
+
+  .mapa-hueco {
+    min-height: 30vh;
+  }
+
+  .cabecera {
+    flex-direction: column;
+    align-items: stretch;
+    border-bottom: none;
+    border-top: 1px solid var(--hair);
+  }
+
+  .controles {
+    justify-content: space-between;
+  }
+}
