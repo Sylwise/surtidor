@@ -247,6 +247,15 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       attributionControl: {},
     });
 
+    // Endurecimiento: si el contenedor todavía no tenía su tamaño final
+    // cuando se construyó el mapa (el `<script>` puede ejecutarse antes de
+    // que el layout flex termine de asentarse), MapLibre calcula el lienzo
+    // con un tamaño equivocado y se queda sin pedir los tiles del visor
+    // real, sin que ningún evento de error lo delate: el mapa se queda
+    // colgado hasta que salta el vigilante. Forzar un resize en el siguiente
+    // frame corrige el tamaño del lienzo sin coste si ya era correcto.
+    requestAnimationFrame(() => mapa?.resize());
+
     vigilante = setTimeout(() => {
       if (!cargado) fallar('está tardando demasiado en responder');
     }, TIEMPO_ESPERA_MS);

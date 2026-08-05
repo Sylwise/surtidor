@@ -3,6 +3,7 @@ dist/
 .astro/
 .env
 .DS_Store
+.claude/worktrees/
 
 # Generado por npm run data:fetch / data:mock (docs/06-roadmap.md#H5). Se
 # regenera en cada build, incluido en CI antes de desplegar (RF-01/RF-02): no

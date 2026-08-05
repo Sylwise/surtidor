@@ -1,10 +1,9 @@
 ---
 // H10 · Una página estática por zona, para SEO (docs/06-roadmap.md#H10,
 // ADR-0004). Mismo contenido interactivo que src/pages/index.astro —
-// Controles, Lista y Totem, más el mismo hueco de mapa provisional hasta
-// H8 — pero con la zona activa fijada desde la URL, y <title>/<meta
-// description> propios por zona para que Google indexe cada una por
-// separado.
+// Controles, Lista, Totem y Mapa — pero con la zona activa fijada desde la
+// URL, y <title>/<meta description> propios por zona para que Google
+// indexe cada una por separado.
 //
 // El frontmatter corre en Node durante el build: lee public/data/indice.json
 // del disco (no por fetch) para generar un path estático por zona, igual que
@@ -58,8 +57,8 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
           <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
         </aside>
 
-        <div class="mapa-hueco">
-          <p>El mapa llega en un hito posterior (H8). Mientras tanto, la lista y la ficha funcionan enteras.</p>
+        <div id="mapa" class="mapa-hueco">
+          <p>Cargando mapa…</p>
         </div>
       </div>
     </div>
@@ -76,6 +75,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       import { montarControles } from '../../componentes/Controles.ts';
       import { montarLista } from '../../componentes/Lista.ts';
       import { montarTotem } from '../../componentes/Totem.ts';
+      import { datosDesactualizados } from '../../logica/frescura.ts';
       import type { FalloProvincia } from '../../logica/zona.ts';
       import type { Indice } from '../../../scripts/lib/tipos.ts';
 
@@ -89,8 +89,24 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       const contenedorControles = elemento('controles');
       const contenedorTotem = elemento('totem');
       const contenedorLista = elemento('lista');
+      const contenedorMapa = elemento('mapa');
       const contenedorAvisos = elemento('avisos');
       const insigniaMock = elemento('insignia-mock');
+
+      // RF-43, igual que en src/pages/index.astro: dato derivado local a la
+      // página, fuera del estado global.
+      let actualizadoZona: string | null = null;
+
+      function horaDelDato(iso: string): string {
+        const fecha = new Date(iso);
+        if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
+        return fecha.toLocaleString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
 
       // Zona que promete esta página, tal y como la fijó getStaticPaths en el
       // build. Si el selector de zona la cambia, no recargamos en sitio:
@@ -101,7 +117,11 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
 
       actualizarEstado({ zonaId: zonaDeLaPagina });
 
-      function crearAviso(texto: string, tipo: 'error' | 'parcial', conReintentar: boolean): HTMLDivElement {
+      function crearAviso(
+        texto: string,
+        tipo: 'error' | 'parcial' | 'desactualizado',
+        conReintentar: boolean
+      ): HTMLDivElement {
         const div = document.createElement('div');
         div.className = `aviso aviso--${tipo}`;
         div.append(document.createTextNode(texto));
@@ -135,6 +155,11 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
             )
           );
         }
+        if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
+          contenedorAvisos.append(
+            crearAviso(`Datos de las ${horaDelDato(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
+          );
+        }
       }
 
       let indice: Indice | null = null;
@@ -163,6 +188,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
           if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
 
           const resultado = await cargarZona(zona, indice.provincias);
+          actualizadoZona = resultado.actualizado;
           const estacionSeleccionada = obtenerEstado().estacionId;
           const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
             ? estacionSeleccionada
@@ -181,6 +207,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
             estacionId: siguienteSeleccion,
           });
         } catch (error) {
+          actualizadoZona = null;
           actualizarEstado({
             cargando: false,
             error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
@@ -214,6 +241,20 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
 
       montarLista(contenedorLista);
       montarTotem(contenedorTotem);
+
+      // Ver el comentario equivalente en src/pages/index.astro: import()
+      // dinámico para que MapLibre entre en su propio chunk, aparte del
+      // bundle inicial (RNF-11), y para que un fallo de red al pedir ese
+      // chunk no rompa el resto de la página (regla dura 2 de CLAUDE.md).
+      import('../../componentes/Mapa.ts')
+        .then(({ montarMapa }) => montarMapa(contenedorMapa))
+        .catch(() => {
+          contenedorMapa.innerHTML = '';
+          contenedorMapa.removeAttribute('style');
+          const aviso = document.createElement('p');
+          aviso.textContent = 'El mapa no se ha podido cargar. La lista y la ficha funcionan igual.';
+          contenedorMapa.append(aviso);
+        });
 
       cargarTodo();
     </script>

@@ -13,7 +13,8 @@
 
 body {
   margin: 0;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--paper);
   color: var(--petrol);
   font-family: var(--sans);
@@ -53,7 +54,7 @@ input {
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
 }
 
 .cabecera {
@@ -95,6 +96,10 @@ input {
   flex-direction: column;
   border-right: 1px solid var(--hair);
   overflow-y: auto;
+  /* Sin esto, un hijo flex no encoge nunca por debajo de su contenido: en
+     ventanas anchas y bajas, `.rail` empujaría a `.layout`/`.app` por encima
+     del viewport en vez de dejar que `overflow-y: auto` haga su trabajo. */
+  min-height: 0;
 }
 
 .mapa-hueco {
