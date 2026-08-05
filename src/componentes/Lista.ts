@@ -3,7 +3,7 @@
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
-import { estaAbiertaStub } from '../logica/horario.ts';
+import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
@@ -51,7 +51,7 @@ export function montarLista(contenedor: HTMLElement): () => void {
       return;
     }
 
-    const visibles = estado.soloAbiertas ? ordenadas.filter((e) => estaAbiertaStub(e.horario)) : ordenadas;
+    const visibles = estado.soloAbiertas ? ordenadas.filter((e) => estaAbierta(e.horario, new Date())) : ordenadas;
 
     // Filtro sin resultados.
     if (visibles.length === 0) {
@@ -75,7 +75,7 @@ export function montarLista(contenedor: HTMLElement): () => void {
     for (const estacion of visibles) {
       const puesto = ordenadas.indexOf(estacion) + 1;
       const precio = estacion.precios[estado.combustible] as number;
-      const abierta = estaAbiertaStub(estacion.horario);
+      const abierta = estaAbierta(estacion.horario, new Date());
 
       const item = document.createElement('li');
       const fila = document.createElement('button');

@@ -7,7 +7,7 @@ import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/e
 import { calcularAhorro } from '../logica/ahorro.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { formatearEuros, formatearPrecio } from '../logica/formato.ts';
-import { estaAbiertaStub } from '../logica/horario.ts';
+import { estaAbierta } from '../../scripts/lib/horario.ts';
 
 /** Monta la ficha en `contenedor` y la mantiene sincronizada con el estado.
  *  Devuelve una función para desuscribirse. */
@@ -37,7 +37,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       ? `${estacion.direccion}, ${estacion.municipio} (${estacion.provinciaNombre})`
       : `${estacion.direccion}, ${estacion.municipio}`;
 
-    const abierta = estaAbiertaStub(estacion.horario);
+    const abierta = estaAbierta(estacion.horario, new Date());
     const horario = document.createElement('p');
     horario.className = 'totem__horario';
     const textoHorario = estacion.horario.trim() ? estacion.horario : 'Horario no declarado';

@@ -245,3 +245,51 @@ export async function obtenerEstacionesPorProvincia(
 
   return respuesta;
 }
+
+/**
+ * Forma cruda de un elemento de `Listados/Provincias`. La clave `IDPovincia`
+ * está mal escrita (sin la "r") en la propia API — trampa 8 de
+ * docs/04-fuente-datos.md. No es un error de transcripción de este fichero:
+ * si se escribe bien, la validación no encaja con la respuesta real.
+ */
+export const ProvinciaCatalogoEsquema = z
+  .object({
+    IDPovincia: z.string(),
+    IDCCAA: z.string(),
+    Provincia: z.string(),
+    CCAA: z.string(),
+  })
+  .passthrough();
+
+export type ProvinciaCatalogo = z.infer<typeof ProvinciaCatalogoEsquema>;
+
+export const ComunidadAutonomaEsquema = z
+  .object({
+    IDCCAA: z.string(),
+    CCAA: z.string(),
+  })
+  .passthrough();
+
+export type ComunidadAutonoma = z.infer<typeof ComunidadAutonomaEsquema>;
+
+/**
+ * Catálogo de provincias con su comunidad autónoma, vía `Listados/Provincias`.
+ * Es la fuente para agrupar zonas de tipo `ccaa` (ADR-0005): los
+ * identificadores de comunidad autónoma nunca se escriben a mano.
+ */
+export async function obtenerProvincias(
+  opciones: OpcionesPeticionMiteco = {},
+): Promise<ProvinciaCatalogo[]> {
+  return pedirJsonMiteco('Listados/Provincias/', z.array(ProvinciaCatalogoEsquema), opciones);
+}
+
+/** Catálogo de comunidades autónomas, vía `Listados/ComunidadesAutonomas`. */
+export async function obtenerComunidadesAutonomas(
+  opciones: OpcionesPeticionMiteco = {},
+): Promise<ComunidadAutonoma[]> {
+  return pedirJsonMiteco(
+    'Listados/ComunidadesAutonomas/',
+    z.array(ComunidadAutonomaEsquema),
+    opciones,
+  );
+}

@@ -6,6 +6,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   obtenerEstacionesPorProvincia,
+  obtenerProvincias,
+  obtenerComunidadesAutonomas,
   ErrorValidacionMiteco,
   ErrorResultadoMiteco,
   ErrorPeticionMiteco,
@@ -199,6 +201,35 @@ test('agota los reintentos configurados y lanza ErrorPeticionMiteco', async () =
     ErrorPeticionMiteco,
   );
   assert.equal(llamadas.length, 3, '1 intento inicial + 2 reintentos = 3 llamadas');
+});
+
+test('obtenerProvincias lee la clave mal escrita IDPovincia tal cual la devuelve el ministerio', async () => {
+  const { fetch, llamadas } = fetchFalso([
+    () =>
+      respuestaJson([
+        { IDPovincia: '01', IDCCAA: '16', Provincia: 'ARABA/ALAVA', CCAA: 'País Vasco' },
+        { IDPovincia: '28', IDCCAA: '13', Provincia: 'MADRID', CCAA: 'Madrid' },
+      ]),
+  ]);
+
+  const provincias = await obtenerProvincias({ fetch });
+
+  assert.equal(provincias.length, 2);
+  assert.equal(provincias[0]?.IDPovincia, '01');
+  assert.equal(provincias[0]?.IDCCAA, '16');
+  assert.match(llamadas[0].url, /Listados\/Provincias\/$/);
+});
+
+test('obtenerComunidadesAutonomas devuelve el catálogo de CCAA', async () => {
+  const { fetch, llamadas } = fetchFalso([
+    () => respuestaJson([{ IDCCAA: '16', CCAA: 'País Vasco' }]),
+  ]);
+
+  const ccaas = await obtenerComunidadesAutonomas({ fetch });
+
+  assert.equal(ccaas.length, 1);
+  assert.equal(ccaas[0]?.CCAA, 'País Vasco');
+  assert.match(llamadas[0].url, /Listados\/ComunidadesAutonomas\/$/);
 });
 
 test('el timeout por intento aborta la petición y cuenta como fallo reintentable', async () => {

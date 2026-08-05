@@ -47,6 +47,7 @@ export interface Zona {
 
 export interface Indice {
   actualizado: string;
+  mock?: true;
   provincias: ResumenProvincia[];
   zonas: Zona[];
 }
