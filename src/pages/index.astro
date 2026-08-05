@@ -29,8 +29,8 @@ import '../estilos/interfaz.css';
           <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
         </aside>
 
-        <div class="mapa-hueco">
-          <p>El mapa llega en un hito posterior (H8). Mientras tanto, la lista y la ficha funcionan enteras.</p>
+        <div id="mapa" class="mapa-hueco">
+          <p>Cargando mapa…</p>
         </div>
       </div>
     </div>
@@ -56,6 +56,7 @@ import '../estilos/interfaz.css';
       const contenedorControles = elemento('controles');
       const contenedorTotem = elemento('totem');
       const contenedorLista = elemento('lista');
+      const contenedorMapa = elemento('mapa');
       const contenedorAvisos = elemento('avisos');
       const insigniaMock = elemento('insignia-mock');
 
@@ -167,6 +168,24 @@ import '../estilos/interfaz.css';
 
       montarLista(contenedorLista);
       montarTotem(contenedorTotem);
+
+      // El mapa se importa dinámicamente: MapLibre pesa bastante más que el
+      // resto del bundle inicial, y RNF-11 solo cuenta el JS de antes de
+      // MapLibre. Con import() dinámico, MapLibre entra en su propio chunk y
+      // se descarga aparte y después, sin retrasar el primer pintado del
+      // resto de la interfaz. Regla dura 2 de CLAUDE.md: si ni siquiera se
+      // puede descargar ese chunk (red caída de verdad), el hueco del mapa
+      // explica el fallo y el resto de la aplicación sigue intacta; Mapa.ts
+      // ya gestiona por su cuenta cualquier fallo de MapLibre o de los tiles.
+      import('../componentes/Mapa.ts')
+        .then(({ montarMapa }) => montarMapa(contenedorMapa))
+        .catch(() => {
+          contenedorMapa.innerHTML = '';
+          contenedorMapa.removeAttribute('style');
+          const aviso = document.createElement('p');
+          aviso.textContent = 'El mapa no se ha podido cargar. La lista y la ficha funcionan igual.';
+          contenedorMapa.append(aviso);
+        });
 
       cargarTodo();
     </script>
