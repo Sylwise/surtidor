@@ -18,8 +18,13 @@
   --p4: #c06a2e;
   --p5: #a6371f;
 
-  /* El tótem encendido: la más barata */
-  --signal: #f5b921;
+  /* El tótem encendido: la más barata. Verde claro, bien alejado en brillo
+     de --p1/--p2 (los otros dos tonos verdosos de la escala) para que la
+     diferencia se note por luminosidad aunque el tono de verde cueste
+     distinguirlo (antes era ámbar #f5b921, demasiado cerca de --p4 naranja).
+     Contraste con --petrol en los dos sentidos en que se usa (texto sobre
+     fondo señal, y texto señal sobre fondo tótem): 7,7:1, pasa AA de sobra. */
+  --signal: #7ed957;
 
   --mono: ui-monospace, 'SF Mono', SFMono-Regular, 'Roboto Mono', Menlo, Consolas, monospace;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
