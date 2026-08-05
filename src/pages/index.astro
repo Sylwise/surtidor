@@ -17,16 +17,25 @@ import '../estilos/interfaz.css';
     <div class="app">
       <header class="cabecera">
         <span class="marca">Surtidor</span>
-        <div id="controles" aria-label="Controles"></div>
+        <div id="controles-identidad" class="controles-identidad" aria-label="Zona y depósito"></div>
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
       </header>
 
       <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
 
       <div class="layout">
-        <aside class="rail">
-          <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
-          <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+        <!-- ADR-0006: en escritorio, barra lateral fija de siempre (a la
+             izquierda, como en el diseño original). En móvil, hoja
+             arrastrable con tres estados sobre el mapa (interfaz.css +
+             src/componentes/Hoja.ts); el orden en el DOM deja de importar
+             porque ambas pasan a position:fixed. -->
+        <aside class="hoja" id="hoja" data-estado="media">
+          <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones. Flecha arriba o abajo para cambiar de tamaño."></button>
+          <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible y filtro"></div>
+          <div class="hoja__cuerpo">
+            <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
+            <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+          </div>
         </aside>
 
         <div id="mapa" class="mapa-hueco">
@@ -43,6 +52,7 @@ import '../estilos/interfaz.css';
       import { montarControles } from '../componentes/Controles.ts';
       import { montarLista } from '../componentes/Lista.ts';
       import { montarTotem } from '../componentes/Totem.ts';
+      import { montarHoja } from '../componentes/Hoja.ts';
       import { datosDesactualizados } from '../logica/frescura.ts';
       import type { FalloProvincia } from '../logica/zona.ts';
       import type { Indice } from '../../scripts/lib/tipos.ts';
@@ -53,12 +63,28 @@ import '../estilos/interfaz.css';
         return el;
       }
 
-      const contenedorControles = elemento('controles');
+      const contenedorCabecera = document.querySelector('.cabecera') as HTMLElement;
+      const contenedorControlesIdentidad = elemento('controles-identidad');
+      const contenedorControlesRapidos = elemento('controles-rapidos');
       const contenedorTotem = elemento('totem');
       const contenedorLista = elemento('lista');
       const contenedorMapa = elemento('mapa');
       const contenedorAvisos = elemento('avisos');
       const insigniaMock = elemento('insignia-mock');
+      const hoja = elemento('hoja');
+      const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
+
+      // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006):
+      // necesita saber su alto real, que puede variar si el nombre de zona
+      // envuelve a una segunda línea o aparece la insignia de datos de
+      // prueba. Un ResizeObserver es más fiable que adivinar un número fijo.
+      const actualizarAlturaCabecera = (): void => {
+        document.documentElement.style.setProperty('--cabecera-alto', `${contenedorCabecera.offsetHeight}px`);
+      };
+      new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
+      actualizarAlturaCabecera();
+
+      montarHoja(hoja, asaHoja);
 
       let indice: Indice | null = null;
       let controlesMontados = false;
@@ -136,8 +162,9 @@ import '../estilos/interfaz.css';
             indice = await cargarIndice();
           }
           if (!controlesMontados) {
-            montarControles(contenedorControles, indice.zonas);
+            montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
             controlesMontados = true;
+            actualizarAlturaCabecera();
           }
 
           const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? indice.zonas[0];

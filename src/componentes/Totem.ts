@@ -17,6 +17,11 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
     const estacion = estado.estaciones.find((e) => e.id === estado.estacionId) ?? null;
 
+    // Sin estación, el tótem se vuelve un aviso compacto (ADR-0006): sin
+    // esto reserva su cromo completo (padding, borde de --signal) aunque no
+    // tenga nada que decir, y ese espacio nunca vuelve a la lista.
+    contenedor.classList.toggle('totem--vacio', !estacion);
+
     if (!estacion) {
       const vacio = document.createElement('p');
       vacio.className = 'totem__vacio';

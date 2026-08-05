@@ -1,7 +1,11 @@
-// Selector de combustible (pestañas, un toque), selector de zona (buscable,
-// agrupado), filtro "solo abiertas ahora" y campo de depósito (RF-30 a RF-34).
-// Persistencia de combustible/zona/depósito la hace src/logica/estado.ts al
-// recibir cada actualización; aquí solo se dispara el cambio de estado.
+// Selector de zona (buscable, agrupado) y depósito viven en la cabecera
+// superior (RF-32, RF-33): se tocan una vez por sesión. Selector de
+// combustible y filtro "solo abiertas ahora" viven en la cabecera de la
+// hoja inferior (RF-30, RF-31): son los controles de más uso, y ADR-0006
+// los pone siempre alcanzables en los tres estados de la hoja, también en
+// escritorio. Persistencia de combustible/zona/depósito la hace
+// src/logica/estado.ts al recibir cada actualización; aquí solo se dispara
+// el cambio de estado.
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
@@ -14,23 +18,33 @@ const ETIQUETA_TIPO: Record<Zona['tipo'], string> = {
 };
 
 const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa', 'medida'];
+const PASO_DEPOSITO = 5;
 
 function normalizar(texto: string): string {
   return texto
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase();
 }
 
-/** Monta los controles en `contenedor` (zona, combustible, filtro, depósito) y
- *  los mantiene sincronizados con el estado. El DOM se construye una sola vez:
- *  las actualizaciones posteriores solo tocan lo que cambia, para no cerrar el
- *  panel de zona ni perder el foco cada vez que algo más se recalcula. */
-export function montarControles(contenedor: HTMLElement, zonas: Zona[]): () => void {
+/**
+ * Monta los controles y los mantiene sincronizados con el estado. El DOM se
+ * construye una sola vez: las actualizaciones posteriores solo tocan lo que
+ * cambia, para no cerrar el panel de zona ni perder el foco cada vez que
+ * algo más se recalcula.
+ *
+ * `contenedorIdentidad` recibe el selector de zona y el depósito.
+ * `contenedorRapidos` recibe el selector de combustible y el filtro.
+ */
+export function montarControles(
+  contenedorIdentidad: HTMLElement,
+  contenedorRapidos: HTMLElement,
+  zonas: Zona[],
+): () => void {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
-  contenedor.innerHTML = '';
-  contenedor.className = 'controles';
+  contenedorIdentidad.innerHTML = '';
+  contenedorRapidos.innerHTML = '';
 
   // --- Selector de zona: buscable, agrupado por tipo (RF-32) ---
   const bloqueZona = document.createElement('div');
@@ -157,34 +171,79 @@ export function montarControles(contenedor: HTMLElement, zonas: Zona[]): () => v
     botonesCombustible.set(clave, boton);
   }
 
-  // --- Filtro "solo abiertas ahora" (RF-31, CU-4) ---
+  // --- Filtro "solo abiertas ahora": interruptor a medida (RF-31, CU-4) ---
+  // El <input> real sigue siendo la fuente de verdad accesible (teclado,
+  // lectores de pantalla): se oculta visualmente sin `display:none`, que
+  // lo sacaría del árbol de accesibilidad. La pastilla es un <span> puramente
+  // visual que reacciona a `:checked` por CSS (ver .toggle en interfaz.css).
   const filtro = document.createElement('label');
-  filtro.className = 'controles__filtro';
+  filtro.className = 'toggle controles__filtro';
   const checkAbiertas = document.createElement('input');
   checkAbiertas.type = 'checkbox';
+  checkAbiertas.className = 'toggle__input';
   checkAbiertas.addEventListener('change', () => actualizarEstado({ soloAbiertas: checkAbiertas.checked }));
-  filtro.append(checkAbiertas, document.createTextNode(' Solo abiertas ahora'));
+  const pastilla = document.createElement('span');
+  pastilla.className = 'toggle__pastilla';
+  pastilla.setAttribute('aria-hidden', 'true');
+  const textoFiltro = document.createElement('span');
+  textoFiltro.className = 'toggle__texto';
+  textoFiltro.textContent = 'Solo abiertas ahora';
+  filtro.append(checkAbiertas, pastilla, textoFiltro);
 
-  // --- Depósito en litros, 50 L por defecto (RF-33) ---
-  const campoDeposito = document.createElement('label');
-  campoDeposito.className = 'controles__deposito';
-  campoDeposito.append(document.createTextNode('Depósito '));
+  // --- Depósito en litros, 50 L por defecto: estepador a medida (RF-33) ---
+  // Se mantiene `type="number"` (teclado numérico, validación nativa) pero
+  // se ocultan las flechas del navegador por CSS y se sustituyen por dos
+  // botones propios que llaman a stepUp()/stepDown(), reutilizando el mismo
+  // evento `input` que ya dispara la actualización de estado.
+  const campoDeposito = document.createElement('div');
+  campoDeposito.className = 'deposito';
+
   const inputDeposito = document.createElement('input');
   inputDeposito.type = 'number';
   inputDeposito.min = '1';
   inputDeposito.max = '300';
-  inputDeposito.step = '1';
+  inputDeposito.step = String(PASO_DEPOSITO);
   inputDeposito.inputMode = 'numeric';
+  inputDeposito.className = 'deposito__input';
   inputDeposito.setAttribute('aria-label', 'Depósito en litros');
-  inputDeposito.addEventListener('input', () => {
+
+  function emitirCambioDeposito(): void {
     const litros = Number(inputDeposito.value);
     if (Number.isFinite(litros) && litros > 0) {
       actualizarEstado({ deposito: litros });
     }
-  });
-  campoDeposito.append(inputDeposito, document.createTextNode(' L'));
+  }
+  inputDeposito.addEventListener('input', emitirCambioDeposito);
 
-  contenedor.append(bloqueZona, tabsCombustible, filtro, campoDeposito);
+  const botonMenos = document.createElement('button');
+  botonMenos.type = 'button';
+  botonMenos.className = 'deposito__paso';
+  botonMenos.setAttribute('aria-label', `Restar ${PASO_DEPOSITO} litros`);
+  botonMenos.textContent = '−';
+  botonMenos.addEventListener('click', () => {
+    inputDeposito.stepDown();
+    emitirCambioDeposito();
+  });
+
+  const botonMas = document.createElement('button');
+  botonMas.type = 'button';
+  botonMas.className = 'deposito__paso';
+  botonMas.setAttribute('aria-label', `Sumar ${PASO_DEPOSITO} litros`);
+  botonMas.textContent = '+';
+  botonMas.addEventListener('click', () => {
+    inputDeposito.stepUp();
+    emitirCambioDeposito();
+  });
+
+  const sufijoDeposito = document.createElement('span');
+  sufijoDeposito.className = 'deposito__sufijo micro';
+  sufijoDeposito.textContent = 'L';
+  sufijoDeposito.setAttribute('aria-hidden', 'true');
+
+  campoDeposito.append(botonMenos, inputDeposito, sufijoDeposito, botonMas);
+
+  contenedorIdentidad.append(bloqueZona, campoDeposito);
+  contenedorRapidos.append(tabsCombustible, filtro);
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);

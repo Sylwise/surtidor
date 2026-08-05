@@ -256,7 +256,10 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     const lienzo = document.createElement('div');
     lienzo.className = 'mapa-lienzo';
     contenedor.innerHTML = '';
-    contenedor.setAttribute('style', 'position:relative;padding:0;display:block');
+    // `position` no se toca aquí: lo decide interfaz.css (position:relative
+    // en escritorio, position:fixed en móvil, ADR-0006). Un estilo en línea
+    // pisaría con más especificidad la regla del media query.
+    contenedor.setAttribute('style', 'padding:0;display:block');
     contenedor.append(lienzo);
 
     mapa = new MapaLibre({

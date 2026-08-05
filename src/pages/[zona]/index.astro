@@ -1,9 +1,9 @@
 ---
 // H10 · Una página estática por zona, para SEO (docs/06-roadmap.md#H10,
 // ADR-0004). Mismo contenido interactivo que src/pages/index.astro —
-// Controles, Lista, Totem y Mapa — pero con la zona activa fijada desde la
-// URL, y <title>/<meta description> propios por zona para que Google
-// indexe cada una por separado.
+// Controles, Lista, Totem, Mapa y la hoja inferior de ADR-0006 — pero con
+// la zona activa fijada desde la URL, y <title>/<meta description> propios
+// por zona para que Google indexe cada una por separado.
 //
 // El frontmatter corre en Node durante el build: lee public/data/indice.json
 // del disco (no por fetch) para generar un path estático por zona, igual que
@@ -45,16 +45,20 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
     <div class="app" id="app" data-zona-id={zona.id}>
       <header class="cabecera">
         <span class="marca">Surtidor</span>
-        <div id="controles" aria-label="Controles"></div>
+        <div id="controles-identidad" class="controles-identidad" aria-label="Zona y depósito"></div>
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
       </header>
 
       <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
 
       <div class="layout">
-        <aside class="rail">
-          <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
-          <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+        <aside class="hoja" id="hoja" data-estado="media">
+          <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones. Flecha arriba o abajo para cambiar de tamaño."></button>
+          <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible y filtro"></div>
+          <div class="hoja__cuerpo">
+            <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
+            <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+          </div>
         </aside>
 
         <div id="mapa" class="mapa-hueco">
@@ -75,6 +79,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       import { montarControles } from '../../componentes/Controles.ts';
       import { montarLista } from '../../componentes/Lista.ts';
       import { montarTotem } from '../../componentes/Totem.ts';
+      import { montarHoja } from '../../componentes/Hoja.ts';
       import { datosDesactualizados } from '../../logica/frescura.ts';
       import type { FalloProvincia } from '../../logica/zona.ts';
       import type { Indice } from '../../../scripts/lib/tipos.ts';
@@ -86,12 +91,27 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       }
 
       const contenedorApp = elemento('app');
-      const contenedorControles = elemento('controles');
+      const contenedorCabecera = document.querySelector('.cabecera') as HTMLElement;
+      const contenedorControlesIdentidad = elemento('controles-identidad');
+      const contenedorControlesRapidos = elemento('controles-rapidos');
       const contenedorTotem = elemento('totem');
       const contenedorLista = elemento('lista');
       const contenedorMapa = elemento('mapa');
       const contenedorAvisos = elemento('avisos');
       const insigniaMock = elemento('insignia-mock');
+      const hoja = elemento('hoja');
+      const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
+
+      // Ver el comentario equivalente en src/pages/index.astro: el mapa en
+      // móvil es `position: fixed` bajo la cabecera (ADR-0006) y necesita
+      // saber su alto real.
+      const actualizarAlturaCabecera = (): void => {
+        document.documentElement.style.setProperty('--cabecera-alto', `${contenedorCabecera.offsetHeight}px`);
+      };
+      new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
+      actualizarAlturaCabecera();
+
+      montarHoja(hoja, asaHoja);
 
       // RF-43, igual que en src/pages/index.astro: dato derivado local a la
       // página, fuera del estado global.
@@ -176,8 +196,9 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
             indice = await cargarIndice();
           }
           if (!controlesMontados) {
-            montarControles(contenedorControles, indice.zonas);
+            montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
             controlesMontados = true;
+            actualizarAlturaCabecera();
           }
 
           // Red de seguridad: si la zona de esta página ya no existe en el

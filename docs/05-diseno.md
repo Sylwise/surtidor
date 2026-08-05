@@ -43,7 +43,7 @@ ahí.
   --p5: #A6371F;
 
   /* El tótem encendido: la más barata */
-  --signal: #F5B921;
+  --signal: #7ED957;
 
   --mono: ui-monospace,"SF Mono",SFMono-Regular,"Roboto Mono",Menlo,Consolas,monospace;
   --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
@@ -99,13 +99,49 @@ no está, probablemente el problema es de jerarquía, no de tamaño.
 Rail de 326 px fijo. El tótem arriba porque es la respuesta; la lista debajo
 porque es la alternativa.
 
-**Móvil**
+**Móvil** (ver [ADR-0006](adr/0006-hoja-inferior-movil.md))
 
-El mapa ocupa arriba y el rail pasa a hoja inferior, con `max-height: 47vh`.
-Orden invertido con `flex-direction: column-reverse`, de modo que **los
-controles queden en la mitad inferior**, al alcance del pulgar. El selector de
-combustible y el filtro son lo que más se toca y no pueden estar en la esquina
-superior.
+```
+┌────────────────────────────────────┐
+│ Surtidor · ÁLAVA          Depósito │  ← cabecera fina y fija
+├────────────────────────────────────┤
+│                                     │
+│           MAPA (positron)          │  ← capa de fondo, fixed,
+│         tótems con el precio       │    todo el alto disponible
+│                                     │
+│  ╭───────────────────────────────╮ │
+│  │        ▔▔▔▔▔ (asa)            │ │  ← hoja: arrastrable,
+│  │ [95][Diésel][98][Premium]     │ │    3 estados
+│  │ ◯ Solo abiertas ahora         │ │
+│  │ ───────────────────────────── │ │
+│  │ MÁS BARATAS                   │ │
+│  │ 1 Ballenoil          1,409    │ │
+│  │ 2 Plenoil            1,419    │ │
+│  ╰───────────────────────────────╯ │
+└────────────────────────────────────┘
+```
+
+El mapa deja de repartir espacio con nadie: es una capa de fondo a pantalla
+completa por debajo de la cabecera. Encima flota la **hoja inferior**, con
+tres estados que el usuario cambia arrastrando la asa (o con el teclado,
+RNF-20):
+
+- **Colapsada** (~96 px): solo la asa y los controles de más uso —
+  combustible y filtro, que son los que se tocan en cada consulta (RF-30,
+  RF-31) y por eso viven en la cabecera de la propia hoja, no en la
+  superior. El mapa se ve casi entero.
+- **Media** (~50 % de la pantalla, estado por defecto): la lista, varias
+  filas visibles de un vistazo.
+- **Completa** (~88 % de la pantalla): lista larga, o la ficha de una
+  estación sin recortarse.
+
+Al tocar una estación estando la hoja colapsada, sube sola a "media": la
+ficha nunca se queda escondida detrás de un gesto extra. El botón de zona y
+el campo de depósito, que se tocan una vez por sesión, se quedan en la
+cabecera superior fina y fija; no reclaman sitio de la hoja.
+
+El estado de la hoja es solo de interfaz — no se guarda en `localStorage` ni
+en el estado de la aplicación, se reinicia a "media" en cada visita.
 
 La leyenda se oculta en móvil: no hay sitio y el precio va escrito.
 
@@ -146,6 +182,30 @@ para que lista y mapa hablen el mismo idioma cromático.
 ### Selector de combustible
 
 Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
+
+### Campo de depósito
+
+Nunca el `<input type="number">` a pelo con las flechas nativas del
+navegador — se ven ajenas al resto de la interfaz. Un estepador propio:
+botones `−`/`+` a los lados (40×40 px, área táctil de sobra para RNF-24),
+el número en el centro con la misma monoespaciada tabular que los precios
+(`.precio`), sufijo "L" en micro-etiqueta. Pasos de 5 en 5: nadie ajusta el
+depósito litro a litro.
+
+### Interruptor "solo abiertas ahora"
+
+Nunca el checkbox del sistema operativo. Una pastilla deslizante: apagada,
+fondo `--paper` con borde `--hair`; encendida, fondo `--signal` con el pomo
+en `--petrol` — el mismo lenguaje de "esto está encendido" que ya usa el
+tótem de la más barata. El `<input>` real sigue ahí, oculto mas no
+inaccesible (nunca `display:none`), para que el teclado y los lectores de
+pantalla lo sigan viendo como lo que es.
+
+### Barra de scroll de la lista
+
+Fina y del color de la paleta (`--muted` diluido), nunca la barra por
+defecto del sistema. `scrollbar-width: thin` / `scrollbar-color` en
+Firefox, `::-webkit-scrollbar` en Chrome y Safari.
 
 ## Estados de error y vacío
 
