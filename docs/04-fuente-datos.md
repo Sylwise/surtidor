@@ -141,20 +141,6 @@ que devuelve el servicio REST. No hay nada que hacer al respecto: usamos el REST
 y mostramos la marca de tiempo que él mismo declara, para que el usuario sepa a
 qué momento corresponde el dato.
 
-### 11. "Tipo Venta: P" no garantiza acceso real
-
-Todas las estaciones que devuelve `FiltroProvincia` llevan `"Tipo Venta": "P"`
-(público), sin excepción — comprobado en Álava, Madrid, Barcelona, Sevilla,
-Valencia y Las Palmas. No hay ningún otro valor en circulación en este
-endpoint, así que el campo no sirve para distinguir nada.
-
-Aun así, una estación declarada "pública" puede no serlo en la práctica:
-casos reales de estaciones desatendidas tipo low-cost (GM OIL, BALLENOIL,
-PLENOIL...) dentro de polígonos industriales, a veces con barrera de acceso,
-a veces genuinamente restringidas pese a la declaración. **No hay ningún campo
-en la API que permita filtrar esto.** Es una limitación de la fuente, no un
-bug de Surtidor: se muestra lo que el ministerio declara.
-
 ## Forma de la respuesta
 
 ```json

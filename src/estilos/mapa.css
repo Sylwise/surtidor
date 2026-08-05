@@ -34,6 +34,7 @@
 }
 
 .marcador__cartel {
+  position: relative;
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-2);
@@ -45,9 +46,11 @@
   background: var(--p3);
   color: #fff;
   white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(22, 50, 59, 0.28);
   transition:
     background 130ms,
-    color 130ms;
+    color 130ms,
+    outline-color 130ms;
 }
 
 .marcador__poste {
@@ -73,10 +76,13 @@
   background: var(--p5);
 }
 
-/* Más barata de la zona: fondo --signal, texto oscuro, cartel más grande. */
+/* Más barata de la zona: no se distingue por tono (--mejor es vecino de
+   --p1/--p2), sino por contorno, tamaño y contraste. Nunca ámbar (ver
+   docs/adr/0003-escala-color-relativa.md). */
 .marcador--barata .marcador__cartel {
-  background: var(--signal);
-  color: var(--petrol);
+  background: var(--mejor);
+  color: #fff;
+  border: 2px solid var(--mejor-aro);
   font-size: var(--fs-3);
   padding: 4px 9px;
 }
@@ -105,6 +111,37 @@
 .marcador:focus-visible .marcador__cartel {
   outline: 2.5px solid var(--petrol);
   outline-offset: 2px;
+}
+
+/* ---------- Racimo (ADR-0006): agrupación por debajo del zoom 11 ----------
+   Mismo cartel que un marcador normal (mismas bandas de color, incluida la
+   más barata si el grupo contiene la más barata de la zona: RF-18, nunca
+   pierde) más una cuenta de estaciones en una insignia redonda. Al pulsar,
+   src/componentes/Mapa.ts acerca el zoom sobre el grupo. */
+
+.marcador--racimo .marcador__cartel {
+  font-size: var(--fs-3);
+  padding: 4px 9px;
+}
+
+.marcador__cuenta {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px solid #fff;
+  background: var(--petrol);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 @media (prefers-reduced-motion: no-preference) {

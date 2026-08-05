@@ -23,9 +23,9 @@ const UMBRAL_ARRASTRE_PX = 4;
 // interfaz.css. Duplicarlos aquí es más simple y más robusto que hacer que
 // el arrastre lea `getComputedStyle` en cada movimiento del puntero.
 function alturaDeEstado(estado: EstadoHoja): number {
-  if (estado === 'colapsada') return 96;
-  if (estado === 'media') return window.innerHeight * 0.5;
-  return window.innerHeight * 0.88;
+  if (estado === 'colapsada') return 110;
+  if (estado === 'media') return window.innerHeight * 0.55;
+  return window.innerHeight * 0.9;
 }
 
 function prefiereMovimientoReducido(): boolean {

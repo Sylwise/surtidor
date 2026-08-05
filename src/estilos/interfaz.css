@@ -5,7 +5,8 @@
    blanco ni --petrol llegan a 4,5:1 sobre el fondo (contrastes medidos entre
    3,44 y 3,93). El texto de precio se fija por eso en --fs-6 (19px) con peso
    700, que cumple el umbral AA de "texto grande" (3:1) en las cinco bandas y
-   supera 4,5:1 en p1, p5 y --signal. Ver docs/adr/0003-escala-color-relativa.md. */
+   supera 4,5:1 en p1, p5 y --mejor (texto blanco a más de 7:1). Ver
+   docs/adr/0003-escala-color-relativa.md. */
 
 * {
   box-sizing: border-box;
@@ -210,8 +211,9 @@ input {
 
 /* ---------- Controles ---------- */
 
-/* Zona + depósito, en la cabecera superior (ADR-0006: se tocan una vez por
-   sesión, no reclaman sitio de la hoja). */
+/* Zona, en la cabecera superior: se toca una vez por sesión, no reclama
+   sitio de la hoja (docs/05-diseno.md#Móvil). El depósito ya no vive aquí:
+   se mudó a la ficha de estación, ver .totem__deposito más abajo. */
 .controles-identidad {
   display: flex;
   flex-wrap: wrap;
@@ -220,11 +222,19 @@ input {
   flex: 1;
 }
 
+.controles__etiqueta {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .controles__zona {
   position: relative;
 }
 
 .boton-zona {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--hair);
   background: var(--paper);
   border-radius: 8px;
@@ -276,7 +286,9 @@ input {
 }
 
 .panel-zona__opcion {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   width: 100%;
   text-align: left;
   padding: 6px 8px;
@@ -297,6 +309,10 @@ input {
 }
 
 .controles__pestana {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   border: 1px solid var(--hair);
   background: var(--paper);
   border-radius: 999px;
@@ -381,31 +397,46 @@ input {
 
 /* ---------- Depósito: estepador a medida ----------
    type="number" se mantiene (teclado numérico, validación nativa); solo se
-   ocultan las flechas del navegador, sustituidas por los botones −/+. */
+   ocultan las flechas del navegador, sustituidas por los botones −/+.
+   Vive dentro del tótem (docs/05-diseno.md#Móvil: "el selector de depósito
+   sale de la cabecera y se muda a la ficha de estación"), así que su paleta
+   es la oscura del tótem, no la clara de la cabecera. */
+
+.totem__deposito {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.totem__deposito-etiqueta {
+  color: var(--muted-light);
+  white-space: nowrap;
+}
 
 .deposito {
   display: flex;
   align-items: center;
-  border: 1px solid var(--hair);
+  border: 1px solid var(--hair-dark);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .deposito:focus-within {
-  outline: 2.5px solid var(--petrol);
+  outline: 2.5px solid var(--signal);
   outline-offset: 2px;
 }
 
 .deposito__paso {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  background: var(--paper);
-  color: var(--petrol);
+  background: transparent;
+  color: var(--paper);
   font-size: var(--fs-5);
   font-weight: 700;
   line-height: 1;
@@ -413,7 +444,7 @@ input {
 }
 
 .deposito__paso:hover {
-  background: var(--hair);
+  background: var(--hair-dark);
 }
 
 /* Número + "L" comparten esta celda y su borde; es lo único que separa a
@@ -430,10 +461,10 @@ input {
   position: relative;
   display: flex;
   align-items: center;
-  height: 40px;
-  border-left: 1px solid var(--hair);
-  border-right: 1px solid var(--hair);
-  background: var(--paper);
+  height: 44px;
+  border-left: 1px solid var(--hair-dark);
+  border-right: 1px solid var(--hair-dark);
+  background: transparent;
 }
 
 .deposito__input {
@@ -469,7 +500,7 @@ input {
   top: 50%;
   right: 8px;
   transform: translateY(-50%);
-  color: var(--muted);
+  color: var(--muted-light);
   pointer-events: none;
 }
 
@@ -494,6 +525,9 @@ input {
 }
 
 .lista__quitar-filtro {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--hair);
   background: transparent;
   border-radius: 6px;
@@ -594,9 +628,17 @@ input {
   background: var(--p5);
   color: #fff;
 }
+/* La más barata no se distingue por tono (--mejor es vecino de --p1/--p2):
+   contorno, tamaño y contraste, nunca ámbar. Ver docs/adr/0003. */
 .precio--barata {
-  background: var(--signal);
-  color: var(--petrol);
+  background: var(--mejor);
+  color: #fff;
+  outline: 2px solid var(--mejor-aro);
+  outline-offset: -2px;
+  /* La píldora ya usa --fs-6, el tamaño máximo de la escala tipográfica: no
+     hay un punto más de cuerpo al que subir, así que la diferencia de
+     tamaño la da el relleno. */
+  padding: 6px 12px;
 }
 
 /* ---------- Tótem ---------- */
@@ -716,9 +758,9 @@ input {
        estos mismos números (no los lee de aquí: duplicarlos es más simple
        y más robusto que hacer que JS parsee CSS) para decidir a qué estado
        saltar al soltar un arrastre. */
-    --hoja-colapsada: 96px;
-    --hoja-media: 50vh;
-    --hoja-completa: 88vh;
+    --hoja-colapsada: 110px;
+    --hoja-media: 55vh;
+    --hoja-completa: 90vh;
   }
 
   .cabecera {

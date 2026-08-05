@@ -1,37 +1,12 @@
 # 06 · Roadmap
 
-Hitos en orden estricto salvo donde el mapa de dependencias de abajo marca
-paralelismo explícito. Cada hito es convertible en un issue tal cual.
+Hitos en orden estricto. Cada uno se hace en su rama y se cierra antes de
+empezar el siguiente. Cada hito es convertible en un issue tal cual.
 
 El orden no es negociable: **los datos van primero y el mapa va el último**,
 justo al revés de como apetece hacerlo. El motivo es que el mapa es la pieza que
 más falla y la que menos aporta al principio. Si el proyecto se abandona a mitad,
 que sea con algo que funcione.
-
-## Mapa de dependencias
-
-H2, H3 y H4 son ficheros de `scripts/lib/` sin estado compartido entre sí:
-paralelizables. H6 no necesita que H5 exista de verdad — el contrato de
-`public/data/provincias/NN.json` ya está fijado en `docs/03-arquitectura.md` —
-así que puede construirse contra una fixture de mano en paralelo con toda la
-pista de datos. H7, H8 y H10 necesitan H6 cerrado, pero no dependen unos de
-otros si se reparte con cuidado quién toca `src/logica/estado.ts` (H8 es el
-único que debería tocarlo, porque añade el estado del mapa).
-
-```
-H1 (andamiaje)
- ├─→ H2 (cliente MITECO)      ─┐
- ├─→ H3 (normalizador)         ├─→ H5 (generación de datos) ─┐
- ├─→ H4 (horario)             ─┘                              │
- └─→ H6 (lista/tótem/controles, contra fixture) ───────────────┤
-                                                                 ├─→ H9 (despliegue)
-                                              H6 completo ──┬─→ H7 (errores)
-                                                             ├─→ H8 (mapa)
-                                                             └─→ H10 (páginas por zona)
-```
-
-Fuera de esos puntos, cada hito se hace en su rama y se cierra antes de
-empezar el siguiente.
 
 ---
 

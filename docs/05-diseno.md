@@ -42,13 +42,36 @@ ahí.
   --p4: #C06A2E;
   --p5: #A6371F;
 
-  /* El tótem encendido: la más barata */
-  --signal: #7ED957;
+  /* La más barata: verde profundo, extremo del lado barato */
+  --mejor:      #046A38;
+  --mejor-aro:  #FFFFFF;
+
+  /* Acento de chrome: selección y foco. NUNCA en el mapa ni en la lista. */
+  --signal: #F5B921;
 
   --mono: ui-monospace,"SF Mono",SFMono-Regular,"Roboto Mono",Menlo,Consolas,monospace;
   --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
 }
 ```
+
+**El ámbar `--signal` no marca nunca un precio.** Se usó al principio para la
+estación más barata y era un error: el ámbar cae en la misma familia de tono que
+`--p4` y `--p5`, que son el extremo caro. El marcador más importante de la
+pantalla acababa vestido del color del que hay que huir.
+
+La más barata va en `--mejor`, un verde profundo, que es el extremo natural del
+lado barato. `--signal` se queda solo para el chrome: borde del tótem, fila de
+combustible seleccionado, foco de los campos. Ahí el fondo es `--petrol` oscuro,
+el contexto es otro y no compite con ninguna escala.
+
+**Distinguir la más barata no puede depender del tono.** El tono ya lo ocupa la
+escala, y `--mejor` es vecino de `--p1` y `--p2`. El destaque viene de tres
+canales que la escala no usa:
+
+- **contorno** de 2 px en `--mejor-aro` alrededor de la píldora
+- **tamaño**: un punto más de cuerpo y algo más de relleno
+- **contraste**: `--mejor` es más oscuro y saturado que cualquier banda, con
+  texto blanco a más de 7:1
 
 **La banda central es gris a propósito.** No es un color sin decidir: es la
 afirmación de que la mayoría de las estaciones no tienen nada de particular y no
@@ -99,51 +122,63 @@ no está, probablemente el problema es de jerarquía, no de tamaño.
 Rail de 326 px fijo. El tótem arriba porque es la respuesta; la lista debajo
 porque es la alternativa.
 
-**Móvil** (ver [ADR-0006](adr/0006-hoja-inferior-movil.md))
+**Móvil**
+
+El móvil **no** es el escritorio con el rail abajo. La primera versión de este
+documento lo describía así —`column-reverse` y `max-height: 47vh`— y salió mal:
+tres franjas horizontales, ninguna con sitio, el mapa aplastado en una banda de
+280 px y los controles cortándose por abajo. Se corrige aquí.
+
+**El mapa es el sustrato y ocupa toda la pantalla. Lo demás flota encima.**
 
 ```
-┌────────────────────────────────────┐
-│ Surtidor · ÁLAVA          Depósito │  ← cabecera fina y fija
-├────────────────────────────────────┤
-│                                     │
-│           MAPA (positron)          │  ← capa de fondo, fixed,
-│         tótems con el precio       │    todo el alto disponible
-│                                     │
-│  ╭───────────────────────────────╮ │
-│  │        ▔▔▔▔▔ (asa)            │ │  ← hoja: arrastrable,
-│  │ [95][Diésel][98][Premium]     │ │    3 estados
-│  │ ◯ Solo abiertas ahora         │ │
-│  │ ───────────────────────────── │ │
-│  │ MÁS BARATAS                   │ │
-│  │ 1 Ballenoil          1,409    │ │
-│  │ 2 Plenoil            1,419    │ │
-│  ╰───────────────────────────────╯ │
-└────────────────────────────────────┘
+┌──────────────────────────────┐
+│ Surtidor      ARABA/ÁLAVA  ▾ │  48 px máx.
+├──────────────────────────────┤
+│                              │
+│                              │
+│         MAPA                 │  todo el resto,
+│      (a pantalla             │  por debajo de
+│       completa)              │  la hoja
+│                              │
+│                              │
+├──────────────────────────────┤
+│ ──────                       │  asa
+│ [95][Diésel][98][Premium]    │  cabecera fija
+│ ○ Solo abiertas ahora        │  de la hoja
+├──────────────────────────────┤
+│ 1  GM OIL          1,549     │  contenido
+│ 2  GUGAS           1,553     │  desplazable
+└──────────────────────────────┘
 ```
 
-El mapa deja de repartir espacio con nadie: es una capa de fondo a pantalla
-completa por debajo de la cabecera. Encima flota la **hoja inferior**, con
-tres estados que el usuario cambia arrastrando la asa (o con el teclado,
-RNF-20):
+Reglas:
 
-- **Colapsada** (~96 px): solo la asa y los controles de más uso —
-  combustible y filtro, que son los que se tocan en cada consulta (RF-30,
-  RF-31) y por eso viven en la cabecera de la propia hoja, no en la
-  superior. El mapa se ve casi entero.
-- **Media** (~50 % de la pantalla, estado por defecto): la lista, varias
-  filas visibles de un vistazo.
-- **Completa** (~88 % de la pantalla): lista larga, o la ficha de una
-  estación sin recortarse.
+- **Barra superior de 48 px como máximo**: logotipo y selector de zona. Nada más.
+- **El selector de depósito sale de la cabecera.** Es una preferencia que se
+  configura una vez en la vida y estaba ocupando 95 px de la mejor zona de la
+  pantalla, de forma permanente. Se muda dentro de la ficha de estación, junto al
+  cálculo de ahorro, que es el único sitio donde significa algo.
+- **Hoja inferior con tres posiciones**, arrastrable con puntos de anclaje:
+  asomada (~110 px: solo el asa, los controles y la estación más barata), media
+  (55 % de la altura) y completa (90 %).
+- **El selector de combustible y el filtro viven en la cabecera de la hoja**, y
+  son visibles en las tres posiciones. Nunca se cortan. Son lo que más se toca.
+- **La ficha de estación se apila encima de la lista**, dentro de la hoja, no la
+  sustituye. Se sigue pudiendo desplazar hasta la lista para comparar, que es
+  justo lo que quieres hacer cuando acabas de elegir una.
+- **Al abrir, `fitBounds` sobre las estaciones de la zona** con un 8 % de margen.
+  Nunca un centro y un zoom fijos: con centro fijo, media pantalla acaba siendo
+  campo vacío.
+- La leyenda se oculta: no hay sitio y el precio va escrito.
 
-Al tocar una estación estando la hoja colapsada, sube sola a "media": la
-ficha nunca se queda escondida detrás de un gesto extra. El botón de zona y
-el campo de depósito, que se tocan una vez por sesión, se quedan en la
-cabecera superior fina y fija; no reclaman sitio de la hoja.
+Todo control interactivo tiene un área de pulsación de 44 px como mínimo, aunque
+su parte visible sea menor.
 
-El estado de la hoja es solo de interfaz — no se guarda en `localStorage` ni
-en el estado de la aplicación, se reinicia a "media" en cada visita.
-
-La leyenda se oculta en móvil: no hay sitio y el precio va escrito.
+**El aspecto no se sacrifica por el rendimiento.** Los marcadores siguen siendo
+elementos del DOM con CSS completo —píldora redondeada, sombra, poste, contorno
+de la más barata, transiciones— precisamente para que retocar el aspecto siga
+costando una línea. Ver [ADR-0006](adr/0006-marcadores-dom-con-colisiones.md).
 
 ## Componentes
 
@@ -169,7 +204,8 @@ Debajo, el bloque de ahorro: el número en euros es lo más grande del bloque.
 
 Estados:
 - **normal** — fondo según la banda de precio
-- **más barata** — fondo `--signal`, texto oscuro, un punto más grande, con halo
+- **más barata** — fondo `--mejor`, texto blanco, contorno de 2 px en
+  `--mejor-aro`, un punto más grande. Nunca ámbar.
 - **cerrada** — opacidad 42 %, nunca oculta
 - **seleccionada** — contorno de 2,5 px en `--petrol`
 
@@ -182,30 +218,6 @@ para que lista y mapa hablen el mismo idioma cromático.
 ### Selector de combustible
 
 Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
-
-### Campo de depósito
-
-Nunca el `<input type="number">` a pelo con las flechas nativas del
-navegador — se ven ajenas al resto de la interfaz. Un estepador propio:
-botones `−`/`+` a los lados (40×40 px, área táctil de sobra para RNF-24),
-el número en el centro con la misma monoespaciada tabular que los precios
-(`.precio`), sufijo "L" en micro-etiqueta. Pasos de 5 en 5: nadie ajusta el
-depósito litro a litro.
-
-### Interruptor "solo abiertas ahora"
-
-Nunca el checkbox del sistema operativo. Una pastilla deslizante: apagada,
-fondo `--paper` con borde `--hair`; encendida, fondo `--signal` con el pomo
-en `--petrol` — el mismo lenguaje de "esto está encendido" que ya usa el
-tótem de la más barata. El `<input>` real sigue ahí, oculto mas no
-inaccesible (nunca `display:none`), para que el teclado y los lectores de
-pantalla lo sigan viendo como lo que es.
-
-### Barra de scroll de la lista
-
-Fina y del color de la paleta (`--muted` diluido), nunca la barra por
-defecto del sistema. `scrollbar-width: thin` / `scrollbar-color` en
-Firefox, `::-webkit-scrollbar` en Chrome y Safari.
 
 ## Estados de error y vacío
 

@@ -14,7 +14,7 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0003](0003-escala-color-relativa.md) | Escala de color relativa a la provincia | aceptado |
 | [0004](0004-astro.md) | Astro como framework | aceptado |
 | [0005](0005-provincia-unidad-y-zonas.md) | La provincia almacena, la zona consulta | aceptado |
-| [0006](0006-hoja-inferior-movil.md) | Hoja inferior arrastrable en móvil, mapa como capa de fondo | aceptado |
+| [0006](0006-marcadores-dom-con-colisiones.md) | Marcadores del DOM con agrupación y colisiones propias | aceptado |
 
 ## Plantilla
 

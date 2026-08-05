@@ -8,12 +8,23 @@
 // nunca se toca src/logica/estado.ts para reportarlo. Si algo falla, este
 // componente sustituye su propio contenedor por un mensaje y ya está: la
 // lista, el tótem y los controles no dependen de este fichero para nada.
+//
+// Marcadores del DOM con agrupación y colisiones propias: ver ADR-0006. La
+// disposición (qué se agrupa en racimo, qué se oculta por colisión) se
+// recalcula en moveend/zoomend, nunca en cada fotograma del arrastre.
 
 import { Map as MapaLibre, Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '../estilos/mapa.css';
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, preciosDeCombustible, type Escala } from '../logica/escala.ts';
+import {
+  agruparEnRacimos,
+  idsAgrupados,
+  resolverColisiones,
+  type PuntoColision,
+  type Racimo,
+} from '../logica/colisiones.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
@@ -29,10 +40,49 @@ const ZOOM_INICIAL = 5;
 // se trata como fallo igualmente en vez de dejar un mapa gris para siempre.
 const TIEMPO_ESPERA_MS = 10000;
 
+// ADR-0006: por debajo de este zoom, las estaciones se agrupan en racimos en
+// vez de mostrarse una a una. Con datos reales, es donde el racimo de
+// Vitoria-Gasteiz deja de caber sin solaparse.
+const UMBRAL_ZOOM_RACIMOS = 11;
+// Lado de la celda de la rejilla de agrupación, en píxeles de pantalla.
+const RADIO_RACIMO_PX = 64;
+
+// Tamaño aproximado del cartel para la detección de colisiones. No hace
+// falta el ancho exacto de cada texto (ver src/logica/colisiones.ts): estos
+// valores solo tienen que ser parecidos al tamaño real en pantalla.
+const CAJA_NORMAL = { ancho: 56, alto: 24 };
+const CAJA_DESTACADA = { ancho: 72, alto: 30 }; // más barata y racimos: un punto más grandes
+
+// Alto garantizado de la hoja inferior en su estado "asomada" (mismo número
+// que --hoja-colapsada en interfaz.css y el caso 'colapsada' en Hoja.ts).
+const ALTURA_MINIMA_HOJA_PX = 110;
+
 interface EntradaMarcador {
   marker: Marker;
   boton: HTMLButtonElement;
   cartel: HTMLSpanElement;
+}
+
+interface EntradaRacimo {
+  marker: Marker;
+  boton: HTMLButtonElement;
+  precioSpan: HTMLSpanElement;
+  cuenta: HTMLSpanElement;
+  /** Ids de las estaciones que representa ahora mismo este hueco del pool.
+   *  Mutable: el mismo marcador del DOM se reutiliza para racimos distintos
+   *  entre un recálculo y el siguiente. */
+  ids: string[];
+}
+
+/** Descarta estaciones con coordenadas ausentes que la fuente representa
+ *  como (0, 0) — "Null Island", en el golfo de Guinea, nunca un punto real
+ *  de España. No se toca el normalizador (regla de CLAUDE.md): el dato tal
+ *  cual sigue disponible en la lista y la ficha, que no usan lat/lon. Sin
+ *  este filtro, una sola estación así arrastra el `fitBounds` de la zona
+ *  entera a un zoom absurdo (RF-19: el resto de estaciones quedan reducidas
+ *  a un punto y el mapa se aleja hasta encajar también el (0, 0)). */
+function tieneCoordenadas(estacion: EstacionZona): boolean {
+  return !(estacion.lat === 0 && estacion.lon === 0);
 }
 
 function prefiereMovimientoReducido(): boolean {
@@ -59,8 +109,14 @@ export function montarMapa(contenedor: HTMLElement): () => void {
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
+  const racimoMarkers: EntradaRacimo[] = [];
   let estacionAnterior: string | null = obtenerEstado().estacionId;
   let firmaEstacionesAnterior: string | null = null;
+  // Snapshot del último render(), para que moveend/zoomend puedan recalcular
+  // la disposición sin depender de que también haya cambiado el estado.
+  let ultimasVisibles: EstacionZona[] = [];
+  let ultimoEstado: EstadoApp = obtenerEstado();
+  let ultimaEscala: Escala = crearEscala([]);
 
   function fallar(motivo: string): void {
     if (fallido) return;
@@ -70,6 +126,8 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     cancelarSuscripcion();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
+    for (const entrada of racimoMarkers) entrada.marker.remove();
+    racimoMarkers.length = 0;
     try {
       mapa?.remove();
     } catch {
@@ -88,6 +146,24 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       // 650 ms, ver la sección "Movimiento" de docs/05-diseno.md.
       mapa.flyTo({ center: centro, zoom, duration: 650 });
     }
+  }
+
+  /** Margen del encuadre inicial (RF-19): 8% del tamaño visible del mapa. En
+   *  móvil se suma el alto mínimo garantizado de la hoja inferior (su
+   *  estado "asomada": asa + controles rápidos), no su alto por defecto —
+   *  contar con el estado "media" (55% de la pantalla) por defecto dejaría
+   *  solo una franja diminuta para encuadrar y forzaría un zoom absurdo en
+   *  zonas grandes. La hoja es arrastrable: el usuario que la quiera fuera
+   *  del medio la baja, y la lista sigue siendo la vía principal para
+   *  llegar a lo que quede tapado. */
+  function calcularRelleno(): { top: number; right: number; bottom: number; left: number } {
+    const rect = contenedor.getBoundingClientRect();
+    const margen = Math.round(Math.min(rect.width, rect.height) * 0.08);
+    const relleno = { top: margen, right: margen, bottom: margen, left: margen };
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches) {
+      relleno.bottom += ALTURA_MINIMA_HOJA_PX;
+    }
+    return relleno;
   }
 
   /** Encuadre inicial de una zona: todas las estaciones visibles a la vez.
@@ -117,7 +193,36 @@ export function montarMapa(contenedor: HTMLElement): () => void {
         [minLon, minLat],
         [maxLon, maxLat],
       ],
-      { padding: 48, maxZoom: 13, duration: prefiereMovimientoReducido() ? 0 : 650 }
+      { padding: calcularRelleno(), maxZoom: 13, duration: prefiereMovimientoReducido() ? 0 : 650 }
+    );
+  }
+
+  /** Acerca el mapa a las estaciones de un racimo al pulsarlo. */
+  function volarARacimo(ids: string[]): void {
+    if (!mapa) return;
+    const miembros = ultimasVisibles.filter((e) => ids.includes(e.id));
+    if (miembros.length === 0) return;
+    if (miembros.length === 1) {
+      const [unico] = miembros;
+      saltarOVolar([unico.lon, unico.lat], Math.max(mapa.getZoom() + 2, UMBRAL_ZOOM_RACIMOS + 2));
+      return;
+    }
+    let minLon = Infinity;
+    let minLat = Infinity;
+    let maxLon = -Infinity;
+    let maxLat = -Infinity;
+    for (const e of miembros) {
+      minLon = Math.min(minLon, e.lon);
+      maxLon = Math.max(maxLon, e.lon);
+      minLat = Math.min(minLat, e.lat);
+      maxLat = Math.max(maxLat, e.lat);
+    }
+    mapa.fitBounds(
+      [
+        [minLon, minLat],
+        [maxLon, maxLat],
+      ],
+      { padding: 64, maxZoom: 16, duration: prefiereMovimientoReducido() ? 0 : 650 }
     );
   }
 
@@ -164,11 +269,10 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     const clases: string[] = [];
     let texto: string;
     let etiqueta: string;
-    // Con muchas estaciones muy juntas, los carteles se solapan (no hay
-    // agrupación de marcadores todavía, ver docs/03-arquitectura.md). Sin
-    // ningún criterio de apilado, el que se pinta último gana, y eso podía
-    // dejar un precio de verdad tapado por un "no vende" (--) que aporta
-    // mucho menos. Orden de prioridad, de menos a más encima.
+    // Con muchas estaciones muy juntas, los carteles se solapan: la
+    // detección de colisiones (ADR-0006, recalcularDisposicion) oculta las
+    // que pierdan, pero mientras tanto la que quede visible por encima de
+    // otra en el instante de la animación debe ser la más informativa.
     let prioridad = 1; // sin dato
 
     if (precio === null) {
@@ -221,14 +325,127 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     entrada.cartel.textContent = texto;
   }
 
+  function claseBanda(precio: number | null, escala: Escala): string {
+    if (precio === null) return 'marcador--sin-dato';
+    return escala.esMasBarata(precio) ? 'marcador--barata' : `marcador--${escala.banda(precio)}`;
+  }
+
+  function crearMarcadorRacimo(): EntradaRacimo {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'marcador marcador--racimo';
+
+    const cartel = document.createElement('span');
+    cartel.className = 'marcador__cartel';
+    const precioSpan = document.createElement('span');
+    const cuenta = document.createElement('span');
+    cuenta.className = 'marcador__cuenta';
+    cartel.append(precioSpan, cuenta);
+
+    const poste = document.createElement('span');
+    poste.className = 'marcador__poste';
+    boton.append(cartel, poste);
+
+    const entrada: EntradaRacimo = {
+      // setLngLat antes de addTo: Marker.addTo() actualiza su posición en el
+      // acto, y sin coordenadas todavía puestas revienta leyendo `.lng` de
+      // un LngLat inexistente (mismo motivo por el que crearMarcador, más
+      // abajo, pone las coordenadas antes de añadir el marcador al mapa).
+      marker: new Marker({ element: boton, anchor: 'bottom' }).setLngLat([0, 0]),
+      boton,
+      precioSpan,
+      cuenta,
+      ids: [],
+    };
+
+    // Al pulsar un racimo, el mapa se acerca sobre sus estaciones (ADR-0006).
+    boton.addEventListener('click', (evento) => {
+      evento.stopPropagation();
+      volarARacimo(entrada.ids);
+    });
+
+    if (mapa) entrada.marker.addTo(mapa);
+    return entrada;
+  }
+
+  /** Recalcula qué se ve como marcador individual, qué se agrupa en racimo
+   *  y qué se oculta por colisión (ADR-0006). Se llama al terminar cada
+   *  gesto del mapa (moveend/zoomend) y tras cada render por cambio de
+   *  estado, nunca en cada fotograma de un arrastre. */
+  function recalcularDisposicion(): void {
+    if (!mapa || fallido || !cargado) return;
+    const zoomActual = mapa.getZoom();
+
+    const proyectadas = ultimasVisibles.map((estacion) => {
+      const punto = mapa!.project([estacion.lon, estacion.lat]);
+      return { id: estacion.id, x: punto.x, y: punto.y, precio: estacion.precios[ultimoEstado.combustible] };
+    });
+
+    const racimos: Racimo[] = zoomActual < UMBRAL_ZOOM_RACIMOS ? agruparEnRacimos(proyectadas, RADIO_RACIMO_PX) : [];
+    const idsEnRacimo = idsAgrupados(racimos);
+
+    const puntosColision: PuntoColision[] = [];
+    for (const p of proyectadas) {
+      if (idsEnRacimo.has(p.id)) continue;
+      const destacada = p.precio !== null && ultimaEscala.esMasBarata(p.precio);
+      puntosColision.push({ id: p.id, x: p.x, y: p.y, precio: p.precio, ...(destacada ? CAJA_DESTACADA : CAJA_NORMAL) });
+    }
+    const clavesRacimo = racimos.map((_, indice) => `racimo-${indice}`);
+    racimos.forEach((racimo, indice) => {
+      puntosColision.push({ id: clavesRacimo[indice]!, x: racimo.x, y: racimo.y, precio: racimo.precioMinimo, ...CAJA_DESTACADA });
+    });
+
+    const visibles = resolverColisiones(puntosColision);
+
+    for (const [id, entrada] of marcadores) {
+      entrada.boton.hidden = idsEnRacimo.has(id) || !visibles.has(id);
+    }
+
+    while (racimoMarkers.length < racimos.length) racimoMarkers.push(crearMarcadorRacimo());
+
+    racimos.forEach((racimo, indice) => {
+      const entrada = racimoMarkers[indice]!;
+      entrada.ids = racimo.ids;
+      const lngLat = mapa!.unproject([racimo.x, racimo.y]);
+      entrada.marker.setLngLat(lngLat);
+
+      entrada.boton.classList.remove(
+        'marcador--sin-dato',
+        'marcador--barata',
+        'marcador--p1',
+        'marcador--p2',
+        'marcador--p3',
+        'marcador--p4',
+        'marcador--p5',
+      );
+      entrada.boton.classList.add(claseBanda(racimo.precioMinimo, ultimaEscala));
+
+      const textoPrecio = racimo.precioMinimo === null ? '—' : formatearPrecio(racimo.precioMinimo);
+      entrada.precioSpan.textContent = textoPrecio;
+      entrada.cuenta.textContent = String(racimo.ids.length);
+      entrada.boton.setAttribute(
+        'aria-label',
+        racimo.precioMinimo === null
+          ? `${racimo.ids.length} estaciones agrupadas, sin dato de ${ETIQUETA[ultimoEstado.combustible].toLowerCase()}. Pulsa para acercar.`
+          : `${racimo.ids.length} estaciones agrupadas, desde ${textoPrecio} euros. Pulsa para acercar.`
+      );
+      entrada.boton.hidden = !visibles.has(clavesRacimo[indice]!);
+    });
+    for (let i = racimos.length; i < racimoMarkers.length; i++) {
+      racimoMarkers[i]!.boton.hidden = true;
+      racimoMarkers[i]!.ids = [];
+    }
+  }
+
   function render(estado: EstadoApp): void {
     if (!mapa || fallido || !cargado) return;
 
     // RF-15: cerradas atenuadas pero visibles, salvo que el filtro de solo
     // abiertas esté activo (entonces, igual que en la lista, no se enseñan).
-    const visibles = estado.soloAbiertas
-      ? estado.estaciones.filter((e) => estaAbierta(e.horario, new Date()))
-      : estado.estaciones;
+    // Además, solo las que tienen coordenadas de verdad: ver tieneCoordenadas.
+    const visibles = (
+      estado.soloAbiertas ? estado.estaciones.filter((e) => estaAbierta(e.horario, new Date())) : estado.estaciones
+    ).filter(tieneCoordenadas);
 
     const idsVisibles = new Set(visibles.map((e) => e.id));
     for (const [id, entrada] of marcadores) {
@@ -251,6 +468,10 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       actualizarMarcador(entrada, estacion, estado, escala);
     }
 
+    ultimasVisibles = visibles;
+    ultimoEstado = estado;
+    ultimaEscala = escala;
+
     const firma = visibles
       .map((e) => e.id)
       .sort()
@@ -269,6 +490,12 @@ export function montarMapa(contenedor: HTMLElement): () => void {
         if (estacion) saltarOVolar([estacion.lon, estacion.lat], Math.max(mapa.getZoom(), 13));
       }
     }
+
+    // Un cambio de combustible o de filtro no mueve el mapa (no dispara
+    // moveend), pero cambia qué es "la más barata" y qué estaciones hay que
+    // colocar: hace falta recalcular la disposición aquí también, no solo
+    // en moveend/zoomend.
+    recalcularDisposicion();
   }
 
   try {
@@ -313,6 +540,13 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       render(obtenerEstado());
     });
 
+    // ADR-0006: la disposición (racimos + colisiones) se recalcula al
+    // terminar cada gesto, nunca en cada fotograma del arrastre. Durante el
+    // gesto los carteles pueden solaparse un instante; se recolocan al
+    // soltar.
+    mapa.on('moveend', recalcularDisposicion);
+    mapa.on('zoomend', recalcularDisposicion);
+
     // Tocar el mapa fuera de un marcador deselecciona la estación activa
     // (mismo patrón que Google Maps). Un marcador es un elemento aparte
     // superpuesto al lienzo, no un descendiente del canvas: un clic sobre
@@ -346,6 +580,8 @@ export function montarMapa(contenedor: HTMLElement): () => void {
     observador?.disconnect();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
+    for (const entrada of racimoMarkers) entrada.marker.remove();
+    racimoMarkers.length = 0;
     try {
       mapa?.remove();
     } catch {

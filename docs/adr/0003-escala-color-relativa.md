@@ -14,7 +14,13 @@ mostrando** (zona y combustible), no de umbrales absolutos. Ver
 [ADR-0005](0005-provincia-unidad-y-zonas.md) para qué es una zona.
 
 Bandas: 0-15 % `--p1`, 15-40 % `--p2`, 40-70 % `--p3`, 70-90 % `--p4`, 90-100 %
-`--p5`. La más barata además se pinta en `--signal`.
+`--p5`. La más barata se pinta en `--mejor`, con contorno y cuerpo mayor.
+
+**Corrección de 2026-08-05:** la más barata se pintaba en `--signal`, ámbar. Era
+un error. El ámbar comparte familia de tono con `--p4` y `--p5`, el extremo caro,
+así que el marcador más importante quedaba vestido del color del que hay que
+huir. `--signal` queda relegado al chrome, donde el fondo es oscuro y no compite
+con ninguna escala.
 
 ## Motivos
 

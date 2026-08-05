@@ -54,12 +54,8 @@ nada de gestores de estado. La lista permitida está en `docs/03-arquitectura.md
 
 ## Cómo trabajar
 
-- **Un hito por rama cuando hay dependencia entre ellos.** Los hitos están en
-  `docs/06-roadmap.md`, en orden. Los hitos sin dependencia real entre sí (ver
-  mapa de dependencias al principio de `06-roadmap.md`) pueden trabajarse en
-  paralelo, cada uno en su propia rama/worktree, y converger antes del hito
-  que los necesita a todos. Fuera de esos puntos de paralelismo explícitos, el
-  orden sigue siendo estricto.
+- **Un hito por rama.** Los hitos están en `docs/06-roadmap.md`, en orden. No
+  saltes hitos ni empieces varios a la vez.
 - **Verifica antes de decir que funciona.** `npm run build` tiene que pasar y
   tienes que haber cargado la página. "Debería funcionar" no vale.
 - **Comprueba los casos de fallo a mano:** sin red, JSON corrupto, provincia sin
