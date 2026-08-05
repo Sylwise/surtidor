@@ -25,6 +25,10 @@ export interface ResultadoZona {
   provinciasFallidas: FalloProvincia[];
   /** true si alguno de los ficheros cargados venía marcado `mock: true`. */
   mock: boolean;
+  /** El más antiguo de los `actualizado` de las provincias cargadas con
+   *  éxito (RF-43: si ese dato tiene más de 6 horas, se avisa). `null` si
+   *  ninguna provincia cargó. */
+  actualizado: string | null;
 }
 
 const TIMEOUT_MS = 8000;
@@ -64,6 +68,7 @@ export async function cargarZona(zona: Zona, catalogoProvincias: ResumenProvinci
   const estaciones: EstacionZona[] = [];
   const provinciasFallidas: FalloProvincia[] = [];
   let mock = false;
+  let actualizado: string | null = null;
 
   resultados.forEach((resultado, indice) => {
     const id = zona.provincias[indice];
@@ -72,6 +77,10 @@ export async function cargarZona(zona: Zona, catalogoProvincias: ResumenProvinci
     if (resultado.status === 'fulfilled') {
       const datos = resultado.value;
       if (datos.mock) mock = true;
+      // El dato de la zona es tan fresco como su provincia más antigua.
+      if (actualizado === null || new Date(datos.actualizado).getTime() < new Date(actualizado).getTime()) {
+        actualizado = datos.actualizado;
+      }
       for (const estacion of datos.estaciones) {
         estaciones.push({
           ...estacion,
@@ -85,5 +94,5 @@ export async function cargarZona(zona: Zona, catalogoProvincias: ResumenProvinci
     }
   });
 
-  return { estaciones, provinciasFallidas, mock };
+  return { estaciones, provinciasFallidas, mock, actualizado };
 }

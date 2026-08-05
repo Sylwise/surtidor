@@ -44,6 +44,7 @@ import '../estilos/interfaz.css';
       import { montarControles } from '../componentes/Controles.ts';
       import { montarLista } from '../componentes/Lista.ts';
       import { montarTotem } from '../componentes/Totem.ts';
+      import { datosDesactualizados } from '../logica/frescura.ts';
       import type { FalloProvincia } from '../logica/zona.ts';
       import type { Indice } from '../../scripts/lib/tipos.ts';
 
@@ -62,7 +63,27 @@ import '../estilos/interfaz.css';
       let indice: Indice | null = null;
       let controlesMontados = false;
 
-      function crearAviso(texto: string, tipo: 'error' | 'parcial', conReintentar: boolean): HTMLDivElement {
+      // RF-43: aviso de frescura de los datos. Vive fuera del estado global
+      // (src/logica/estado.ts) a propósito: es un dato derivado que solo usa
+      // esta página, y el hito del mapa (H8) también toca ese fichero.
+      let actualizadoZona: string | null = null;
+
+      function horaDelDato(iso: string): string {
+        const fecha = new Date(iso);
+        if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
+        return fecha.toLocaleString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+
+      function crearAviso(
+        texto: string,
+        tipo: 'error' | 'parcial' | 'desactualizado',
+        conReintentar: boolean
+      ): HTMLDivElement {
         const div = document.createElement('div');
         div.className = `aviso aviso--${tipo}`;
         div.append(document.createTextNode(texto));
@@ -96,6 +117,12 @@ import '../estilos/interfaz.css';
             )
           );
         }
+        // RF-43: aviso discreto, no bloquea ni compite con los de arriba.
+        if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
+          contenedorAvisos.append(
+            crearAviso(`Datos de las ${horaDelDato(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
+          );
+        }
       }
 
       // Carga (o recarga) el índice si hace falta, monta el selector de zona
@@ -118,6 +145,7 @@ import '../estilos/interfaz.css';
           if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
 
           const resultado = await cargarZona(zona, indice.provincias);
+          actualizadoZona = resultado.actualizado;
           const estacionSeleccionada = obtenerEstado().estacionId;
           const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
             ? estacionSeleccionada
@@ -136,6 +164,7 @@ import '../estilos/interfaz.css';
             estacionId: siguienteSeleccion,
           });
         } catch (error) {
+          actualizadoZona = null;
           actualizarEstado({
             cargando: false,
             error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
