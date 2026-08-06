@@ -11,7 +11,7 @@
 // lateral fija de siempre (ver interfaz.css) y este módulo no cambia nada
 // de su aspecto, aunque los listeners sigan montados.
 
-import { obtenerEstado, suscribir } from '../logica/estado.ts';
+import { actualizarEstado, obtenerEstado, suscribir } from '../logica/estado.ts';
 
 type EstadoHoja = 'colapsada' | 'media' | 'completa';
 
@@ -74,6 +74,13 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
       'aria-label',
       `Panel de estaciones: ${nuevo}. Flecha arriba o abajo para cambiar de tamaño.`,
     );
+
+    // RF-83: arrastrar (o el atajo de un toque en el asa) hasta la posición
+    // asomada es una de las tres formas de cerrar la ficha, igual que tocar
+    // el mapa (Mapa.ts) o la X (Totem.ts).
+    if (nuevo === 'colapsada' && obtenerEstado().estacionId) {
+      actualizarEstado({ estacionId: null });
+    }
   }
 
   function siguiente(direccion: 1 | -1): EstadoHoja {

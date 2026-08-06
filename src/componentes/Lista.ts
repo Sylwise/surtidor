@@ -5,7 +5,7 @@ import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../l
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
-import { formatearPrecio } from '../logica/formato.ts';
+import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 
@@ -16,8 +16,40 @@ function crearAviso(texto: string): HTMLParagraphElement {
   return p;
 }
 
+// RF-82: el filtro de abiertas ya no tiene fila propia, es una píldora junto
+// al contador que modifica ("MÁS BARATAS · 72 · Abiertas",
+// docs/05-diseno.md#Los-dos-estados-de-la-hoja). Reutiliza el aspecto de
+// pestaña de Controles.ts (misma familia visual de píldora) en vez de crear
+// un componente de chip aparte.
+function crearCabecera(soloAbiertas: boolean, contador: number): HTMLDivElement {
+  const cabecera = document.createElement('div');
+  cabecera.className = 'lista__cabecera';
+
+  const titulo = document.createElement('h2');
+  titulo.className = 'lista__titulo';
+  titulo.textContent = 'Más baratas';
+
+  const contadorEl = document.createElement('span');
+  contadorEl.className = 'lista__contador';
+  contadorEl.textContent = String(contador);
+
+  const filtro = document.createElement('button');
+  filtro.type = 'button';
+  filtro.className = 'controles__pestana lista__filtro';
+  filtro.classList.toggle('controles__pestana--activa', soloAbiertas);
+  filtro.setAttribute('aria-pressed', String(soloAbiertas));
+  filtro.setAttribute('aria-label', 'Filtrar solo estaciones abiertas ahora');
+  filtro.textContent = 'Abiertas';
+  filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !soloAbiertas }));
+
+  cabecera.append(titulo, document.createTextNode(' · '), contadorEl, document.createTextNode(' · '), filtro);
+  return cabecera;
+}
+
+// RF-86: el municipio se pasa a caja de título; la provincia, verbatim (RF-76).
 function nombreLugar(estacion: EstacionZona, multiProvincia: boolean): string {
-  return multiProvincia ? `${estacion.municipio} · ${estacion.provinciaNombre}` : estacion.municipio;
+  const municipio = cajaDeTitulo(estacion.municipio);
+  return multiProvincia ? `${municipio} · ${estacion.provinciaNombre}` : municipio;
 }
 
 /** Monta la lista en `contenedor` y la mantiene sincronizada con el estado.
@@ -49,13 +81,10 @@ export function montarLista(contenedor: HTMLElement): () => void {
     // interfaz, no solo aquí; el mapa y la ficha aplican el mismo filtro.
     const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
     const ordenadas = ordenarPorPrecio(visiblesTipoVenta, estado.combustible);
-    const titulo = document.createElement('h2');
-    titulo.className = 'lista__titulo';
-    titulo.textContent = 'Más baratas';
-    contenedor.append(titulo);
 
     // RF-42: ninguna estación de la zona vende el combustible elegido.
     if (ordenadas.length === 0) {
+      contenedor.append(crearCabecera(estado.soloAbiertas, 0));
       const nombreZona = estado.zonaNombre || 'esta zona';
       contenedor.append(
         crearAviso(`Ninguna estación de ${nombreZona} vende ${ETIQUETA[estado.combustible].toLowerCase()}.`)
@@ -64,6 +93,8 @@ export function montarLista(contenedor: HTMLElement): () => void {
     }
 
     const visibles = estado.soloAbiertas ? ordenadas.filter((e) => estaAbierta(e.horario, new Date())) : ordenadas;
+
+    contenedor.append(crearCabecera(estado.soloAbiertas, visibles.length));
 
     // Filtro sin resultados.
     if (visibles.length === 0) {

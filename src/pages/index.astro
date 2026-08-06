@@ -23,7 +23,7 @@ import marcaSvg from '../assets/marca.svg?raw';
       <header class="cabecera">
         <span class="marca">
           <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
-          Surtidor
+          <span class="marca__texto">Surtidor</span>
         </span>
         <div id="controles-identidad" class="controles-identidad" aria-label="Zona"></div>
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
@@ -39,7 +39,7 @@ import marcaSvg from '../assets/marca.svg?raw';
              porque ambas pasan a position:fixed. -->
         <aside class="hoja" id="hoja" data-estado="media">
           <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones. Flecha arriba o abajo para cambiar de tamaño."></button>
-          <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible y filtro"></div>
+          <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible"></div>
           <div class="hoja__cuerpo">
             <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
             <section id="lista" class="lista" aria-label="Lista de estaciones"></section>

@@ -104,7 +104,7 @@ function pintarFallo(contenedor: HTMLElement, motivo: string): void {
 // librerías de iconos por treinta líneas de SVG), un aro con una mira, igual
 // de familiar en cualquier mapa sin tomarlo prestado de ningún sitio.
 const ICONO_UBICACION =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v3.2M12 18.8V22M2 12h3.2M18.8 12H22"/></svg>';
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v3.2M12 18.8V22M2 12h3.2M18.8 12H22"/></svg>';
 
 // El aviso de error se retira solo: es la única forma de que un mensaje
 // junto a un control tan pequeño no se quede pegado para siempre compitiendo

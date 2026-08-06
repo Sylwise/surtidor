@@ -21,8 +21,8 @@ export interface EstadoApp {
   estacionId: string | null;
   /** Filtro "solo abiertas ahora" (CU-4). */
   soloAbiertas: boolean;
-  /** Litros a repostar, para el cálculo de ahorro (RF-33, RF-53). No
-   *  "depósito": casi nadie llena desde vacío. */
+  /** Litros a repostar, para el cálculo de ahorro (RF-33). No "depósito":
+   *  casi nadie llena desde vacío. */
   litros: number;
 
   /** Estaciones fusionadas de la zona activa (src/logica/zona.ts). */
@@ -77,7 +77,7 @@ function guardarPreferencias(estado: EstadoApp): void {
   }
 }
 
-// No hay zona por defecto (RF-49, RF-70; ver la corrección de 2026-08-06 en
+// No hay zona por defecto (RF-49; ver la corrección de 2026-08-06 en
 // ADR-0005): elegir una de entrada por el usuario es la misma decisión
 // editorial que se acaba de retirar. Sin zona guardada, `zonaId` queda a
 // `null` y cada página decide qué hacer mientras tanto: src/pages/index.astro

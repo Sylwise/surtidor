@@ -1,13 +1,20 @@
 // Selector de zona (buscable, agrupado) vive en la cabecera superior
-// (RF-32): se toca una vez por sesión. Selector de combustible y filtro
-// "solo abiertas ahora" viven en la cabecera de la hoja inferior (RF-30,
-// RF-31): son los controles de más uso, y docs/05-diseno.md#Móvil los pone
-// siempre alcanzables en los tres estados de la hoja, también en
-// escritorio. Los litros a repostar (RF-33) ya no viven aquí: se mudaron a la ficha de
-// estación (src/componentes/Totem.ts), junto al cálculo de ahorro, que es
-// el único sitio donde significa algo. Persistencia de combustible/zona la
-// hace src/logica/estado.ts al recibir cada actualización; aquí solo se
-// dispara el cambio de estado.
+// (RF-32): se toca una vez por sesión. Selector de combustible vive en la
+// cabecera de la hoja inferior (RF-30): es el control de más uso, y
+// docs/05-diseno.md#Móvil lo pone siempre alcanzable en los tres estados de
+// la hoja, también en escritorio. El filtro "solo abiertas ahora" ya no vive
+// aquí: es una píldora en la cabecera de la lista (RF-82,
+// src/componentes/Lista.ts), junto al contador que modifica. Los litros a
+// repostar (RF-33) tampoco: se mudaron a la ficha de estación
+// (src/componentes/Totem.ts), junto al cálculo de ahorro, que es el único
+// sitio donde significa algo. Persistencia de combustible/zona la hace
+// src/logica/estado.ts al recibir cada actualización; aquí solo se dispara
+// el cambio de estado.
+//
+// RF-80: las pestañas solo se muestran en estado de lista. Con una estación
+// seleccionada (estado de ficha) desaparecen, porque la ficha ya lista los
+// cuatro precios y el mismo control quedaría duplicado; las cuatro filas de
+// la ficha son las que cambian el combustible activo entonces (RF-81).
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
@@ -34,7 +41,8 @@ function normalizar(texto: string): string {
  * algo más se recalcula.
  *
  * `contenedorIdentidad` recibe el selector de zona.
- * `contenedorRapidos` recibe el selector de combustible y el filtro.
+ * `contenedorRapidos` recibe el selector de combustible; se oculta entero en
+ * estado de ficha (RF-80).
  *
  * Devuelve `abrirSelector`, para que la página pueda abrir el panel de zona
  * directamente cuando no hay ninguna zona resuelta todavía (RF-49).
@@ -179,27 +187,8 @@ export function montarControles(
     botonesCombustible.set(clave, boton);
   }
 
-  // --- Filtro "solo abiertas ahora": interruptor a medida (RF-31, CU-4) ---
-  // El <input> real sigue siendo la fuente de verdad accesible (teclado,
-  // lectores de pantalla): se oculta visualmente sin `display:none`, que
-  // lo sacaría del árbol de accesibilidad. La pastilla es un <span> puramente
-  // visual que reacciona a `:checked` por CSS (ver .toggle en interfaz.css).
-  const filtro = document.createElement('label');
-  filtro.className = 'toggle controles__filtro';
-  const checkAbiertas = document.createElement('input');
-  checkAbiertas.type = 'checkbox';
-  checkAbiertas.className = 'toggle__input';
-  checkAbiertas.addEventListener('change', () => actualizarEstado({ soloAbiertas: checkAbiertas.checked }));
-  const pastilla = document.createElement('span');
-  pastilla.className = 'toggle__pastilla';
-  pastilla.setAttribute('aria-hidden', 'true');
-  const textoFiltro = document.createElement('span');
-  textoFiltro.className = 'toggle__texto';
-  textoFiltro.textContent = 'Solo abiertas ahora';
-  filtro.append(checkAbiertas, pastilla, textoFiltro);
-
   contenedorIdentidad.append(bloqueZona);
-  contenedorRapidos.append(tabsCombustible, filtro);
+  contenedorRapidos.append(tabsCombustible);
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
@@ -211,7 +200,10 @@ export function montarControles(
       boton.classList.toggle('controles__pestana--activa', activo);
     }
 
-    checkAbiertas.checked = estado.soloAbiertas;
+    // RF-80: estado de ficha, sin pestañas. Se oculta la cabecera entera de
+    // la hoja (no solo las pestañas) para recuperar también su padding: es
+    // parte de los ~100 px que docs/05-diseno.md cuenta como recuperados.
+    contenedorRapidos.hidden = estado.estacionId !== null;
   }
 
   render(obtenerEstado());

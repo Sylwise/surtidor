@@ -8,6 +8,11 @@
   --hair-dark: rgba(255, 255, 255, 0.13);
   --muted: #6b7b82;
   --muted-light: rgba(255, 255, 255, 0.58);
+  /* Retroalimentación de toque sobre fondo oscuro: un velo casi
+     imperceptible, solo para :active (ver .totem__fila-combustible-boton en
+     interfaz.css). No es un --hair-dark porque ese ya se usa para líneas y
+     estados fijos; este es deliberadamente más tenue y momentáneo. */
+  --toque: rgba(255, 255, 255, 0.06);
   /* Tótem: "no vende" en gris al 28%, ver docs/05-diseno.md#Tótem. */
   --no-vende: rgba(255, 255, 255, 0.28);
 

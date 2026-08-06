@@ -1,7 +1,7 @@
 // Ficha de la estación seleccionada: rótulo, dirección, municipio, lado de
 // la carretera (RF-29), horario, cómo llegar (RF-27, RF-28), los cuatro
 // combustibles (RF-22, RF-23), puesto dentro de la zona (RF-24), el bloque
-// de ahorro (RF-25) y los litros a repostar (RF-33, RF-53). Ver la sección
+// de ahorro (RF-25) y los litros a repostar (RF-33). Ver la sección
 // "Tótem" y "Móvil" de docs/05-diseno.md.
 //
 // Los litros a repostar viven aquí y no en la cabecera: es una preferencia
@@ -15,7 +15,7 @@ import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../l
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
 import { calcularAhorro } from '../logica/ahorro.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import { formatearEuros, formatearPrecio } from '../logica/formato.ts';
+import { cajaDeTitulo, formatearEuros, formatearPrecio } from '../logica/formato.ts';
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
 import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
@@ -39,6 +39,19 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
   const rotulo = document.createElement('h2');
   rotulo.className = 'totem__rotulo';
+
+  // RF-83: una de las tres formas de cerrar la ficha (las otras dos son
+  // tocar el mapa y arrastrar la hoja hacia abajo, ver Mapa.ts y Hoja.ts).
+  const botonCerrar = document.createElement('button');
+  botonCerrar.type = 'button';
+  botonCerrar.className = 'totem__cerrar';
+  botonCerrar.setAttribute('aria-label', 'Cerrar ficha de la estación');
+  botonCerrar.textContent = '✕';
+  botonCerrar.addEventListener('click', () => actualizarEstado({ estacionId: null }));
+
+  const cabeceraFicha = document.createElement('div');
+  cabeceraFicha.className = 'totem__cabecera';
+  cabeceraFicha.append(rotulo, botonCerrar);
 
   const direccion = document.createElement('p');
   direccion.className = 'totem__direccion';
@@ -82,12 +95,23 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   secundarios.append(enlaceWazeEl, enlaceAppleEl);
   llegar.append(botonLlegar, secundarios);
 
+  // RF-81: con la ficha abierta, las cuatro filas son el selector de
+  // combustible (las pestañas de Controles.ts están ocultas, RF-80). Cada
+  // fila es un botón de 44 px mínimo, no el <li> entero, para no atrapar
+  // toques fuera de su área real.
   const combustibles = document.createElement('ul');
   combustibles.className = 'totem__combustibles';
-  const filasCombustible = new Map<ClavePrecio, { fila: HTMLLIElement; valor: HTMLSpanElement }>();
+  const filasCombustible = new Map<
+    ClavePrecio,
+    { fila: HTMLLIElement; boton: HTMLButtonElement; valor: HTMLSpanElement }
+  >();
   for (const clave of ORDEN_COMBUSTIBLES) {
     const fila = document.createElement('li');
     fila.className = 'totem__fila-combustible';
+
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'totem__fila-combustible-boton';
 
     const etiqueta = document.createElement('span');
     etiqueta.className = 'totem__etiqueta-combustible';
@@ -96,9 +120,11 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     const valor = document.createElement('span');
     valor.className = 'totem__precio';
 
-    fila.append(etiqueta, valor);
+    boton.append(etiqueta, valor);
+    boton.addEventListener('click', () => actualizarEstado({ combustible: clave }));
+    fila.append(boton);
     combustibles.append(fila);
-    filasCombustible.set(clave, { fila, valor });
+    filasCombustible.set(clave, { fila, boton, valor });
   }
 
   const puesto = document.createElement('p');
@@ -111,7 +137,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const ahorroTexto = document.createElement('p');
   ahorroTexto.className = 'totem__ahorro-texto';
 
-  // --- Litros a repostar, 20 L por defecto: estepador a medida (RF-33, RF-53) ---
+  // --- Litros a repostar, 20 L por defecto: estepador a medida (RF-33) ---
   // Se mantiene `type="number"` (teclado numérico, validación nativa) pero
   // se ocultan las flechas del navegador por CSS y se sustituyen por dos
   // botones propios que llaman a stepUp()/stepDown(), reutilizando el mismo
@@ -163,21 +189,17 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     emitirCambioLitros();
   });
 
-  const sufijoLitros = document.createElement('span');
-  sufijoLitros.className = 'litros__sufijo micro';
-  sufijoLitros.textContent = 'L';
-  sufijoLitros.setAttribute('aria-hidden', 'true');
-
-  // El número y su "L" van juntos en su propia celda, con un solo borde que
-  // los separa de los botones −/+ a los lados.
+  // El número va en su propia celda, con un solo borde que la separa de los
+  // botones −/+ a los lados. Sin sufijo "L": la etiqueta de arriba ya dice
+  // "Litros a repostar", y repetirlo en cada cifra no aporta nada.
   const campoNumero = document.createElement('div');
   campoNumero.className = 'litros__campo';
-  campoNumero.append(inputLitros, sufijoLitros);
+  campoNumero.append(inputLitros);
 
   campoLitros.append(botonMenos, campoNumero, botonMas);
   grupoLitros.append(etiquetaLitros, campoLitros);
 
-  lleno.append(rotulo, direccion, filaMargen, horario, llegar, combustibles, puesto, ahorro, grupoLitros);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, llegar, combustibles, puesto, ahorro, grupoLitros);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
@@ -200,13 +222,19 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
     const multiProvincia = new Set(visiblesTipoVenta.map((e) => e.provinciaId)).size > 1;
 
+    // RF-86: el rótulo es el cartel de la gasolinera y se muestra verbatim;
+    // dirección y municipio son prosa y se pasan a caja de título; la
+    // provincia, verbatim (RF-76).
     rotulo.textContent = estacion.rotulo;
 
+    const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
     direccion.textContent = multiProvincia
-      ? `${estacion.direccion}, ${estacion.municipio} (${estacion.provinciaNombre})`
-      : `${estacion.direccion}, ${estacion.municipio}`;
+      ? `${direccionLegible} (${estacion.provinciaNombre})`
+      : direccionLegible;
 
-    if (estacion.margen === null) {
+    // RF-87: con `N` no hay lado que decir en una vía de doble sentido, así
+    // que la fila entera desaparece, igual que con el campo ausente.
+    if (estacion.margen === null || estacion.margen === 'N') {
       filaMargen.hidden = true;
     } else {
       filaMargen.hidden = false;
@@ -226,16 +254,23 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     for (const clave of ORDEN_COMBUSTIBLES) {
       const entrada = filasCombustible.get(clave);
       if (!entrada) continue;
-      entrada.fila.classList.toggle('totem__fila-combustible--activa', clave === estado.combustible);
+      const activo = clave === estado.combustible;
+      entrada.fila.classList.toggle('totem__fila-combustible--activa', activo);
+      entrada.boton.setAttribute('aria-pressed', String(activo));
 
       const precio = estacion.precios[clave];
-      // RF-23: lo que no se vende dice "no vende", nunca 0 ni vacío.
+      // RF-23: lo que no se vende dice "no vende", nunca 0 ni vacío. RF-81:
+      // tampoco es pulsable — activarlo haría desaparecer esta misma
+      // estación de la lista al instante, al pasar a un combustible que no
+      // vende.
       if (precio === null) {
         entrada.valor.className = 'totem__precio totem__precio--ausente';
         entrada.valor.textContent = 'no vende';
+        entrada.boton.disabled = true;
       } else {
         entrada.valor.className = 'totem__precio';
         entrada.valor.textContent = formatearPrecio(precio);
+        entrada.boton.disabled = false;
       }
     }
 

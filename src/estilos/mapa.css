@@ -181,8 +181,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 44px de área de pulsación (docs/05-diseno.md), aunque el icono sea más
-     pequeño (14px, ver ICONO_UBICACION en Mapa.ts). */
+  /* 44px de área de pulsación (docs/05-diseno.md, RNF-24): no se toca aunque
+     el icono sea más pequeño (20px, ver ICONO_UBICACION en Mapa.ts). */
   width: 44px;
   height: 44px;
   border: none;
@@ -198,6 +198,21 @@
 .control-ubicacion__boton--pendiente {
   color: var(--muted);
   cursor: default;
+}
+
+/* La ubicación en el móvil puede tardar varios segundos en resolverse
+   (RF-17): sin esto, el único cambio era el color del icono a --muted, poco
+   perceptible en un icono pequeño y a plena luz del día, y quien no lo veía
+   volvía a pulsar pensando que no había pasado nada. tokens.css ya anula
+   esta animación entera bajo prefers-reduced-motion. */
+.control-ubicacion__boton--pendiente svg {
+  animation: control-ubicacion-girar 900ms linear infinite;
+}
+
+@keyframes control-ubicacion-girar {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .control-ubicacion__boton:focus-visible {

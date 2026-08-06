@@ -175,6 +175,50 @@ Reglas:
 Todo control interactivo tiene un área de pulsación de 44 px como mínimo, aunque
 su parte visible sea menor.
 
+### Los dos estados de la hoja
+
+La hoja no muestra siempre lo mismo. Tiene **estado de lista** y **estado de
+ficha**, y arrastrar los controles de uno al otro es lo que hace que en 730 px de
+alto no quepa nada.
+
+**Estado de lista.** Cabecera de la hoja con las pestañas de combustible.
+Debajo, la cabecera de la lista: `MÁS BARATAS · 72 · [Abiertas]`. Luego las filas.
+
+**El filtro de abiertas no tiene fila propia.** Es una píldora en la cabecera de
+la lista, junto al contador que modifica. Una fila entera para un interruptor son
+44 px tirados, y además estaba lejos del número al que afecta.
+
+**Estado de ficha.** Las pestañas de combustible **desaparecen**. No porque el
+combustible deje de importar —cambia el puesto y cambia el ahorro— sino porque
+**la ficha ya lista los cuatro precios**: el mismo control estaría dos veces en
+pantalla, y una de ellas con más información que la otra.
+
+En su lugar, **las cuatro filas de combustible de la ficha son pulsables**. Tocar
+"Gasolina 98 · 1,769" lo convierte en el combustible activo. Objetivo de
+pulsación grande, el precio por delante, y cero controles duplicados. La fila
+activa se marca en `--signal`, como ya hace.
+
+Entre las dos cosas se recuperan unos 100 px de 730. Una séptima parte de la
+pantalla.
+
+### Cerrar la ficha
+
+Con la ficha abierta queda una franja de mapa visible arriba en la que no se
+puede pulsar. Eso no es espacio sobrante: **es el sitio al que todo el mundo va a
+ir para cerrar.**
+
+Tres salidas, y las tres valen:
+
+1. **Tocar el mapa** cierra la ficha y vuelve al estado de lista.
+2. **Arrastrar la hoja hacia abajo** hasta la posición asomada.
+3. **Una X** en la esquina de la ficha, para quien no descubra las otras dos.
+
+### Cabecera en móvil
+
+La palabra "Surtidor" **no se muestra en móvil**, solo el icono. El nombre no
+aporta nada a quien ya está dentro, y ese ancho lo necesita el selector de zona.
+En escritorio se mantiene.
+
 **El aspecto no se sacrifica por el rendimiento.** Los marcadores siguen siendo
 elementos del DOM con CSS completo —píldora redondeada, sombra, poste, contorno
 de la más barata, transiciones— precisamente para que retocar el aspecto siga
@@ -252,6 +296,54 @@ visible en todos los controles, contraste AA en texto incluidos los precios
 sobre su píldora de color, y toda la información disponible sin depender del
 color.
 
+## Nomenclatura
+
+Un producto tiene **un solo nombre** en toda la interfaz. Ahora mismo hay tres
+vocabularios conviviendo: las pestañas dicen "Diésel" y "Premium", las filas de
+la ficha dicen "Diésel" y "Diésel premium", y estos documentos decían "Gasóleo A"
+y "Gasóleo Premium".
+
+Tabla canónica. Es la única fuente de verdad y no se improvisa en cada
+componente:
+
+| Clave interna | Campo del MITECO | Nombre largo | Pestaña |
+|---|---|---|---|
+| `gasolina95e5` | `Precio Gasolina 95 E5` | Gasolina 95 | `95` |
+| `gasoleoA` | `Precio Gasoleo A` | Diésel | `Diésel` |
+| `gasolina98e5` | `Precio Gasolina 98 E5` | Gasolina 98 | `98` |
+| `gasoleoPremium` | `Precio Gasoleo Premium` | Diésel premium | `Diésel +` |
+
+Se dice **Diésel** y no "Gasóleo A" porque es como lo llama el conductor, que es
+la regla de la sección "Voz". Y la pestaña del premium es `Diésel +` y no
+`Premium`: "Premium" a secas es ambiguo, porque la 98 también es una gasolina
+premium, y el usuario no puede saber a cuál se refiere.
+
+**Esta regla no afecta a los nombres de territorio.** RF-76 obliga a mostrar
+provincias y comunidades tal como las nombra el catálogo del ministerio, sin
+traducir ni acortar. Los combustibles son producto, no territorio.
+
+### Mayúsculas
+
+El ministerio devuelve rótulos y direcciones en mayúsculas.
+
+- **El rótulo se muestra verbatim**: `GM OIL`, `REPSOL`. Es el cartel de la
+  gasolinera y se comporta como tal.
+- **La dirección y el municipio se pasan a caja de título**: `Avenida de los
+  Huetos, 64, Vitoria-Gasteiz`. Es prosa, no un rótulo, y en mayúsculas se lee
+  peor. Las partículas —de, la, del, y— quedan en minúscula.
+- **La provincia, verbatim** (RF-76): `ARABA/ALAVA`.
+
+Hoy conviven en la misma línea la dirección en mayúsculas y el municipio en caja
+de título. Eso es lo que hay que unificar.
+
+### Palabras concretas
+
+- **"Margen derecho"** no se entiende sin contexto. Se dice **"A la derecha de la
+  vía"** y **"A la izquierda de la vía"**. Si el campo es `N`, no se muestra nada:
+  una etiqueta que dice "sin margen" es ruido.
+- **"Litros a repostar"**, nunca "depósito".
+- **"no vende"** en minúscula y en gris: es ausencia de dato, no compite.
+
 ## Presupuesto de interfaz
 
 Hay más de veinte funciones en el roadmap. **El modo de fallo de este proyecto no
@@ -264,9 +356,12 @@ Estas reglas son tan vinculantes como las de color.
 **Una pantalla, una pregunta.** La pregunta es "¿dónde reposto?". Todo lo que no
 la responda o no la afine se va a un segundo nivel, o no entra.
 
-**Presupuesto de controles siempre visibles: cinco.** Hoy son zona, combustible,
-filtro de abiertas, y el asa de la hoja. Queda uno libre. **Cuando se agote, meter
-algo nuevo obliga a sacar otra cosa**, no a apretar más.
+**Presupuesto de controles siempre visibles: cinco.** Hoy son zona, combustible y
+el asa de la hoja. Quedan dos libres. **Cuando se agoten, meter algo nuevo obliga
+a sacar otra cosa**, no a apretar más.
+
+El filtro de abiertas no cuenta porque no es un control global: vive en la
+cabecera de la lista, que es lo que modifica.
 
 **Revelación progresiva.** Las preferencias que se configuran una vez —litros
 habituales, y más adelante el consumo del vehículo— **no viven en la pantalla
@@ -288,16 +383,7 @@ veracidad de lo que se está mostrando.
 control desaparece o qué se mueve a un segundo nivel. Si la respuesta es "nada,
 cabe", es que no se ha mirado en un móvil de 360 px.
 
-## Voz
-
-Español, tuteo, frases cortas. Nombra las cosas como las llama el conductor:
-"gasolina 95", no "producto 1". "Mi depósito", no "capacidad del tanque".
-
-Una etiqueta etiqueta y ya. Nada hace dos trabajos a la vez.
-
----
-
-## Presupuesto de interfaz
+## Presupuesto de interfaz · detalle
 
 Esta sección existe porque hay muchas más funciones pensadas que sitio en la
 pantalla, y porque la primera versión móvil ya se rompió por acumular controles

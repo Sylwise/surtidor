@@ -24,7 +24,7 @@ export const ETIQUETA_CORTA: Record<ClavePrecio, string> = {
   gasolina95e5: '95',
   gasoleoA: 'Diésel',
   gasolina98e5: '98',
-  gasoleoPremium: 'Premium',
+  gasoleoPremium: 'Diésel +',
 };
 
 export function esClavePrecio(valor: string): valor is ClavePrecio {

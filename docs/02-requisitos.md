@@ -66,6 +66,9 @@ esté publicada.
 | RF-31 | M | Filtro de "solo abiertas ahora" que interpreta el campo de horario del ministerio. |
 | RF-32 | M | Selector de zona: 52 provincias y 19 comunidades autónomas, generadas desde los catálogos del ministerio. Buscable por nombre. |
 | RF-76 | M | Los nombres de provincia y comunidad se toman del catálogo del ministerio sin modificarlos. El proyecto no traduce, no acorta ni elige entre denominaciones. |
+| RF-85 | M | Los nombres de combustible salen de la tabla canónica de `docs/05-diseno.md` y son idénticos en pestañas, lista, ficha, títulos de página y JSON-LD. Un producto, un nombre. |
+| RF-86 | M | El rótulo se muestra verbatim; la dirección y el municipio se pasan a caja de título; la provincia, verbatim. |
+| RF-87 | M | El lado de la vía se dice "A la derecha de la vía" o "A la izquierda de la vía". Con `Margen` a `N` no se muestra nada. |
 | RF-77 | M | No existen zonas definidas a mano. Toda zona sale de un límite administrativo oficial o de la adyacencia geográfica. |
 | RF-36 | M | Una zona de varias provincias descarga sus ficheros en paralelo y los fusiona. Si alguno falla, se muestra lo que sí ha llegado y se avisa de qué falta. |
 | RF-37 | S | Cuando el usuario pulsa el botón de ubicación, se le propone además cambiar a la zona que le corresponde. |
@@ -77,17 +80,11 @@ esté publicada.
 | RF-49 | M | Al entrar en la raíz, la zona se resuelve **sin servidor**: la guardada en `localStorage`, si no la página de aterrizaje por la que se ha entrado, y si no un selector. **Nunca se pide permiso de geolocalización al cargar.** |
 | RF-38 | M | En móvil, hoja inferior con tres posiciones de anclaje (asomada, media, completa), arrastrable. El selector de combustible y el filtro son visibles en las tres. |
 | RF-39 | M | En móvil, la ficha de estación se apila sobre la lista dentro de la hoja; no la sustituye. |
-
-### Encontrabilidad
-
-| ID | Prioridad | Requisito |
-|---|---|---|
-| RF-70 | M | Página estática por municipio, además de por zona, para los municipios con población suficiente. Los precios van en el HTML servido, nunca inyectados por JavaScript. |
-| RF-71 | M | Título y descripción de cada página generados con el dato real y su hora: precio mínimo, combustible y municipio. |
-| RF-72 | M | JSON-LD con un `ItemList` de `GasStation`, cada una con su `Offer`. Todo lo declarado debe coincidir exactamente con lo visible en la página. |
-| RF-73 | M | `sitemap.xml` con `lastmod` regenerado en cada despliegue. |
-| RF-74 | M | Enlazado interno entre zona, sus municipios y los municipios vecinos. Ninguna página queda huérfana. |
-| RF-75 | M | Imagen de compartición (Open Graph) generada en el build por municipio, con el precio más barato del día y el nombre del municipio. |
+| RF-80 | M | La hoja tiene dos estados. En **lista**: pestañas de combustible en su cabecera. En **ficha**: las pestañas desaparecen, porque la ficha ya muestra los cuatro precios y el control estaría duplicado. |
+| RF-81 | M | Con la ficha abierta, las cuatro filas de combustible son pulsables y cambian el combustible activo. Área de pulsación de 44 px como mínimo. |
+| RF-82 | M | El filtro de abiertas no ocupa fila propia: es una píldora en la cabecera de la lista, junto al contador de estaciones. |
+| RF-83 | M | La ficha se cierra de tres formas, todas válidas: tocando el mapa, arrastrando la hoja hacia abajo, y con una X en la ficha. Ninguna franja de mapa visible queda sin respuesta al toque. |
+| RF-84 | M | En móvil, la cabecera muestra solo el icono, no la palabra "Surtidor". En escritorio se muestran los dos. |
 
 ### Estados de error
 
@@ -100,14 +97,21 @@ esté publicada.
 
 ### Coste y navegación (v1)
 
+RF-53, RF-54 y RF-55 se retiraron de aquí: duplicaban palabra por palabra a
+RF-33, RF-44 y RF-27 (misma regla, dos sitios). Queda solo lo que no vive en
+ningún otro sitio.
+
 | ID | Prioridad | Requisito |
 |---|---|---|
-| RF-53 | M | Control de **litros a repostar** (no "depósito"), con 20 L por defecto, persistido. Vive en la ficha, no en la cabecera. |
-| RF-54 | M | La ficha muestra dos cifras y un resultado: coste de esos litros aquí, coste en la más cara de la zona, y el ahorro. El ahorro es el número grande. |
-| RF-55 | M | Botón de "cómo llegar" que respeta la aplicación de mapas del dispositivo: `geo:` en Android, enlace universal de Google Maps como opción por defecto, y accesos secundarios a Waze y Apple Maps. |
 | RF-56 | V2 | Interfaz para la venta restringida (ocultar por defecto, interruptor, etiqueta). **Aplazado:** el servicio REST devuelve `P` en las 11.519 estaciones de España, porque la venta restringida es un fenómeno del gasóleo B, que no está en la v1. Ver `docs/04-fuente-datos.md`. El dato se normaliza igualmente y el filtro silencioso se mantiene. |
 
 ### Encontrabilidad (v1)
+
+Esta sección sustituye a una "Encontrabilidad" anterior (RF-70 a RF-75) que
+decía casi lo mismo con menos precisión; se retiró para no mantener dos
+copias. RF-74 sí decía algo que no está aquí (el enlace desde la zona hacia
+sus municipios, no solo entre municipios), así que se queda, con su mismo
+número.
 
 | ID | Prioridad | Requisito |
 |---|---|---|
@@ -118,12 +122,14 @@ esté publicada.
 | RF-64 | M | `sitemap.xml` con `lastmod`, regenerado en cada despliegue. |
 | RF-65 | M | Enlazado interno entre municipio, municipios vecinos y provincia. |
 | RF-66 | M | Imagen `og:image` generada en el build por municipio, con el precio más barato del día y el nombre del municipio. |
+| RF-74 | M | Enlazado interno entre zona, sus municipios y los municipios vecinos. Ninguna página queda huérfana. |
 
 ### Zona inicial (v1)
 
+RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
+
 | ID | Prioridad | Requisito |
 |---|---|---|
-| RF-70 | M | La zona inicial se resuelve **sin servidor y sin pedir permisos**: zona guardada, si no la página de aterrizaje, si no el selector. |
 | RF-71 | M | El selector de zona es una pantalla de primer nivel, no un menú de rescate: zonas frecuentes arriba, búsqueda por nombre, áreas de pulsación grandes. |
 
 ---
