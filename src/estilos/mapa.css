@@ -33,6 +33,16 @@
   transform-origin: bottom center;
 }
 
+/* Sin esto, `display: flex` de arriba (regla de autor) gana por especificidad
+   a la regla `[hidden] { display: none }` del user-agent: poner
+   `boton.hidden = true` en Mapa.ts no ocultaba nada, ni marcadores
+   individuales perdedores de colisión ni racimos que dejan de serlo al hacer
+   zoom (el tile se quedaba visible con datos obsoletos y sin ids que
+   agrupar, así que pulsarlo tampoco hacía nada). */
+.marcador[hidden] {
+  display: none;
+}
+
 .marcador__cartel {
   position: relative;
   font-family: var(--mono);
