@@ -252,9 +252,124 @@ visible en todos los controles, contraste AA en texto incluidos los precios
 sobre su píldora de color, y toda la información disponible sin depender del
 color.
 
+## Presupuesto de interfaz
+
+Hay más de veinte funciones en el roadmap. **El modo de fallo de este proyecto no
+es quedarse corto: es acabar pareciéndose a lo que quería sustituir.** Las webs
+llenas de anuncios no empezaron llenas de anuncios; empezaron añadiendo cosas
+razonables una a una.
+
+Estas reglas son tan vinculantes como las de color.
+
+**Una pantalla, una pregunta.** La pregunta es "¿dónde reposto?". Todo lo que no
+la responda o no la afine se va a un segundo nivel, o no entra.
+
+**Presupuesto de controles siempre visibles: cinco.** Hoy son zona, combustible,
+filtro de abiertas, y el asa de la hoja. Queda uno libre. **Cuando se agote, meter
+algo nuevo obliga a sacar otra cosa**, no a apretar más.
+
+**Revelación progresiva.** Las preferencias que se configuran una vez —litros
+habituales, y más adelante el consumo del vehículo— **no viven en la pantalla
+principal**. Viven donde se usan: en la ficha, junto al cálculo que alimentan.
+
+**Ningún número sin origen visible.** Si se muestra un ahorro, se ve respecto a
+qué. Si se muestra un coste, se ve de cuántos litros sale. Si un día se mostrase
+un precio distinto al de mostrador, tendría que verse el de mostrador al lado.
+Un número que no cuadra con el cartel de la gasolinera y no explica por qué
+destruye la confianza en todo lo demás, incluidos los números que sí eran
+correctos.
+
+**Nada parpadea, nada interrumpe, nada reaparece.** Sin ventanas modales, sin
+banners que vuelvan, sin insistir con permisos, sin "¿te gusta la app?". Una sola
+excepción: el aviso de datos con más de 6 horas de antigüedad, porque afecta a la
+veracidad de lo que se está mostrando.
+
+**Cada función nueva paga su peso.** Antes de añadir nada, la pregunta es qué
+control desaparece o qué se mueve a un segundo nivel. Si la respuesta es "nada,
+cabe", es que no se ha mirado en un móvil de 360 px.
+
 ## Voz
 
 Español, tuteo, frases cortas. Nombra las cosas como las llama el conductor:
 "gasolina 95", no "producto 1". "Mi depósito", no "capacidad del tanque".
 
 Una etiqueta etiqueta y ya. Nada hace dos trabajos a la vez.
+
+---
+
+## Presupuesto de interfaz
+
+Esta sección existe porque hay muchas más funciones pensadas que sitio en la
+pantalla, y porque la primera versión móvil ya se rompió por acumular controles
+sin preguntarse dónde iban. **Es vinculante.**
+
+### La prueba de los cinco segundos
+
+El listón del producto es: de abrir la web a saber dónde repostar, **menos de
+cinco segundos y sin tocar más de un control**.
+
+Cualquier función que empeore ese número no entra, por muy buena que sea. Si una
+función es valiosa pero estorba, la respuesta correcta no es "la metemos más
+pequeña": es ponerla donde solo la encuentre quien la busca.
+
+### Dónde vive cada cosa
+
+Hay tres estratos y no se mezclan.
+
+**Estrato 1 — siempre visible.** Solo lo que se toca en casi todas las visitas:
+selector de combustible, filtro de abiertas, selector de zona. **Está lleno. No
+cabe nada más.** Meter algo aquí obliga a sacar otra cosa y a justificarlo.
+
+**Estrato 2 — dentro de la ficha de estación.** Lo que solo tiene sentido con una
+estación delante: litros a repostar, coste total, ahorro, cómo llegar, lado de la
+carretera, horario.
+
+**Estrato 3 — ajustes.** Lo que se configura una vez y luego se olvida: mostrar u
+ocultar las de venta restringida y, cuando lleguen, el perfil de vehículo y los
+favoritos. Se llega desde un único acceso
+discreto en la barra superior.
+
+El error que ya cometimos: el selector de litros estaba en el estrato 1 comiendo
+95 px permanentes cuando pertenece al 2.
+
+### El precio de pantalla es el precio del cartel
+
+La aplicación muestra el precio que publica el ministerio y nada más. Si el
+usuario ve 1,549 aquí, en el surtidor pone 1,549.
+
+Esto no es una limitación: **es la propiedad que sostiene la confianza en todo lo
+demás.** La primera vez que alguien vea un número en la pantalla y otro distinto
+en la calle sin entender por qué, deja de fiarse también de los que sí eran
+correctos.
+
+Por eso se descartaron los descuentos por marca
+([ADR-0009](adr/0009-descuentos-en-el-dispositivo.md)): además de aportar poco,
+habrían roto esta propiedad a cambio de un euro por depósito.
+
+Cualquier función futura que muestre un precio distinto al de mostrador tiene que
+enseñar el de mostrador al lado, siempre, sin que haya que pulsar nada.
+
+### Reglas de crecimiento
+
+- **Ningún control nuevo en la cabecera.** Está cerrada.
+- **Ninguna función nueva añade un paso** al camino de abrir, ver y decidir.
+- **Nada de ventanas modales al cargar.** Ni tutorial, ni aviso, ni petición de
+  permisos, ni invitación a instalar.
+- **Nada flotante que tape el mapa** salvo la hoja inferior.
+- Toda función de la v2 tiene que declarar en qué estrato vive **antes** de
+  implementarse. Si no cabe en ninguno, no entra.
+- Una etiqueta etiqueta y ya. Nada hace dos trabajos a la vez.
+
+### Cuando llegue la v2
+
+Las funciones de la v2 tienen sitio asignado desde ya, para que nadie improvise:
+
+| Función | Estrato |
+|---|---|
+| Tendencia respecto a ayer | 2, junto al precio |
+| "¿Lleno hoy o el martes?" | Página de zona, fuera de la aplicación de mapa |
+| Perfil de vehículo | 3 |
+| Coste del desvío | 2, dentro del bloque de ahorro |
+| Filtro por carretera | 1, **sustituyendo** al filtro de abiertas en un menú de filtros |
+| Precio congelado | 2, como distintivo en la ficha |
+| Favoritos | 2 para marcar, lista para ver |

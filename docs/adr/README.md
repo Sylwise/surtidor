@@ -15,6 +15,9 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0004](0004-astro.md) | Astro como framework | aceptado |
 | [0005](0005-provincia-unidad-y-zonas.md) | La provincia almacena, la zona consulta | aceptado |
 | [0006](0006-marcadores-dom-con-colisiones.md) | Marcadores del DOM con agrupación y colisiones propias | aceptado |
+| [0007](0007-paginas-por-municipio.md) | Páginas por municipio como activo de captación | aceptado |
+| [0008](0008-zona-inicial-sin-servidor.md) | La zona inicial se resuelve sin servidor | aceptado |
+| [0009](0009-descuentos-en-el-dispositivo.md) | Descuentos por marca | **descartado** |
 
 ## Plantilla
 
