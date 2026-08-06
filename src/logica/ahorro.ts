@@ -1,5 +1,5 @@
 // Ahorro en euros de repostar en una estación concreta en vez de en la más
-// cara de la zona, para el combustible y el tamaño de depósito indicados
+// cara de la zona, para el combustible y los litros a repostar indicados
 // (RF-25, CU-5). Es la cifra que convierte una diferencia de céntimos en una
 // decisión.
 

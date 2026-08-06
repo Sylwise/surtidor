@@ -15,6 +15,8 @@ function estacionBase(extra: EstacionCruda = {}): EstacionCruda {
     Latitud: '42,869500',
     'Longitud (WGS84)': '-2,671600',
     Horario: 'L-D: 24H',
+    Margen: 'D',
+    'Tipo Venta': 'P',
     'Precio Gasolina 95 E5': '1,409',
     'Precio Gasoleo A': '1,489',
     'Precio Gasolina 98 E5': '',
@@ -168,4 +170,71 @@ test('conserva el resto de campos de texto tal cual (rótulo, dirección, munici
   assert.equal(resultado?.municipio, 'VITORIA-GASTEIZ');
   assert.equal(resultado?.cp, '01013');
   assert.equal(resultado?.horario, 'L-D: 24H');
+});
+
+test('propaga Tipo Venta y Margen cuando tienen un valor válido', () => {
+  const resultado = normalizarEstacion(estacionBase({ 'Tipo Venta': 'R', Margen: 'N' }));
+  assert.equal(resultado?.tipoVenta, 'R');
+  assert.equal(resultado?.margen, 'N');
+});
+
+test('acepta el tercer código de Tipo Venta, "A", sin contarlo como inesperado', () => {
+  const cruda = estacionBase({ 'Tipo Venta': 'A' });
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado?.tipoVenta, 'A');
+
+  const { tipoVentaInesperados } = normalizarEstaciones([cruda]);
+  assert.equal(tipoVentaInesperados, 0);
+});
+
+test('Margen vacío o ausente da null en silencio (no cuenta como inesperado)', () => {
+  const cruda = estacionBase({ Margen: '' });
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado?.margen, null);
+
+  const { margenInesperados } = normalizarEstaciones([cruda]);
+  assert.equal(margenInesperados, 0);
+});
+
+test('Tipo Venta con un valor inesperado cae a "P" y se cuenta', () => {
+  const cruda = estacionBase({ 'Tipo Venta': 'X' });
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado?.tipoVenta, 'P');
+
+  const { tipoVentaInesperados } = normalizarEstaciones([cruda]);
+  assert.equal(tipoVentaInesperados, 1);
+});
+
+test('Tipo Venta ausente también cae a "P" y se cuenta como inesperado', () => {
+  const cruda = estacionBase();
+  delete cruda['Tipo Venta'];
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado?.tipoVenta, 'P');
+
+  const { tipoVentaInesperados } = normalizarEstaciones([cruda]);
+  assert.equal(tipoVentaInesperados, 1);
+});
+
+test('Margen con un valor inesperado cae a null y se cuenta', () => {
+  const cruda = estacionBase({ Margen: 'X' });
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado?.margen, null);
+
+  const { margenInesperados } = normalizarEstaciones([cruda]);
+  assert.equal(margenInesperados, 1);
+});
+
+test('normalizarEstaciones no cuenta Tipo Venta ni Margen de una estación descartada', () => {
+  const sinCoordenadas = estacionBase({
+    Latitud: '',
+    'Longitud (WGS84)': '',
+    'Tipo Venta': 'X',
+    Margen: 'X',
+  });
+
+  const resultado = normalizarEstaciones([sinCoordenadas]);
+
+  assert.equal(resultado.descartadas, 1);
+  assert.equal(resultado.tipoVentaInesperados, 0);
+  assert.equal(resultado.margenInesperados, 0);
 });

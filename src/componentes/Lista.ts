@@ -6,6 +6,7 @@ import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/e
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
+import { estacionesVisibles } from '../logica/visibilidad.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 
 function crearAviso(texto: string): HTMLParagraphElement {
@@ -36,7 +37,10 @@ export function montarLista(contenedor: HTMLElement): () => void {
       return;
     }
 
-    const ordenadas = ordenarPorPrecio(estado.estaciones, estado.combustible);
+    // RF-48: las estaciones sin venta al público se excluyen en toda la
+    // interfaz, no solo aquí; el mapa y la ficha aplican el mismo filtro.
+    const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
+    const ordenadas = ordenarPorPrecio(visiblesTipoVenta, estado.combustible);
     const titulo = document.createElement('h2');
     titulo.className = 'lista__titulo';
     titulo.textContent = 'Más baratas';
@@ -66,8 +70,8 @@ export function montarLista(contenedor: HTMLElement): () => void {
       return;
     }
 
-    const escala = crearEscala(preciosDeCombustible(estado.estaciones, estado.combustible));
-    const multiProvincia = new Set(estado.estaciones.map((e) => e.provinciaId)).size > 1;
+    const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
+    const multiProvincia = new Set(visiblesTipoVenta.map((e) => e.provinciaId)).size > 1;
 
     const filas = document.createElement('ol');
     filas.className = 'lista__filas';

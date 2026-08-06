@@ -90,6 +90,8 @@ async function main(): Promise<void> {
 
   let totalEstaciones = 0;
   let totalDescartadas = 0;
+  let totalTipoVentaInesperados = 0;
+  let totalMargenInesperados = 0;
 
   console.log('Descargando estaciones por provincia (hasta 5 en paralelo)…');
   const datosPorProvincia = await mapConLimite(provinciasCatalogo, 5, async (provincia) => {
@@ -100,14 +102,23 @@ async function main(): Promise<void> {
     // (hito H3, en paralelo con H2). En tiempo de ejecución son cadenas de
     // verdad: zod ya validó los campos que sí usamos.
     const estacionesCrudas = respuesta.ListaEESSPrecio as unknown as EstacionCruda[];
-    const { estaciones, descartadas } = normalizarEstaciones(estacionesCrudas);
+    const { estaciones, descartadas, tipoVentaInesperados, margenInesperados } =
+      normalizarEstaciones(estacionesCrudas);
 
     totalEstaciones += estaciones.length;
     totalDescartadas += descartadas;
+    totalTipoVentaInesperados += tipoVentaInesperados;
+    totalMargenInesperados += margenInesperados;
+
+    const avisos = [
+      descartadas > 0 ? `${descartadas} descartadas sin coordenadas` : null,
+      tipoVentaInesperados > 0 ? `${tipoVentaInesperados} con Tipo Venta inesperado` : null,
+      margenInesperados > 0 ? `${margenInesperados} con Margen inesperado` : null,
+    ].filter((aviso): aviso is string => aviso !== null);
 
     console.log(
       `  ${provincia.IDPovincia} ${provincia.Provincia}: ${estaciones.length} estaciones` +
-        (descartadas > 0 ? ` (${descartadas} descartadas sin coordenadas)` : ''),
+        (avisos.length > 0 ? ` (${avisos.join(', ')})` : ''),
     );
 
     const datos: DatosProvincia = {
@@ -150,9 +161,15 @@ async function main(): Promise<void> {
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
 
+  const avisosFinales = [
+    totalDescartadas > 0 ? `${totalDescartadas} descartadas en total` : null,
+    totalTipoVentaInesperados > 0 ? `${totalTipoVentaInesperados} con Tipo Venta inesperado` : null,
+    totalMargenInesperados > 0 ? `${totalMargenInesperados} con Margen inesperado` : null,
+  ].filter((aviso): aviso is string => aviso !== null);
+
   console.log(
     `Hecho: ${datosPorProvincia.length} provincias, ${totalEstaciones} estaciones` +
-      (totalDescartadas > 0 ? `, ${totalDescartadas} descartadas en total` : '') +
+      (avisosFinales.length > 0 ? `, ${avisosFinales.join(', ')}` : '') +
       '.',
   );
 }

@@ -1,13 +1,14 @@
-// Ficha de la estación seleccionada: rótulo, dirección, municipio, horario,
-// los cuatro combustibles (RF-22, RF-23), puesto dentro de la zona (RF-24),
-// el bloque de ahorro (RF-25) y el depósito (RF-33). Ver la sección "Tótem"
-// y "Móvil" de docs/05-diseno.md.
+// Ficha de la estación seleccionada: rótulo, dirección, municipio, lado de
+// la carretera (RF-29), horario, cómo llegar (RF-27, RF-28), los cuatro
+// combustibles (RF-22, RF-23), puesto dentro de la zona (RF-24), el bloque
+// de ahorro (RF-25) y los litros a repostar (RF-33, RF-53). Ver la sección
+// "Tótem" y "Móvil" de docs/05-diseno.md.
 //
-// El depósito vive aquí y no en la cabecera: es una preferencia que se
-// ajusta una vez y solo significa algo junto al cálculo de ahorro. El DOM
-// se construye una sola vez y se actualiza en cada render (mismo patrón que
-// Controles.ts) en vez de reconstruirse con innerHTML: si no, cada tecla en
-// el estepador dispararía un cambio de estado que reconstruye la ficha
+// Los litros a repostar viven aquí y no en la cabecera: es una preferencia
+// que se ajusta una vez y solo significa algo junto al cálculo de ahorro. El
+// DOM se construye una sola vez y se actualiza en cada render (mismo patrón
+// que Controles.ts) en vez de reconstruirse con innerHTML: si no, cada tecla
+// en el estepador dispararía un cambio de estado que reconstruye la ficha
 // entera y le hace perder el foco a mitad de escribir.
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
@@ -15,10 +16,13 @@ import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/e
 import { calcularAhorro } from '../logica/ahorro.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { formatearEuros, formatearPrecio } from '../logica/formato.ts';
+import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
+import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
+import { estacionesVisibles } from '../logica/visibilidad.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
-const PASO_DEPOSITO = 5;
+const PASO_LITROS = 5;
 
 /** Monta la ficha en `contenedor` y la mantiene sincronizada con el estado.
  *  Devuelve una función para desuscribirse. */
@@ -39,8 +43,44 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const direccion = document.createElement('p');
   direccion.className = 'totem__direccion';
 
+  // --- Lado de la carretera, a partir de Margen (RF-29) ---
+  const filaMargen = document.createElement('p');
+  filaMargen.className = 'totem__margen';
+  const iconoMargen = document.createElement('span');
+  iconoMargen.className = 'totem__margen-icono';
+  const textoMargen = document.createElement('span');
+  filaMargen.append(iconoMargen, textoMargen);
+
   const horario = document.createElement('p');
   horario.className = 'totem__horario';
+
+  // --- Cómo llegar (RF-27, RF-28) ---
+  const llegar = document.createElement('div');
+  llegar.className = 'totem__llegar';
+
+  const botonLlegar = document.createElement('a');
+  botonLlegar.className = 'totem__llegar-boton';
+  botonLlegar.target = '_blank';
+  botonLlegar.rel = 'noopener noreferrer';
+  botonLlegar.textContent = 'Cómo llegar';
+
+  const secundarios = document.createElement('div');
+  secundarios.className = 'totem__llegar-secundarios';
+
+  const enlaceWazeEl = document.createElement('a');
+  enlaceWazeEl.className = 'totem__llegar-secundario';
+  enlaceWazeEl.target = '_blank';
+  enlaceWazeEl.rel = 'noopener noreferrer';
+  enlaceWazeEl.textContent = 'Waze';
+
+  const enlaceAppleEl = document.createElement('a');
+  enlaceAppleEl.className = 'totem__llegar-secundario';
+  enlaceAppleEl.target = '_blank';
+  enlaceAppleEl.rel = 'noopener noreferrer';
+  enlaceAppleEl.textContent = 'Apple Maps';
+
+  secundarios.append(enlaceWazeEl, enlaceAppleEl);
+  llegar.append(botonLlegar, secundarios);
 
   const combustibles = document.createElement('ul');
   combustibles.className = 'totem__combustibles';
@@ -71,101 +111,117 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const ahorroTexto = document.createElement('p');
   ahorroTexto.className = 'totem__ahorro-texto';
 
-  // --- Depósito en litros, 50 L por defecto: estepador a medida (RF-33) ---
+  // --- Litros a repostar, 20 L por defecto: estepador a medida (RF-33, RF-53) ---
   // Se mantiene `type="number"` (teclado numérico, validación nativa) pero
   // se ocultan las flechas del navegador por CSS y se sustituyen por dos
   // botones propios que llaman a stepUp()/stepDown(), reutilizando el mismo
   // evento `input` que ya dispara la actualización de estado.
-  const grupoDeposito = document.createElement('div');
-  grupoDeposito.className = 'totem__deposito';
+  const grupoLitros = document.createElement('div');
+  grupoLitros.className = 'totem__litros';
 
-  const etiquetaDeposito = document.createElement('span');
-  etiquetaDeposito.className = 'micro totem__deposito-etiqueta';
-  etiquetaDeposito.textContent = 'Depósito';
+  const etiquetaLitros = document.createElement('span');
+  etiquetaLitros.className = 'micro totem__litros-etiqueta';
+  etiquetaLitros.textContent = 'Litros a repostar';
 
-  const campoDeposito = document.createElement('div');
-  campoDeposito.className = 'deposito';
+  const campoLitros = document.createElement('div');
+  campoLitros.className = 'litros';
 
-  const inputDeposito = document.createElement('input');
-  inputDeposito.type = 'number';
-  inputDeposito.min = '1';
-  inputDeposito.max = '300';
-  inputDeposito.step = String(PASO_DEPOSITO);
-  inputDeposito.inputMode = 'numeric';
-  inputDeposito.className = 'deposito__input';
-  inputDeposito.setAttribute('aria-label', 'Depósito en litros');
+  const inputLitros = document.createElement('input');
+  inputLitros.type = 'number';
+  inputLitros.min = '1';
+  inputLitros.max = '300';
+  inputLitros.step = String(PASO_LITROS);
+  inputLitros.inputMode = 'numeric';
+  inputLitros.className = 'litros__input';
+  inputLitros.setAttribute('aria-label', 'Litros a repostar');
 
-  function emitirCambioDeposito(): void {
-    const litros = Number(inputDeposito.value);
+  function emitirCambioLitros(): void {
+    const litros = Number(inputLitros.value);
     if (Number.isFinite(litros) && litros > 0) {
-      actualizarEstado({ deposito: litros });
+      actualizarEstado({ litros });
     }
   }
-  inputDeposito.addEventListener('input', emitirCambioDeposito);
+  inputLitros.addEventListener('input', emitirCambioLitros);
 
   const botonMenos = document.createElement('button');
   botonMenos.type = 'button';
-  botonMenos.className = 'deposito__paso';
-  botonMenos.setAttribute('aria-label', `Restar ${PASO_DEPOSITO} litros`);
+  botonMenos.className = 'litros__paso';
+  botonMenos.setAttribute('aria-label', `Restar ${PASO_LITROS} litros`);
   botonMenos.textContent = '−';
   botonMenos.addEventListener('click', () => {
-    inputDeposito.stepDown();
-    emitirCambioDeposito();
+    inputLitros.stepDown();
+    emitirCambioLitros();
   });
 
   const botonMas = document.createElement('button');
   botonMas.type = 'button';
-  botonMas.className = 'deposito__paso';
-  botonMas.setAttribute('aria-label', `Sumar ${PASO_DEPOSITO} litros`);
+  botonMas.className = 'litros__paso';
+  botonMas.setAttribute('aria-label', `Sumar ${PASO_LITROS} litros`);
   botonMas.textContent = '+';
   botonMas.addEventListener('click', () => {
-    inputDeposito.stepUp();
-    emitirCambioDeposito();
+    inputLitros.stepUp();
+    emitirCambioLitros();
   });
 
-  const sufijoDeposito = document.createElement('span');
-  sufijoDeposito.className = 'deposito__sufijo micro';
-  sufijoDeposito.textContent = 'L';
-  sufijoDeposito.setAttribute('aria-hidden', 'true');
+  const sufijoLitros = document.createElement('span');
+  sufijoLitros.className = 'litros__sufijo micro';
+  sufijoLitros.textContent = 'L';
+  sufijoLitros.setAttribute('aria-hidden', 'true');
 
   // El número y su "L" van juntos en su propia celda, con un solo borde que
   // los separa de los botones −/+ a los lados.
   const campoNumero = document.createElement('div');
-  campoNumero.className = 'deposito__campo';
-  campoNumero.append(inputDeposito, sufijoDeposito);
+  campoNumero.className = 'litros__campo';
+  campoNumero.append(inputLitros, sufijoLitros);
 
-  campoDeposito.append(botonMenos, campoNumero, botonMas);
-  grupoDeposito.append(etiquetaDeposito, campoDeposito);
+  campoLitros.append(botonMenos, campoNumero, botonMas);
+  grupoLitros.append(etiquetaLitros, campoLitros);
 
-  lleno.append(rotulo, direccion, horario, combustibles, puesto, ahorro, grupoDeposito);
+  lleno.append(rotulo, direccion, filaMargen, horario, llegar, combustibles, puesto, ahorro, grupoLitros);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
-    const estacion = estado.estaciones.find((e) => e.id === estado.estacionId) ?? null;
+    // RF-48: la ficha respeta el mismo filtro que la lista y el mapa.
+    const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
+    const estacion = visiblesTipoVenta.find((e) => e.id === estado.estacionId) ?? null;
 
     contenedor.classList.toggle('totem--vacio', !estacion);
     vacio.hidden = Boolean(estacion);
     lleno.hidden = !estacion;
 
-    // El depósito se actualiza pase lo que pase, esté o no la ficha llena:
+    // Los litros se actualizan pase lo que pase, esté o no la ficha llena:
     // si el usuario acaba de deseleccionar la estación a mitad de escribir
     // un valor, no queremos perder ese cambio.
-    if (document.activeElement !== inputDeposito) {
-      inputDeposito.value = String(estado.deposito);
+    if (document.activeElement !== inputLitros) {
+      inputLitros.value = String(estado.litros);
     }
 
     if (!estacion) return;
 
-    const multiProvincia = new Set(estado.estaciones.map((e) => e.provinciaId)).size > 1;
+    const multiProvincia = new Set(visiblesTipoVenta.map((e) => e.provinciaId)).size > 1;
 
     rotulo.textContent = estacion.rotulo;
+
     direccion.textContent = multiProvincia
       ? `${estacion.direccion}, ${estacion.municipio} (${estacion.provinciaNombre})`
       : `${estacion.direccion}, ${estacion.municipio}`;
 
+    if (estacion.margen === null) {
+      filaMargen.hidden = true;
+    } else {
+      filaMargen.hidden = false;
+      iconoMargen.replaceChildren(crearIconoMargen(estacion.margen));
+      textoMargen.textContent = ETIQUETA_MARGEN[estacion.margen];
+    }
+
     const abierta = estaAbierta(estacion.horario, new Date());
     const textoHorario = estacion.horario.trim() ? estacion.horario : 'Horario no declarado';
     horario.textContent = `${textoHorario} · ${abierta ? 'Abierta ahora' : 'Cerrada ahora'}`;
+
+    const userAgent = typeof navigator === 'undefined' ? '' : navigator.userAgent;
+    botonLlegar.href = enlacePrincipal(estacion.lat, estacion.lon, estacion.rotulo, userAgent);
+    enlaceWazeEl.href = enlaceWaze(estacion.lat, estacion.lon);
+    enlaceAppleEl.href = enlaceAppleMaps(estacion.lat, estacion.lon);
 
     for (const clave of ORDEN_COMBUSTIBLES) {
       const entrada = filasCombustible.get(clave);
@@ -190,24 +246,24 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       return;
     }
 
-    const ordenadas = ordenarPorPrecio(estado.estaciones, estado.combustible);
+    const ordenadas = ordenarPorPrecio(visiblesTipoVenta, estado.combustible);
     const posicion = ordenadas.indexOf(estacion) + 1;
     const sufijoLugar = multiProvincia ? ` · ${estacion.provinciaNombre}` : '';
     puesto.textContent = `${posicion}º de ${ordenadas.length} en ${estado.zonaNombre || 'la zona'}${sufijoLugar}.`;
 
-    const escala = crearEscala(preciosDeCombustible(estado.estaciones, estado.combustible));
+    const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
     if (escala.maximo === null) {
       ahorro.replaceChildren();
       return;
     }
 
-    const euros = calcularAhorro(precioActivo, escala.maximo, estado.deposito);
+    const euros = calcularAhorro(precioActivo, escala.maximo, estado.litros);
     if (euros <= 0) {
       ahorroCifra.textContent = formatearEuros(0);
       ahorroTexto.textContent = 'Ya es de las más baratas de la zona con este combustible.';
     } else {
       ahorroCifra.textContent = formatearEuros(euros);
-      ahorroTexto.textContent = `de ahorro repostando aquí en vez de en la más cara de la zona, con ${estado.deposito} L.`;
+      ahorroTexto.textContent = `de ahorro repostando aquí en vez de en la más cara de la zona, con ${estado.litros} L.`;
     }
     ahorro.replaceChildren(ahorroCifra, ahorroTexto);
   }

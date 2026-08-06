@@ -3,7 +3,7 @@
 // "solo abiertas ahora" viven en la cabecera de la hoja inferior (RF-30,
 // RF-31): son los controles de más uso, y docs/05-diseno.md#Móvil los pone
 // siempre alcanzables en los tres estados de la hoja, también en
-// escritorio. El depósito (RF-33) ya no vive aquí: se mudó a la ficha de
+// escritorio. Los litros a repostar (RF-33) ya no viven aquí: se mudaron a la ficha de
 // estación (src/componentes/Totem.ts), junto al cálculo de ahorro, que es
 // el único sitio donde significa algo. Persistencia de combustible/zona la
 // hace src/logica/estado.ts al recibir cada actualización; aquí solo se

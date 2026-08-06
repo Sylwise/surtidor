@@ -6,8 +6,18 @@ Los datos vienen de la API pública del Ministerio para la Transición Ecológic
 (MITECO), la misma fuente que alimenta Waze y las webs de comparación. La
 diferencia es que aquí no hay nada entre el precio y tú.
 
-**Estado:** sin empezar. Toda la documentación de este repo es especificación
-previa, no descripción de algo que ya exista.
+**Estado:** v1 en curso. Completos H1 a H7 y H9. Parcial H8, a falta del botón de
+ubicación (RF-17). Sin empezar H10 (SEO por municipio) y H11 (imagen de
+compartición).
+
+Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
+El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna
+estación `R` en toda España. Entra con el gasóleo B. El detalle, en
+`docs/04-fuente-datos.md`.
+
+La documentación describe el objetivo, no siempre lo ya construido. Ante una
+discrepancia entre documento y código, **manda el documento**: es la
+especificación, y el código es lo que va detrás.
 
 ---
 
@@ -50,6 +60,7 @@ Leer en este orden.
 | [04 · Fuente de datos](docs/04-fuente-datos.md) | La API del MITECO y todas sus trampas |
 | [05 · Diseño](docs/05-diseno.md) | Tokens, tipografía, el tótem, componentes |
 | [06 · Roadmap](docs/06-roadmap.md) | Hitos en orden, listos para convertir en issues |
+| [07 · Marca](docs/07-marca.md) | Icono, favicon, manifiesto y dónde vive cada fichero |
 | [ADR](docs/adr/) | Decisiones de arquitectura y por qué se tomaron |
 
 Las instrucciones para Claude Code están en [CLAUDE.md](CLAUDE.md).

@@ -132,6 +132,8 @@ function generarEstaciones(provincia: ProvinciaEstatica): Estacion[] {
       lat: provincia.lat + (aleatorio() - 0.5) * 0.3,
       lon: provincia.lon + (aleatorio() - 0.5) * 0.3,
       horario: elegir(HORARIOS),
+      tipoVenta: aleatorio() < 0.1 ? 'R' : 'P',
+      margen: elegir<'D' | 'I' | 'N' | null>(['D', 'I', 'N', null]),
       precios,
     };
   });

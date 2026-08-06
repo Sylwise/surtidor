@@ -60,8 +60,18 @@ nada de gestores de estado. La lista permitida está en `docs/03-arquitectura.md
   tienes que haber cargado la página. "Debería funcionar" no vale.
 - **Comprueba los casos de fallo a mano:** sin red, JSON corrupto, provincia sin
   estaciones, estación sin ese combustible, tiles bloqueados.
+- **Un camino de código que no se ha ejecutado no está verificado.** Si un filtro
+  o una rama no se puede disparar con los datos reales que tienes delante,
+  búscate datos que sí la disparen, o dilo explícitamente en el informe. "Pasa el
+  build" y "pasa el test" no son lo mismo que "he visto esto funcionar".
 - **Los ADR son vinculantes.** Si crees que un ADR está equivocado, escribe uno
   nuevo que lo supersede y explica por qué. No lo contradigas en silencio.
+- **Documentación: puedes actualizar el estado, no las decisiones.** Al cerrar un
+  hito, actualiza tú la línea de estado del `README.md`. Eso es contabilidad y no
+  hace falta preguntar. Lo que NO puedes tocar sin que se te pida expresamente son
+  requisitos, ADR, el documento de diseño y el alcance de las versiones: eso son
+  decisiones, se toman fuera y te llegan hechas. Si crees que una está mal, dilo y
+  para.
 - **Español** en comentarios, nombres de dominio (`estacion`, `precio`,
   `provincia`) y mensajes de interfaz. Inglés solo donde lo impone el lenguaje.
 

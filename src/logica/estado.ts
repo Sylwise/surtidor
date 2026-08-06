@@ -2,7 +2,7 @@
 // gestión de estado (ADR-0004). Si esto se queda corto, la señal es escribir
 // un ADR nuevo, no traer Redux desde el principio.
 //
-// Regla dura 4 de CLAUDE.md: solo zona, combustible y depósito van a
+// Regla dura 4 de CLAUDE.md: solo preferencias del propio usuario van a
 // localStorage (RF-34). Nada de telemetría, nada más en ningún otro sitio.
 
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
@@ -20,8 +20,9 @@ export interface EstadoApp {
   estacionId: string | null;
   /** Filtro "solo abiertas ahora" (CU-4). */
   soloAbiertas: boolean;
-  /** Tamaño del depósito en litros, para el cálculo de ahorro (RF-33). */
-  deposito: number;
+  /** Litros a repostar, para el cálculo de ahorro (RF-33, RF-53). No
+   *  "depósito": casi nadie llena desde vacío. */
+  litros: number;
 
   /** Estaciones fusionadas de la zona activa (src/logica/zona.ts). */
   estaciones: EstacionZona[];
@@ -40,7 +41,7 @@ const CLAVE_LOCALSTORAGE = 'surtidor:preferencias';
 interface Preferencias {
   zonaId?: string;
   combustible?: ClavePrecio;
-  deposito?: number;
+  litros?: number;
 }
 
 function leerPreferencias(): Preferencias {
@@ -51,8 +52,8 @@ function leerPreferencias(): Preferencias {
     const resultado: Preferencias = {};
     if (typeof datos.zonaId === 'string') resultado.zonaId = datos.zonaId;
     if (typeof datos.combustible === 'string') resultado.combustible = datos.combustible as ClavePrecio;
-    if (typeof datos.deposito === 'number' && Number.isFinite(datos.deposito) && datos.deposito > 0) {
-      resultado.deposito = datos.deposito;
+    if (typeof datos.litros === 'number' && Number.isFinite(datos.litros) && datos.litros > 0) {
+      resultado.litros = datos.litros;
     }
     return resultado;
   } catch {
@@ -67,7 +68,7 @@ function guardarPreferencias(estado: EstadoApp): void {
     const preferencias: Preferencias = {
       zonaId: estado.zonaId,
       combustible: estado.combustible,
-      deposito: estado.deposito,
+      litros: estado.litros,
     };
     localStorage.setItem(CLAVE_LOCALSTORAGE, JSON.stringify(preferencias));
   } catch {
@@ -80,7 +81,7 @@ function guardarPreferencias(estado: EstadoApp): void {
 // deja la aplicación usable nada más abrir.
 const ZONA_POR_DEFECTO = 'euskadi-plus';
 const COMBUSTIBLE_POR_DEFECTO: ClavePrecio = 'gasolina95e5';
-const DEPOSITO_POR_DEFECTO = 50;
+const LITROS_POR_DEFECTO = 20;
 
 const guardado = typeof localStorage === 'undefined' ? {} : leerPreferencias();
 
@@ -90,7 +91,7 @@ let estado: EstadoApp = {
   combustible: guardado.combustible ?? COMBUSTIBLE_POR_DEFECTO,
   estacionId: null,
   soloAbiertas: false,
-  deposito: guardado.deposito ?? DEPOSITO_POR_DEFECTO,
+  litros: guardado.litros ?? LITROS_POR_DEFECTO,
   estaciones: [],
   provinciasFallidas: [],
   cargando: true,
@@ -114,10 +115,10 @@ export function suscribir(fn: Suscriptor): () => void {
   return () => suscriptores.delete(fn);
 }
 
-const CLAVES_PERSISTIDAS = new Set<keyof EstadoApp>(['zonaId', 'combustible', 'deposito']);
+const CLAVES_PERSISTIDAS = new Set<keyof EstadoApp>(['zonaId', 'combustible', 'litros']);
 
 /** Aplica un parche al estado y avisa a quien esté suscrito. Si el parche
- *  toca zona, combustible o depósito, se persiste (RF-34). */
+ *  toca zona, combustible o litros, se persiste (RF-34). */
 export function actualizarEstado(cambios: Partial<EstadoApp>): void {
   estado = { ...estado, ...cambios };
   if (Object.keys(cambios).some((clave) => CLAVES_PERSISTIDAS.has(clave as keyof EstadoApp))) {

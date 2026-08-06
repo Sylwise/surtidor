@@ -13,7 +13,7 @@
 // disposición (qué se agrupa en racimo, qué se oculta por colisión) se
 // recalcula en moveend/zoomend, nunca en cada fotograma del arrastre.
 
-import { Map as MapaLibre, Marker } from 'maplibre-gl';
+import { Map as MapaLibre, Marker, type IControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '../estilos/mapa.css';
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
@@ -28,6 +28,7 @@ import {
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
+import { estacionesVisibles } from '../logica/visibilidad.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 
 const ESTILO_TILES = 'https://tiles.openfreemap.org/styles/positron';
@@ -97,6 +98,137 @@ function pintarFallo(contenedor: HTMLElement, motivo: string): void {
   const p = document.createElement('p');
   p.textContent = `El mapa no se ha podido cargar (${motivo}). La lista y la ficha de la izquierda funcionan igual.`;
   contenedor.append(p);
+}
+
+// RF-17: botón de "mi ubicación". Icono propio (regla dura 5: nada de
+// librerías de iconos por treinta líneas de SVG), un aro con una mira, igual
+// de familiar en cualquier mapa sin tomarlo prestado de ningún sitio.
+const ICONO_UBICACION =
+  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v3.2M12 18.8V22M2 12h3.2M18.8 12H22"/></svg>';
+
+// El aviso de error se retira solo: es la única forma de que un mensaje
+// junto a un control tan pequeño no se quede pegado para siempre compitiendo
+// con el mapa (docs/05-diseno.md, "nada parpadea, nada interrumpe, nada
+// reaparece" — y tampoco nada se queda).
+const DURACION_AVISO_UBICACION_MS = 6000;
+// Timeout explícito de la propia geolocalización: mismo espíritu que la
+// regla dura 1 de CLAUDE.md aunque no sea una petición de red — sin límite,
+// un GPS que no responde deja el botón pendiente para siempre.
+const TIEMPO_ESPERA_GEOLOCALIZACION_MS = 10000;
+
+function mensajeErrorGeolocalizacion(error: GeolocationPositionError): string {
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      return 'Permiso de ubicación denegado.';
+    case error.POSITION_UNAVAILABLE:
+      return 'No se ha podido determinar tu ubicación.';
+    case error.TIMEOUT:
+      return 'La ubicación ha tardado demasiado en responder.';
+    default:
+      return 'No se ha podido obtener tu ubicación.';
+  }
+}
+
+/** Control de MapLibre para el botón "mi ubicación" (RF-17). Va con el resto
+ *  de controles del mapa (docs/05-diseno.md: nada de controles nuevos en la
+ *  cabecera, y este no cuenta contra el presupuesto de cinco porque vive
+ *  sobre el mapa, no en el estrato 1).
+ *
+ *  Solo pide permiso al pulsarlo, nunca al montar el mapa (regla dura 1 de
+ *  CLAUDE.md, RF-49). La posición no toca src/logica/estado.ts ni
+ *  localStorage en ningún momento: se lee y se usa para centrar el mapa en
+ *  la misma función y ahí se queda (RNF-31). Si se deniega o falla, un
+ *  aviso breve junto al botón y el mapa se queda como estaba: sin
+ *  reintentos automáticos ni volver a pedir permiso por su cuenta. */
+class ControlUbicacion implements IControl {
+  private mapa: MapaLibre | null = null;
+  private contenedor: HTMLDivElement | null = null;
+  private boton: HTMLButtonElement | null = null;
+  private aviso: HTMLParagraphElement | null = null;
+  private temporizadorAviso: ReturnType<typeof setTimeout> | null = null;
+  private pendiente = false;
+
+  onAdd(mapa: MapaLibre): HTMLElement {
+    this.mapa = mapa;
+
+    const contenedor = document.createElement('div');
+    contenedor.className = 'maplibregl-ctrl maplibregl-ctrl-group control-ubicacion';
+
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'control-ubicacion__boton';
+    boton.setAttribute('aria-label', 'Centrar el mapa en mi ubicación');
+    boton.title = 'Mi ubicación';
+    boton.innerHTML = ICONO_UBICACION;
+    boton.addEventListener('click', () => this.pedirUbicacion());
+
+    // role="status": el mismo patrón que #avisos en las páginas (RF-36,
+    // RF-40), en miniatura y sin tocar el estado global.
+    const aviso = document.createElement('p');
+    aviso.className = 'control-ubicacion__aviso';
+    aviso.setAttribute('role', 'status');
+    aviso.hidden = true;
+
+    contenedor.append(boton, aviso);
+    this.contenedor = contenedor;
+    this.boton = boton;
+    this.aviso = aviso;
+    return contenedor;
+  }
+
+  onRemove(): void {
+    if (this.temporizadorAviso) clearTimeout(this.temporizadorAviso);
+    this.contenedor?.remove();
+    this.mapa = null;
+    this.contenedor = null;
+    this.boton = null;
+    this.aviso = null;
+  }
+
+  private mostrarAviso(texto: string): void {
+    if (!this.aviso) return;
+    if (this.temporizadorAviso) clearTimeout(this.temporizadorAviso);
+    this.aviso.textContent = texto;
+    this.aviso.hidden = false;
+    this.temporizadorAviso = setTimeout(() => {
+      if (this.aviso) this.aviso.hidden = true;
+    }, DURACION_AVISO_UBICACION_MS);
+  }
+
+  private pedirUbicacion(): void {
+    if (this.pendiente || !this.mapa) return;
+    if (!('geolocation' in navigator)) {
+      this.mostrarAviso('Este navegador no admite geolocalización.');
+      return;
+    }
+
+    this.pendiente = true;
+    this.boton?.classList.add('control-ubicacion__boton--pendiente');
+
+    const terminar = (): void => {
+      this.pendiente = false;
+      this.boton?.classList.remove('control-ubicacion__boton--pendiente');
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (posicion) => {
+        terminar();
+        if (!this.mapa) return;
+        // Solo centra: el zoom actual y la zona activa no cambian.
+        const centro: [number, number] = [posicion.coords.longitude, posicion.coords.latitude];
+        if (prefiereMovimientoReducido()) {
+          this.mapa.jumpTo({ center: centro });
+        } else {
+          this.mapa.flyTo({ center: centro, duration: 650 });
+        }
+      },
+      (error) => {
+        terminar();
+        this.mostrarAviso(mensajeErrorGeolocalizacion(error));
+      },
+      { enableHighAccuracy: false, timeout: TIEMPO_ESPERA_GEOLOCALIZACION_MS, maximumAge: 0 }
+    );
+  }
 }
 
 /** Monta el mapa en `contenedor` y lo mantiene sincronizado con el estado.
@@ -440,11 +572,14 @@ export function montarMapa(contenedor: HTMLElement): () => void {
   function render(estado: EstadoApp): void {
     if (!mapa || fallido || !cargado) return;
 
-    // RF-15: cerradas atenuadas pero visibles, salvo que el filtro de solo
-    // abiertas esté activo (entonces, igual que en la lista, no se enseñan).
-    // Además, solo las que tienen coordenadas de verdad: ver tieneCoordenadas.
+    // RF-48: las estaciones sin venta al público se excluyen, igual que en
+    // la lista y la ficha. RF-15: cerradas atenuadas pero visibles, salvo
+    // que el filtro de solo abiertas esté activo (entonces, igual que en la
+    // lista, no se enseñan). Además, solo las que tienen coordenadas de
+    // verdad: ver tieneCoordenadas.
+    const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
     const visibles = (
-      estado.soloAbiertas ? estado.estaciones.filter((e) => estaAbierta(e.horario, new Date())) : estado.estaciones
+      estado.soloAbiertas ? visiblesTipoVenta.filter((e) => estaAbierta(e.horario, new Date())) : visiblesTipoVenta
     ).filter(tieneCoordenadas);
 
     const idsVisibles = new Set(visibles.map((e) => e.id));
@@ -457,7 +592,7 @@ export function montarMapa(contenedor: HTMLElement): () => void {
 
     // RF-12: la banda de color sale del percentil dentro de la zona y
     // combustible mostrados, la misma escala que usa la lista.
-    const escala = crearEscala(preciosDeCombustible(estado.estaciones, estado.combustible));
+    const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
 
     for (const estacion of visibles) {
       let entrada = marcadores.get(estacion.id);
@@ -515,6 +650,10 @@ export function montarMapa(contenedor: HTMLElement): () => void {
       zoom: ZOOM_INICIAL,
       attributionControl: {},
     });
+
+    // RF-17: sobre el mapa, junto al resto de controles de MapLibre — no en
+    // la cabecera (presupuesto de interfaz, docs/05-diseno.md).
+    mapa.addControl(new ControlUbicacion(), 'top-right');
 
     // Endurecimiento: el contenedor vive dentro de un layout flex (RNF-24,
     // rail que hace scroll interno) cuyo tamaño final puede no estar fijado

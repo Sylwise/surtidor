@@ -9,6 +9,10 @@ export type ClavePrecio =
 
 export type Precios = Record<ClavePrecio, number | null>;
 
+export type TipoVenta = 'P' | 'R' | 'A';
+
+export type Margen = 'D' | 'I' | 'N' | null;
+
 export interface Estacion {
   id: string;
   rotulo: string;
@@ -18,6 +22,8 @@ export interface Estacion {
   lat: number;
   lon: number;
   horario: string;
+  tipoVenta: TipoVenta;
+  margen: Margen;
   precios: Precios;
 }
 

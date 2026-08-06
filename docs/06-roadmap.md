@@ -89,9 +89,15 @@ Nota: los **descuentos por marca están descartados**, no aplazados. El motivo,
 con números, en [ADR-0009](adr/0009-descuentos-en-el-dispositivo.md). Resumen: la
 brecha entre las low-cost y las de marca ronda los 30 céntimos por litro y el
 descuento son cinco, así que no mueve la cabeza de la lista.
-- **Estaciones de venta restringida** filtradas por defecto, con interruptor para
-  verlas y una etiqueta clara cuando se muestran.
-- **Botón de cómo llegar** (RF-27).
+- **Estaciones de venta restringida** excluidas en silencio (RF-48). Sin
+  interfaz: el servicio devuelve `P` en las 11.519 estaciones de España, porque
+  la venta restringida es un fenómeno del gasóleo B, que llega en la v2. Un
+  control que no puede activarse nunca no ocupa hueco en la cabecera. El
+  interruptor y la etiqueta son RF-56, aplazados.
+- **Botón de cómo llegar** (RF-27, RF-28).
+- **De qué lado de la carretera está** (RF-29), a partir del campo `Margen`. Un
+  icono pequeño en la ficha. Comparte causa raíz con `Tipo Venta`: los dos campos
+  se pierden en el mismo punto del normalizador, así que se arreglan juntos.
 
 **Terminado cuando:** la aplicación es útil de verdad sin una sola línea de
 código de mapa. Este es el hito importante.
@@ -176,10 +182,6 @@ céntimos de diferencia muchas veces sale que **no** compensa, y decirlo es más
 `localStorage`. Convierte el coste del desvío en exacto y desbloquea comparar en
 euros por 100 km, que es la unidad real de lo que cuesta conducir.
 
-**De qué lado de la carretera está.** El campo `Margen` (`D`, `I`, `N`). En
-autovía, ocho kilómetros hasta el siguiente cambio de sentido convierten una
-gasolinera barata en cara. Un icono pequeño.
-
 **Favoritos.** Marcar tus tres habituales y verlas fijas arriba. Barato, y es el
 90 % del uso real de un conductor cotidiano.
 
@@ -193,6 +195,11 @@ porque nadie más lo cuenta.
 
 **Más combustibles.** Gasóleo B (agrícola, con demanda real en Álava rural y mal
 atendido), GLP, GNC. El normalizador ya no debe romperse con campos nuevos.
+
+Cuando entre el gasóleo B, **entra con él RF-56**: es el único combustible donde
+la venta restringida existe de verdad, así que el interruptor y la etiqueta de
+"restringida" pasan a tener sentido. El filtro silencioso y sus pruebas ya están
+escritos desde la v1, solo hay que darles interfaz.
 
 **API pública.** Los 52 JSON normalizados son bastante más usables que la API del
 ministerio. Publicarlos como API abierta documentada no cuesta un euro más y trae

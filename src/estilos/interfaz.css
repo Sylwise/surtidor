@@ -212,8 +212,9 @@ input {
 /* ---------- Controles ---------- */
 
 /* Zona, en la cabecera superior: se toca una vez por sesión, no reclama
-   sitio de la hoja (docs/05-diseno.md#Móvil). El depósito ya no vive aquí:
-   se mudó a la ficha de estación, ver .totem__deposito más abajo. */
+   sitio de la hoja (docs/05-diseno.md#Móvil). Los litros a repostar ya no
+   viven aquí: se mudaron a la ficha de estación, ver .totem__litros más
+   abajo. */
 .controles-identidad {
   display: flex;
   flex-wrap: wrap;
@@ -395,26 +396,26 @@ input {
   outline-offset: 2px;
 }
 
-/* ---------- Depósito: estepador a medida ----------
+/* ---------- Litros a repostar: estepador a medida ----------
    type="number" se mantiene (teclado numérico, validación nativa); solo se
    ocultan las flechas del navegador, sustituidas por los botones −/+.
-   Vive dentro del tótem (docs/05-diseno.md#Móvil: "el selector de depósito
-   sale de la cabecera y se muda a la ficha de estación"), así que su paleta
-   es la oscura del tótem, no la clara de la cabecera. */
+   Vive dentro del tótem (docs/05-diseno.md#Móvil: "el selector sale de la
+   cabecera y se muda a la ficha de estación"), así que su paleta es la
+   oscura del tótem, no la clara de la cabecera. */
 
-.totem__deposito {
+.totem__litros {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
 }
 
-.totem__deposito-etiqueta {
+.totem__litros-etiqueta {
   color: var(--muted-light);
   white-space: nowrap;
 }
 
-.deposito {
+.litros {
   display: flex;
   align-items: center;
   border: 1px solid var(--hair-dark);
@@ -422,12 +423,12 @@ input {
   overflow: hidden;
 }
 
-.deposito:focus-within {
+.litros:focus-within {
   outline: 2.5px solid var(--signal);
   outline-offset: 2px;
 }
 
-.deposito__paso {
+.litros__paso {
   width: 44px;
   height: 44px;
   flex: none;
@@ -443,7 +444,7 @@ input {
   cursor: pointer;
 }
 
-.deposito__paso:hover {
+.litros__paso:hover {
   background: var(--hair-dark);
 }
 
@@ -457,7 +458,7 @@ input {
    es igual en todos. En vez de perseguir eso, "L" se posiciona encima del
    input y se centra por caja con la técnica estándar top:50%+translateY,
    que no depende en absoluto de line-height ni de métricas de fuente. */
-.deposito__campo {
+.litros__campo {
   position: relative;
   display: flex;
   align-items: center;
@@ -467,7 +468,7 @@ input {
   background: transparent;
 }
 
-.deposito__input {
+.litros__input {
   width: 3.8em;
   height: 100%;
   padding: 0 20px 0 8px;
@@ -482,26 +483,83 @@ input {
   -moz-appearance: textfield;
 }
 
-/* El foco lo marca .deposito:focus-within alrededor de todo el control; el
+/* El foco lo marca .litros:focus-within alrededor de todo el control; el
    anillo nativo del propio input encima habría dibujado dos bordes a la
    vez, uno pegado al otro. */
-.deposito__input:focus-visible {
+.litros__input:focus-visible {
   outline: none;
 }
 
-.deposito__input::-webkit-outer-spin-button,
-.deposito__input::-webkit-inner-spin-button {
+.litros__input::-webkit-outer-spin-button,
+.litros__input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.deposito__sufijo {
+.litros__sufijo {
   position: absolute;
   top: 50%;
   right: 8px;
   transform: translateY(-50%);
   color: var(--muted-light);
   pointer-events: none;
+}
+
+/* ---------- Margen y cómo llegar (RF-27/28/29) ---------- */
+
+.totem__margen {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  color: var(--muted-light);
+  font-size: var(--fs-2);
+}
+
+.totem__margen-icono {
+  display: inline-flex;
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.totem__margen-icono svg {
+  width: 100%;
+  height: 100%;
+}
+
+.totem__llegar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 10px;
+}
+
+.totem__llegar-boton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--signal);
+  color: var(--petrol);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.totem__llegar-secundarios {
+  display: flex;
+  gap: 14px;
+}
+
+.totem__llegar-secundario {
+  color: var(--muted-light);
+  font-size: var(--fs-2);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ---------- Lista ---------- */

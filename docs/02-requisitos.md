@@ -69,7 +69,7 @@ esté publicada.
 | RF-37 | S | Cuando el usuario pulsa el botón de ubicación, se le propone además cambiar a la zona que le corresponde. |
 | RF-33 | M | Control de **litros a repostar** (no "depósito": casi nadie llena desde vacío), con 20 L por defecto. Vive en la ficha, no en la cabecera. |
 | RF-44 | M | Con los litros indicados, la ficha muestra **dos cifras**: coste total en esta estación y coste en la más cara de la zona. El ahorro es el número destacado; los totales, secundarios. |
-| RF-48 | M | Las estaciones con `Tipo Venta` distinto de `P` (venta restringida: cooperativas, flotas) se ocultan por defecto. Un ajuste permite mostrarlas, siempre marcadas como restringidas. |
+| RF-48 | M | El normalizador acepta los tres códigos de `Tipo Venta` (`P`, `R`, `A`) sin romper, y las estaciones con código distinto de `P` se excluyen de la lista y el mapa. Sin interfaz asociada en la v1: ver RF-56. |
 | RF-34 | M | Combustible, zona y litros a repostar se recuerdan entre visitas en `localStorage`. |
 | RF-35 | S | La URL refleja provincia y combustible, de modo que se pueda compartir un enlace concreto. |
 | RF-49 | M | Al entrar en la raíz, la zona se resuelve **sin servidor**: la guardada en `localStorage`, si no la página de aterrizaje por la que se ha entrado, y si no un selector. **Nunca se pide permiso de geolocalización al cargar.** |
@@ -103,7 +103,7 @@ esté publicada.
 | RF-53 | M | Control de **litros a repostar** (no "depósito"), con 20 L por defecto, persistido. Vive en la ficha, no en la cabecera. |
 | RF-54 | M | La ficha muestra dos cifras y un resultado: coste de esos litros aquí, coste en la más cara de la zona, y el ahorro. El ahorro es el número grande. |
 | RF-55 | M | Botón de "cómo llegar" que respeta la aplicación de mapas del dispositivo: `geo:` en Android, enlace universal de Google Maps como opción por defecto, y accesos secundarios a Waze y Apple Maps. |
-| RF-56 | M | Las estaciones con `Tipo Venta` distinto de `P` (venta restringida) se ocultan por defecto. Un interruptor permite verlas, y entonces aparecen etiquetadas como tales. |
+| RF-56 | V2 | Interfaz para la venta restringida (ocultar por defecto, interruptor, etiqueta). **Aplazado:** el servicio REST devuelve `P` en las 11.519 estaciones de España, porque la venta restringida es un fenómeno del gasóleo B, que no está en la v1. Ver `docs/04-fuente-datos.md`. El dato se normaliza igualmente y el filtro silencioso se mantiene. |
 
 ### Encontrabilidad (v1)
 
@@ -172,6 +172,8 @@ esté publicada.
 |---|---|---|
 | RNF-40 | M | Un fallo de la API del ministerio no rompe el sitio publicado. |
 | RNF-41 | M | Si cambian los nombres de campo de la API, el proceso de datos falla de forma ruidosa en vez de publicar datos silenciosamente mal. |
+| RNF-43 | M | **El build aborta si algún fichero de `public/data/` lleva `"mock": true`.** Los datos de prueba y los reales comparten ruta y son indistinguibles a simple vista; sin esta guarda es posible desplegar precios inventados a producción. |
+| RNF-44 | M | Los datos mock se escriben con una marca visible también en la interfaz: si la aplicación carga datos con `mock: true`, muestra un aviso permanente. |
 | RNF-42 | S | Pruebas del normalizador de datos y del intérprete de horarios, que son las dos piezas con casos raros de verdad. |
 
 ---

@@ -9,6 +9,13 @@ name: Datos y despliegue
 # Regla dura (RF-05): si `npm run data:fetch` falla, el job se detiene ahí.
 # No se llega al paso de build ni de despliegue, así que el sitio publicado
 # anteriormente se queda tal cual.
+#
+# RNF-43: antes de desplegar se comprueba también que ningún fichero de
+# public/data/ lleve "mock": true. Ya lo hace "npm run build" por su cuenta
+# (ver "comprobar:datos" en package.json), pero se repite aquí como paso
+# propio y explícito: si el día de mañana el script de build cambia y deja de
+# incluir esa comprobación, el despliegue sigue sin poder publicar datos
+# inventados.
 on:
   schedule:
     - cron: "0 */2 * * *"
@@ -40,6 +47,9 @@ jobs:
 
       - name: Construir el sitio
         run: npm run build
+
+      - name: Comprobar que no se despliegan datos de prueba (RNF-43)
+        run: npm run comprobar:datos
 
       - name: Desplegar a Cloudflare Pages
         run: npx wrangler pages deploy dist/ --project-name=surtidor

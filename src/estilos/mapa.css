@@ -159,3 +159,71 @@
     transition-duration: 130ms;
   }
 }
+
+/* ---------- Control "mi ubicación" (RF-17) ----------
+   Vive con el resto de controles de MapLibre (top-right), nunca en la
+   cabecera. Sin --signal aquí: la regla de tokens.css lo reserva para el
+   chrome, nunca para el mapa. */
+
+.control-ubicacion {
+  position: relative;
+  background: var(--paper);
+}
+
+/* Selector repetido a propósito: maplibre-gl.css trae `.maplibregl-ctrl-group
+   button` (una clase + una etiqueta), más específico que una sola clase, y se
+   comía el tamaño y el `display: flex` de aquí — el botón se quedaba en su
+   caja de 29px de la librería y el icono, como contenido en línea dentro de
+   un elemento de bloque, se posaba en su línea base con un hueco debajo, así
+   que se veía pegado arriba. Repetir la clase sube la especificidad por
+   encima sin recurrir a `!important`. */
+.control-ubicacion__boton.control-ubicacion__boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px de área de pulsación (docs/05-diseno.md), aunque el icono sea más
+     pequeño (14px, ver ICONO_UBICACION en Mapa.ts). */
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--petrol);
+  cursor: pointer;
+}
+
+.control-ubicacion__boton svg {
+  display: block;
+}
+
+.control-ubicacion__boton--pendiente {
+  color: var(--muted);
+  cursor: default;
+}
+
+.control-ubicacion__boton:focus-visible {
+  outline: 2.5px solid var(--petrol);
+  outline-offset: -2px;
+}
+
+/* Aviso breve de permiso denegado o fallo: se retira solo (ver
+   DURACION_AVISO_UBICACION_MS en Mapa.ts), nunca se queda pegado al mapa. */
+.control-ubicacion__aviso {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin: 0 8px 0 0;
+  padding: 5px 9px;
+  max-width: 190px;
+  white-space: normal;
+  border-radius: 4px;
+  background: var(--petrol);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: var(--fs-1);
+  line-height: 1.4;
+  box-shadow: 0 2px 5px rgba(22, 50, 59, 0.28);
+}
+
+.control-ubicacion__aviso[hidden] {
+  display: none;
+}

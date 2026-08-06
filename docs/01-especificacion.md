@@ -54,6 +54,8 @@ Lo que la hace útil de verdad:
 
 - **Litros a repostar**, con el coste total y el ahorro frente a la más cara.
 - **Botón de cómo llegar**, que abra la aplicación de mapas de cada uno.
+- **De qué lado de la carretera está**, con el campo `Margen`. En autovía, ocho
+  kilómetros hasta el siguiente cambio de sentido convierten una barata en cara.
 - **Las de venta restringida se filtran o se marcan.** El campo `Tipo Venta`
   distingue público de cooperativas y flotas. Mandar a alguien a una estación
   donde no puede repostar es peor que no mostrarla.
@@ -80,7 +82,6 @@ Nada de esto necesita servidor. Está en cola por tiempo, no por arquitectura.
 | Filtro por carretera | "Voy por la A-1". Distancias precalculadas en el build |
 | Precio congelado | Señalar las que dejan de actualizar para parecer baratas |
 | Favoritos | Fijar arriba tus tres habituales |
-| Lado de la carretera | El campo `Margen`. En autovía decide si compensa |
 | Páginas editoriales | "Las provincias más baratas hoy", generadas solas |
 | API abierta | Publicar nuestros JSON normalizados. Trae enlaces |
 | Gasóleo B y otros | Público pequeño pero muy fiel |

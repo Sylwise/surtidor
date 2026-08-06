@@ -188,6 +188,41 @@ romperse si aparecen o desaparecen campos.
 Ojo: existen tanto `Gasolina 95 E5` como `Gasolina 95 E10`, y son productos
 distintos. No mezclarlos.
 
+## El campo Tipo Venta
+
+Tres códigos, no dos. Según el anexo de la Orden ITC/2308/2007:
+
+| Código | Significado |
+|---|---|
+| `P` | Venta al público en general |
+| `R` | Venta restringida a asociados o cooperativistas |
+| `A` | Vende productos **distintos** al público general y a sus asociados |
+
+Una instalación que venda a sus cooperativistas a un precio distinto remite **dos
+registros**, uno `P` y otro `R`. Si solo vende a asociados, remite `R`.
+
+**En la práctica, el servicio REST devuelve `P` en el 100 % de las estaciones.**
+Comprobado sobre las 11.519 de España: cero `R`, cero `A`.
+
+No es un error de lectura. Hay dos razones:
+
+1. **La venta restringida es esencialmente un fenómeno del gasóleo B**, el
+   agrícola. Según la CNMC, las estaciones de venta restringida son
+   independientes y, más concretamente, cooperativas. Los cuatro combustibles de
+   la v1 —gasolina 95, 98, gasóleo A y premium— son productos de venta al
+   público.
+2. **El conjunto de datos del que cuelga este servicio se titula "Instalaciones
+   de suministro de combustibles a vehículos y embarcaciones con venta pública".**
+
+Consecuencia práctica: **mientras no se incorpore el gasóleo B, no van a
+aparecer `R`.** El campo se normaliza y se conserva igualmente, porque cuesta
+cero y protege el día que eso cambie, pero **no se construye interfaz para un
+caso que hoy no ocurre**.
+
+Ojo con `A`: no estaba documentado en la primera versión de este fichero y el
+validador no lo contemplaba. Debe aceptarse sin romper, aunque tampoco se haya
+visto nunca.
+
 ## El campo Horario
 
 Es texto libre con una convención más o menos respetada. Formas que aparecen:
