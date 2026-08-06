@@ -19,13 +19,29 @@ const ORDEN: EstadoHoja[] = ['colapsada', 'media', 'completa'];
 const CONSULTA_MOVIL = '(max-width: 760px)';
 const UMBRAL_ARRASTRE_PX = 4;
 
+// Alto real de la cabecera (--cabecera-alto, ResizeObserver en los .astro,
+// fijada antes de llamar a montarHoja). El respaldo de 56 coincide con el
+// que usa interfaz.css en var(--cabecera-alto, 56px).
+function alturaCabecera(): number {
+  const valor = getComputedStyle(document.documentElement).getPropertyValue('--cabecera-alto');
+  const px = parseFloat(valor);
+  return Number.isFinite(px) && px > 0 ? px : 56;
+}
+
+// Techo real del arrastre libre: nunca más allá del hueco que deja la
+// cabecera, para que el borde superior de la hoja (y su asa) no quede
+// escondido detrás de ella sin forma de volver a agarrarla.
+function techoUtil(): number {
+  return window.innerHeight - alturaCabecera() - 8;
+}
+
 // Mismos números que --hoja-colapsada/--hoja-media/--hoja-completa en
 // interfaz.css. Duplicarlos aquí es más simple y más robusto que hacer que
 // el arrastre lea `getComputedStyle` en cada movimiento del puntero.
 function alturaDeEstado(estado: EstadoHoja): number {
   if (estado === 'colapsada') return 110;
   if (estado === 'media') return window.innerHeight * 0.55;
-  return window.innerHeight * 0.9;
+  return Math.min(window.innerHeight * 0.9, techoUtil());
 }
 
 function prefiereMovimientoReducido(): boolean {
@@ -34,9 +50,14 @@ function prefiereMovimientoReducido(): boolean {
 
 /**
  * Monta el comportamiento de arrastre y teclado de la hoja inferior.
+ * `mapa` es el contenedor del mapa de fondo: un click ahí (mismo patrón que
+ * Google Maps) baja la hoja del todo para despejarlo, haya o no una
+ * estación seleccionada — los botones de los marcadores hacen
+ * `stopPropagation()` (Mapa.ts) así que un click sobre uno de ellos nunca
+ * llega hasta aquí.
  * Devuelve una función de limpieza.
  */
-export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement): () => void {
+export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTMLElement): () => void {
   let estado: EstadoHoja = 'media';
   let arrastrando = false;
   let seMovio = false;
@@ -105,7 +126,7 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement): () => voi
     if (!arrastrando) return;
     const delta = inicioY - evento.clientY;
     if (Math.abs(delta) > UMBRAL_ARRASTRE_PX) seMovio = true;
-    const techo = window.innerHeight * 0.92;
+    const techo = techoUtil();
     const nuevaAltura = Math.min(techo, Math.max(60, alturaInicio + delta));
     hoja.style.height = `${nuevaAltura}px`;
   }
@@ -125,15 +146,25 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement): () => voi
   asa.addEventListener('pointerup', alSoltar);
   asa.addEventListener('pointercancel', alSoltar);
 
-  // Al seleccionar una estación estando colapsada, la hoja sube sola a
-  // "media" para que la ficha se vea sin un gesto adicional.
+  // Al seleccionar una estación (desde el mapa o desde la lista), la hoja
+  // sube del todo para que la ficha quepa entera sin depender de medir su
+  // alto real.
   let estacionAnterior = obtenerEstado().estacionId;
   const cancelarSuscripcion = suscribir((estadoApp) => {
-    if (estadoApp.estacionId && estadoApp.estacionId !== estacionAnterior && estado === 'colapsada') {
-      aplicar('media', true);
+    if (estadoApp.estacionId && estadoApp.estacionId !== estacionAnterior) {
+      aplicar('completa', true);
     }
     estacionAnterior = estadoApp.estacionId;
   });
+
+  // Tocar el mapa de fondo despeja la hoja (colapsada), haya o no
+  // selección: es lo que se acaba de pedir al tocar el mapa, no una
+  // consecuencia indirecta de deseleccionar.
+  function alTocarMapa(): void {
+    if (!window.matchMedia(CONSULTA_MOVIL).matches) return;
+    if (estado !== 'colapsada') aplicar('colapsada', true);
+  }
+  mapa.addEventListener('click', alTocarMapa);
 
   aplicar('media', false);
 
@@ -145,5 +176,6 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement): () => voi
     asa.removeEventListener('pointermove', alMover);
     asa.removeEventListener('pointerup', alSoltar);
     asa.removeEventListener('pointercancel', alSoltar);
+    mapa.removeEventListener('click', alTocarMapa);
   };
 }

@@ -84,7 +84,7 @@ import '../estilos/interfaz.css';
       new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
       actualizarAlturaCabecera();
 
-      montarHoja(hoja, asaHoja);
+      montarHoja(hoja, asaHoja, contenedorMapa);
 
       let indice: Indice | null = null;
       let controlesMontados = false;

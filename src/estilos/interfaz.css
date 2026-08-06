@@ -757,10 +757,15 @@ input {
     /* Alturas de los tres estados de la hoja. src/componentes/Hoja.ts usa
        estos mismos números (no los lee de aquí: duplicarlos es más simple
        y más robusto que hacer que JS parsee CSS) para decidir a qué estado
-       saltar al soltar un arrastre. */
+       saltar al soltar un arrastre.
+       "completa" se capa contra el hueco real bajo la cabecera
+       (--cabecera-alto, ResizeObserver en los .astro): sin esto, en
+       pantallas con cabecera alta (nombre de zona en dos líneas, insignia
+       de datos de prueba) el 90vh fijo dejaba el asa de la hoja escondida
+       detrás de la cabecera y ya no se podía volver a bajar. */
     --hoja-colapsada: 110px;
     --hoja-media: 55vh;
-    --hoja-completa: 90vh;
+    --hoja-completa: min(90vh, calc(100vh - var(--cabecera-alto, 56px) - 8px));
   }
 
   .cabecera {
@@ -819,7 +824,8 @@ input {
     justify-content: center;
     flex: none;
     width: 100%;
-    height: 22px;
+    /* 44px: área de pulsación mínima (docs/05-diseno.md), antes 22px. */
+    height: 44px;
     border: none;
     background: transparent;
     cursor: grab;
@@ -845,5 +851,35 @@ input {
 
   .hoja__cuerpo {
     touch-action: pan-y;
+  }
+
+  /* Selector de zona: en escritorio es un dropdown pequeño anclado al botón
+     (reglas de arriba, sin tocar). En móvil ese anclaje desbordaba la
+     pantalla por la derecha porque el ancho se calculaba contra el viewport
+     (90vw) pero la posición contra el botón, que no está pegado al borde.
+     Aquí se integra como una hoja propia que cuelga de la cabecera real
+     (--cabecera-alto) a todo el ancho, animada al abrir. */
+  .controles__zona {
+    position: static;
+  }
+
+  .panel-zona {
+    position: fixed;
+    top: var(--cabecera-alto, 56px);
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: min(70vh, calc(100vh - var(--cabecera-alto, 56px) - 12px));
+    border-radius: 0 0 14px 14px;
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 200ms ease, opacity 200ms ease;
+  }
+
+  .panel-zona.panel-zona--abierta {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
   }
 }

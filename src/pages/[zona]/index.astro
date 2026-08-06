@@ -111,7 +111,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
       actualizarAlturaCabecera();
 
-      montarHoja(hoja, asaHoja);
+      montarHoja(hoja, asaHoja, contenedorMapa);
 
       // RF-43, igual que en src/pages/index.astro: dato derivado local a la
       // página, fuera del estado global.

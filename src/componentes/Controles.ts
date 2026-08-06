@@ -120,11 +120,16 @@ export function montarControles(
     botonZona.setAttribute('aria-expanded', 'true');
     buscar.value = '';
     filtrarZonas('');
+    // `hidden` no se puede animar directamente (salta a display:none): se
+    // quita en el frame anterior a añadir la clase que dispara la
+    // transición de entrada en móvil (ver interfaz.css, .panel-zona--abierta).
+    requestAnimationFrame(() => panelZona.classList.add('panel-zona--abierta'));
     buscar.focus();
   }
 
   function cerrarPanel(): void {
     panelZona.hidden = true;
+    panelZona.classList.remove('panel-zona--abierta');
     botonZona.setAttribute('aria-expanded', 'false');
   }
 
