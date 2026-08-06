@@ -15,7 +15,6 @@ import {
 } from './lib/miteco.ts';
 import { normalizarEstaciones, type EstacionCruda } from './lib/normalizar.ts';
 import { escribirJsonAtomico } from './lib/escritura.ts';
-import { ZONAS_A_MEDIDA } from './zonas-a-medida.ts';
 import type { ClavePrecio, DatosProvincia, Indice, ResumenProvincia, Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
@@ -150,7 +149,7 @@ async function main(): Promise<void> {
   const indice: Indice = {
     actualizado,
     provincias: resumenProvincias,
-    zonas: [...zonasProvincia, ...zonasCcaa, ...ZONAS_A_MEDIDA],
+    zonas: [...zonasProvincia, ...zonasCcaa],
   };
 
   console.log('Escribiendo ficheros…');

@@ -77,13 +77,14 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
 
     <script>
       // Orquestación de la página de zona. A diferencia de src/pages/index.astro
-      // (que elige la zona guardada en localStorage o la de por defecto), aquí
-      // la zona activa se fija a la de la URL antes de cargar nada, para que la
-      // página siempre enseñe la zona que prometen su <title> y su URL. Reusa
+      // (que elige la zona guardada en localStorage o, si no hay ninguna,
+      // abre el selector), aquí la zona activa se fija a la de la URL antes
+      // de cargar nada, para que la página siempre enseñe la zona que
+      // prometen su <title> y su URL. Reusa
       // los mismos módulos de src/logica/ y src/componentes/ que index.astro:
       // nada de lógica de carga o fusión duplicada a mano.
       import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../../logica/estado.ts';
-      import { cargarIndice, cargarZona } from '../../logica/zona.ts';
+      import { cargarIndice, cargarZona, zonaDeReserva } from '../../logica/zona.ts';
       import { montarControles } from '../../componentes/Controles.ts';
       import { montarLista } from '../../componentes/Lista.ts';
       import { montarTotem } from '../../componentes/Totem.ts';
@@ -210,10 +211,10 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
           }
 
           // Red de seguridad: si la zona de esta página ya no existe en el
-          // índice (los datos se regeneran cada dos horas), cae a la primera
-          // disponible. El cambio de zonaId dispara la navegación de abajo.
-          const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? indice.zonas[0];
-          if (!zona) throw new Error('No hay ninguna zona disponible en el índice.');
+          // índice (los datos se regeneran cada dos horas), cae a la zona de
+          // reserva (src/logica/zona.ts, no una elección editorial). El
+          // cambio de zonaId dispara la navegación de abajo.
+          const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? zonaDeReserva(indice);
           if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
 
           const resultado = await cargarZona(zona, indice.provincias);

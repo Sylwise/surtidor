@@ -9,8 +9,9 @@ import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona, FalloProvincia } from './zona.ts';
 
 export interface EstadoApp {
-  /** Id de la zona activa (Zona.id en indice.json). */
-  zonaId: string;
+  /** Id de la zona activa (Zona.id en indice.json), o null si todavía no se
+   *  ha resuelto ninguna (RF-49: sin zona por defecto, cada página decide). */
+  zonaId: string | null;
   /** Nombre para mostrar de la zona activa, resuelto contra el índice. */
   zonaNombre: string;
   /** Combustible activo: ordena la lista, colorea las píldoras y fija el
@@ -66,7 +67,7 @@ function leerPreferencias(): Preferencias {
 function guardarPreferencias(estado: EstadoApp): void {
   try {
     const preferencias: Preferencias = {
-      zonaId: estado.zonaId,
+      zonaId: estado.zonaId ?? undefined,
       combustible: estado.combustible,
       litros: estado.litros,
     };
@@ -76,17 +77,18 @@ function guardarPreferencias(estado: EstadoApp): void {
   }
 }
 
-// Por defecto, hasta que exista detección por geolocalización (RF-37, fuera
-// de H6): "Euskadi y alrededores" es la zona multi-provincia de la fixture y
-// deja la aplicación usable nada más abrir.
-const ZONA_POR_DEFECTO = 'euskadi-plus';
+// No hay zona por defecto (RF-49, RF-70; ver la corrección de 2026-08-06 en
+// ADR-0005): elegir una de entrada por el usuario es la misma decisión
+// editorial que se acaba de retirar. Sin zona guardada, `zonaId` queda a
+// `null` y cada página decide qué hacer mientras tanto: src/pages/index.astro
+// abre el selector, src/pages/[zona]/index.astro usa la zona de su URL.
 const COMBUSTIBLE_POR_DEFECTO: ClavePrecio = 'gasolina95e5';
 const LITROS_POR_DEFECTO = 20;
 
 const guardado = typeof localStorage === 'undefined' ? {} : leerPreferencias();
 
 let estado: EstadoApp = {
-  zonaId: guardado.zonaId ?? ZONA_POR_DEFECTO,
+  zonaId: guardado.zonaId ?? null,
   zonaNombre: '',
   combustible: guardado.combustible ?? COMBUSTIBLE_POR_DEFECTO,
   estacionId: null,

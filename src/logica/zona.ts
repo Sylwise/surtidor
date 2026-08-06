@@ -54,6 +54,26 @@ export function cargarIndice(): Promise<Indice> {
 }
 
 /**
+ * Zona de reserva para el caso imposible de que un `zonaId` (guardado en
+ * localStorage o fijado por la URL) ya no exista en el índice — los datos se
+ * regeneran cada dos horas y una zona puede desaparecer entre medias. No es
+ * una elección editorial (ver la corrección de 2026-08-06 en ADR-0005): es
+ * la provincia con más estaciones, calculada del propio índice, un recurso
+ * técnico para no dejar la aplicación sin nada que mostrar.
+ */
+export function zonaDeReserva(indice: Indice): Zona {
+  if (indice.provincias.length === 0) {
+    throw new Error('No hay ninguna zona disponible en el índice.');
+  }
+  const provinciaConMasEstaciones = indice.provincias.reduce((mayor, actual) =>
+    actual.estaciones > mayor.estaciones ? actual : mayor
+  );
+  const zona = indice.zonas.find((z) => z.id === `p-${provinciaConMasEstaciones.id}`);
+  if (!zona) throw new Error('No hay ninguna zona disponible en el índice.');
+  return zona;
+}
+
+/**
  * Carga en paralelo los ficheros de provincia de una zona y los fusiona.
  *
  * Fallo parcial (RF-36): si un fichero falla, el resto se muestra igual y se

@@ -25,9 +25,8 @@ especificación, y el código es lo que va detrás.
 
 Abres la web, ves los precios de tu zona sobre un mapa, y en dos segundos sabes
 si merece la pena desviarte y cuántos euros te ahorras. Una zona es tu provincia,
-tu comunidad autónoma, o una agrupación a medida: quien vive en Vitoria-Gasteiz
-reposta en Álava, en Bizkaia y en Miranda de Ebro, y las tres cosas caben en la
-misma pantalla.
+tu comunidad autónoma: quien vive en Vitoria-Gasteiz puede mirar Álava sola o
+Euskadi entera.
 
 ## Principios que no se negocian
 

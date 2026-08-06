@@ -105,7 +105,6 @@ surtidor/
 │   └── datos.yml              # cron cada 2 h: descarga, construye, despliega
 ├── scripts/
 │   ├── descargar-datos.ts     # llama al MITECO, normaliza, escribe JSON
-│   ├── zonas-a-medida.ts      # zonas que cruzan fronteras administrativas
 │   ├── datos-mock.ts          # genera datos falsos para desarrollo sin red
 │   └── lib/
 │       ├── miteco.ts          # cliente de la API y esquemas zod
@@ -188,16 +187,23 @@ para poder pintar el selector sin descargar nada más.
       "tipo": "provincia", "provincias": ["01"] },
     { "id": "ccaa-16", "nombre": "Euskadi",
       "tipo": "ccaa", "provincias": ["01","48","20"] },
-    { "id": "euskadi-plus", "nombre": "Euskadi y alrededores",
-      "tipo": "medida", "provincias": ["01","48","20","31","09"] }
+    { "id": "ccaa-01", "nombre": "ANDALUCIA",
+      "tipo": "ccaa", "provincias": ["04","11","14","18","21","23","29","41"] }
   ]
 }
 ```
 
-Las zonas de tipo `provincia` y `ccaa` se generan solas desde los catálogos del
-ministerio. Las de tipo `medida` se declaran a mano en
-`scripts/zonas-a-medida.ts`, porque son juicios sobre cómo se conduce de verdad
-y no salen de ningún dato.
+**Los dos tipos se generan solos**, desde los catálogos del ministerio: 52
+provincias y 19 comunidades, 71 zonas en total.
+
+No hay zonas definidas a mano ni agrupaciones calculadas, y no las va a haber: cualquier lista de
+agrupaciones escogidas es una sucesión de juicios editoriales que hay que
+defender uno a uno. Ver la corrección al final de
+[ADR-0005](adr/0005-provincia-unidad-y-zonas.md).
+
+**Los nombres se toman del catálogo del ministerio, verbatim.** Si dice
+`ARABA/ALAVA`, eso se muestra. El proyecto no traduce, no acorta y no elige entre
+denominaciones.
 
 Ver [ADR-0005](adr/0005-provincia-unidad-y-zonas.md) para el porqué de separar
 almacenamiento y consulta.

@@ -43,8 +43,7 @@ que nosotros especulando.
 Núcleo:
 
 - Mapa con todas las estaciones de una **zona** y su precio. Una zona es una
-  provincia, una comunidad autónoma, o una agrupación a medida que cruza
-  fronteras administrativas.
+  provincia o una comunidad autónoma.
 - Cuatro combustibles: gasolina 95 E5, gasóleo A, gasolina 98 E5, gasóleo premium.
 - Ficha de estación con todos sus combustibles, dirección y horario.
 - Filtro de abiertas ahora.

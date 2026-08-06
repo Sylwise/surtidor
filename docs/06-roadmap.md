@@ -187,6 +187,14 @@ euros por 100 km, que es la unidad real de lo que cuesta conducir.
 
 **Ordenar por distancia** con geolocalización concedida (RF-26).
 
+**Cargar la provincia vecina al desplazar el mapa.** Desde Vitoria-Gasteiz se
+reposta en Miranda de Ebro, y la frontera provincial no significa nada para quien
+conduce. Se descartó resolverlo con zonas de limítrofes porque generaba contenido
+duplicado (ver ADR-0005): la solución correcta es cargar la provincia contigua
+cuando el mapa entra en ella. La tabla de adyacencia entre las 52 provincias
+—dato fijo, escrito a mano y con prueba de simetría— hace falta aquí y en ningún
+otro sitio.
+
 **Precio congelado.** Algunas dejan de actualizar para parecer baratas. Con el
 histórico se detecta si lleva días sin moverse y se marca. Genera confianza
 porque nadie más lo cuenta.

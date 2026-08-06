@@ -64,7 +64,9 @@ esté publicada.
 |---|---|---|
 | RF-30 | M | Selector de combustible siempre visible, accesible en un solo toque, sin menús desplegables. |
 | RF-31 | M | Filtro de "solo abiertas ahora" que interpreta el campo de horario del ministerio. |
-| RF-32 | M | Selector de zona: provincias, comunidades autónomas y zonas a medida, agrupadas y buscables por nombre. |
+| RF-32 | M | Selector de zona: 52 provincias y 19 comunidades autónomas, generadas desde los catálogos del ministerio. Buscable por nombre. |
+| RF-76 | M | Los nombres de provincia y comunidad se toman del catálogo del ministerio sin modificarlos. El proyecto no traduce, no acorta ni elige entre denominaciones. |
+| RF-77 | M | No existen zonas definidas a mano. Toda zona sale de un límite administrativo oficial o de la adyacencia geográfica. |
 | RF-36 | M | Una zona de varias provincias descarga sus ficheros en paralelo y los fusiona. Si alguno falla, se muestra lo que sí ha llegado y se avisa de qué falta. |
 | RF-37 | S | Cuando el usuario pulsa el botón de ubicación, se le propone además cambiar a la zona que le corresponde. |
 | RF-33 | M | Control de **litros a repostar** (no "depósito": casi nadie llena desde vacío), con 20 L por defecto. Vive en la ficha, no en la cabecera. |

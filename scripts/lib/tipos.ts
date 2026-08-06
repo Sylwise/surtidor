@@ -42,7 +42,7 @@ export interface ResumenProvincia {
   minimos: Partial<Record<ClavePrecio, number>>;
 }
 
-export type TipoZona = 'provincia' | 'ccaa' | 'medida';
+export type TipoZona = 'provincia' | 'ccaa';
 
 export interface Zona {
   id: string;

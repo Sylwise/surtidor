@@ -7,7 +7,6 @@
 
 import { join } from 'node:path';
 import { escribirJsonAtomico } from './lib/escritura.ts';
-import { ZONAS_A_MEDIDA } from './zonas-a-medida.ts';
 import type { ClavePrecio, DatosProvincia, Estacion, Indice, Precios, ResumenProvincia, Zona } from './lib/tipos.ts';
 
 interface ProvinciaEstatica {
@@ -190,7 +189,7 @@ async function main(): Promise<void> {
     actualizado,
     mock: true,
     provincias: resumenProvincias,
-    zonas: [...zonasProvincia, ...zonasCcaa, ...ZONAS_A_MEDIDA],
+    zonas: [...zonasProvincia, ...zonasCcaa],
   };
 
   await Promise.all(

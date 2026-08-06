@@ -16,10 +16,9 @@ import type { ClavePrecio, Zona } from '../../scripts/lib/tipos.ts';
 const ETIQUETA_TIPO: Record<Zona['tipo'], string> = {
   provincia: 'Provincias',
   ccaa: 'Comunidades autónomas',
-  medida: 'A medida',
 };
 
-const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa', 'medida'];
+const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa'];
 
 function normalizar(texto: string): string {
   return texto
@@ -36,12 +35,15 @@ function normalizar(texto: string): string {
  *
  * `contenedorIdentidad` recibe el selector de zona.
  * `contenedorRapidos` recibe el selector de combustible y el filtro.
+ *
+ * Devuelve `abrirSelector`, para que la página pueda abrir el panel de zona
+ * directamente cuando no hay ninguna zona resuelta todavía (RF-49).
  */
 export function montarControles(
   contenedorIdentidad: HTMLElement,
   contenedorRapidos: HTMLElement,
   zonas: Zona[],
-): () => void {
+): { abrirSelector: () => void } {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
   contenedorIdentidad.innerHTML = '';
@@ -201,7 +203,7 @@ export function montarControles(
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
-    nombreZonaSpan.textContent = zonaActual?.nombre ?? estado.zonaId;
+    nombreZonaSpan.textContent = zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona';
 
     for (const [clave, boton] of botonesCombustible) {
       const activo = clave === estado.combustible;
@@ -213,5 +215,6 @@ export function montarControles(
   }
 
   render(obtenerEstado());
-  return suscribir(render);
+  suscribir(render);
+  return { abrirSelector: abrirPanel };
 }

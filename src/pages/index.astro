@@ -56,7 +56,7 @@ import marcaSvg from '../assets/marca.svg?raw';
       // Orquestación de la página: carga el índice, monta los componentes y
       // mantiene la zona activa al día.
       import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-      import { cargarIndice, cargarZona } from '../logica/zona.ts';
+      import { cargarIndice, cargarZona, zonaDeReserva } from '../logica/zona.ts';
       import { montarControles } from '../componentes/Controles.ts';
       import { montarLista } from '../componentes/Lista.ts';
       import { montarTotem } from '../componentes/Totem.ts';
@@ -96,6 +96,7 @@ import marcaSvg from '../assets/marca.svg?raw';
 
       let indice: Indice | null = null;
       let controlesMontados = false;
+      let controles: { abrirSelector: () => void } | null = null;
 
       // RF-43: aviso de frescura de los datos. Vive fuera del estado global
       // (src/logica/estado.ts) a propósito: es un dato derivado que solo usa
@@ -170,14 +171,25 @@ import marcaSvg from '../assets/marca.svg?raw';
             indice = await cargarIndice();
           }
           if (!controlesMontados) {
-            montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
+            controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
             controlesMontados = true;
             actualizarAlturaCabecera();
           }
 
-          const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? indice.zonas[0];
-          if (!zona) throw new Error('No hay ninguna zona disponible en el índice.');
-          if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
+          // RF-49: sin zona guardada y sin página de aterrizaje, el siguiente
+          // paso es el selector, no una zona elegida por nosotros.
+          const zonaGuardada = obtenerEstado().zonaId;
+          if (zonaGuardada === null) {
+            actualizarEstado({ cargando: false });
+            controles?.abrirSelector();
+            return;
+          }
+
+          // Caso imposible (no editorial, ver src/logica/zona.ts): la zona
+          // guardada ya no existe en el índice porque los datos se
+          // regeneraron entre medias.
+          const zona = indice.zonas.find((z) => z.id === zonaGuardada) ?? zonaDeReserva(indice);
+          if (zona.id !== zonaGuardada) actualizarEstado({ zonaId: zona.id });
 
           const resultado = await cargarZona(zona, indice.provincias);
           actualizadoZona = resultado.actualizado;

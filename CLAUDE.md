@@ -99,3 +99,8 @@ y los marca con `"mock": true` para que la interfaz lo enseñe.
 - No pidas geolocalización al cargar. Solo cuando el usuario pulse el botón.
 - No inventes precios. Si no hay dato, la interfaz dice que no hay dato.
 - No borres la atribución de OpenStreetMap ni la del MITECO.
+- **No inventes nombres de lugar ni agrupaciones territoriales.** Los nombres
+  salen del catálogo del ministerio tal cual, y las agrupaciones de límites
+  administrativos oficiales o de adyacencia geográfica. Nunca de un criterio
+  propio: en España, agrupar provincias con nombre propio es tomar partido
+  aunque no se pretenda.
