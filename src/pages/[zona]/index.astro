@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import '../../estilos/tokens.css';
 import '../../estilos/interfaz.css';
+import marcaSvg from '../../assets/marca.svg?raw';
 import type { Indice, Zona } from '../../../scripts/lib/tipos.ts';
 
 export async function getStaticPaths() {
@@ -40,11 +41,18 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{titulo}</title>
     <meta name="description" content={descripcion} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#16323B" />
   </head>
   <body>
     <div class="app" id="app" data-zona-id={zona.id}>
       <header class="cabecera">
-        <span class="marca">Surtidor</span>
+        <span class="marca">
+          <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
+          Surtidor
+        </span>
         <div id="controles-identidad" class="controles-identidad" aria-label="Zona"></div>
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
       </header>

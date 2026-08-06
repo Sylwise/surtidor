@@ -1,6 +1,7 @@
 ---
 import '../estilos/tokens.css';
 import '../estilos/interfaz.css';
+import marcaSvg from '../assets/marca.svg?raw';
 ---
 
 <html lang="es">
@@ -12,11 +13,18 @@ import '../estilos/interfaz.css';
       name="description"
       content="Precios de gasolina y diésel por zona, sin anuncios ni registro."
     />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#16323B" />
   </head>
   <body>
     <div class="app">
       <header class="cabecera">
-        <span class="marca">Surtidor</span>
+        <span class="marca">
+          <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
+          Surtidor
+        </span>
         <div id="controles-identidad" class="controles-identidad" aria-label="Zona"></div>
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
       </header>
