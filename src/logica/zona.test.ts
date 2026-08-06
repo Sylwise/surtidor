@@ -49,9 +49,9 @@ const ZONA_EUSKADI: Zona = {
 };
 
 const CATALOGO_PROVINCIAS: ResumenProvincia[] = [
-  { id: '01', nombre: 'ARABA/ALAVA', estaciones: 1, minimos: {} },
-  { id: '48', nombre: 'BIZKAIA', estaciones: 1, minimos: {} },
-  { id: '20', nombre: 'GIPUZKOA', estaciones: 1, minimos: {} },
+  { id: '01', nombre: 'ARABA/ALAVA', estaciones: 1, minimos: {}, centro: { lat: 42.85, lon: -2.67 } },
+  { id: '48', nombre: 'BIZKAIA', estaciones: 1, minimos: {}, centro: { lat: 43.263, lon: -2.935 } },
+  { id: '20', nombre: 'GIPUZKOA', estaciones: 1, minimos: {}, centro: { lat: 43.3183, lon: -1.9812 } },
 ];
 
 const fetchOriginal = globalThis.fetch;

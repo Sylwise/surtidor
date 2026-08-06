@@ -84,7 +84,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       // los mismos módulos de src/logica/ y src/componentes/ que index.astro:
       // nada de lógica de carga o fusión duplicada a mano.
       import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../../logica/estado.ts';
-      import { cargarIndice, cargarZona, zonaDeReserva } from '../../logica/zona.ts';
+      import { cargarIndice, cargarZona, zonaDeReserva, provinciaMasCercana } from '../../logica/zona.ts';
       import { montarControles } from '../../componentes/Controles.ts';
       import { montarLista } from '../../componentes/Lista.ts';
       import { montarTotem } from '../../componentes/Totem.ts';
@@ -272,12 +272,22 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       montarLista(contenedorLista);
       montarTotem(contenedorTotem);
 
+      // RF-37, igual que en src/pages/index.astro: al encontrar la
+      // ubicación se cambia zonaId a la provincia más cercana. Aquí eso
+      // dispara la navegación de arriba, a la página estática de esa
+      // provincia.
+      function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
+        if (!indice) return;
+        const provincia = provinciaMasCercana(indice, posicion);
+        actualizarEstado({ zonaId: `p-${provincia.id}` });
+      }
+
       // Ver el comentario equivalente en src/pages/index.astro: import()
       // dinámico para que MapLibre entre en su propio chunk, aparte del
       // bundle inicial (RNF-11), y para que un fallo de red al pedir ese
       // chunk no rompa el resto de la página (regla dura 2 de CLAUDE.md).
       import('../../componentes/Mapa.ts')
-        .then(({ montarMapa }) => montarMapa(contenedorMapa))
+        .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
         .catch(() => {
           contenedorMapa.innerHTML = '';
           contenedorMapa.removeAttribute('style');

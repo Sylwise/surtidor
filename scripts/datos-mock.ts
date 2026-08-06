@@ -163,6 +163,9 @@ async function main(): Promise<void> {
     nombre: datos.provincia.nombre,
     estaciones: datos.estaciones.length,
     minimos: calcularMinimos(datos.estaciones),
+    // Mismo centroide que usó generarEstaciones para dispersar las
+    // estaciones de mentira: no hace falta recalcular la media.
+    centro: { lat: PROVINCIAS[i]!.lat, lon: PROVINCIAS[i]!.lon },
   }));
 
   const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({

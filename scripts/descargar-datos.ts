@@ -56,6 +56,19 @@ function calcularMinimos(datos: DatosProvincia): Partial<Record<ClavePrecio, num
   return minimos;
 }
 
+/** Centro de la provincia (RF-37): media de las coordenadas de sus
+ *  estaciones, descartando (0, 0) — "Null Island", nunca un punto real de
+ *  España — con el mismo criterio que Mapa.ts usa para no pintar marcadores
+ *  ahí. No es un límite administrativo, solo una forma de encontrar la
+ *  provincia más cercana a una posición. */
+function calcularCentro(datos: DatosProvincia): { lat: number; lon: number } {
+  const conCoordenadas = datos.estaciones.filter((e) => !(e.lat === 0 && e.lon === 0));
+  if (conCoordenadas.length === 0) return { lat: 0, lon: 0 };
+  const lat = conCoordenadas.reduce((suma, e) => suma + e.lat, 0) / conCoordenadas.length;
+  const lon = conCoordenadas.reduce((suma, e) => suma + e.lon, 0) / conCoordenadas.length;
+  return { lat, lon };
+}
+
 function construirZonasCcaa(
   provinciasCatalogo: ProvinciaCatalogo[],
   ccaaCatalogo: { IDCCAA: string; CCAA: string }[],
@@ -135,6 +148,7 @@ async function main(): Promise<void> {
     nombre: datos.provincia.nombre,
     estaciones: datos.estaciones.length,
     minimos: calcularMinimos(datos),
+    centro: calcularCentro(datos),
   }));
 
   const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({

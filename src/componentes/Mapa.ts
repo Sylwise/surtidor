@@ -135,10 +135,12 @@ function mensajeErrorGeolocalizacion(error: GeolocationPositionError): string {
  *  sobre el mapa, no en el estrato 1).
  *
  *  Solo pide permiso al pulsarlo, nunca al montar el mapa (regla dura 1 de
- *  CLAUDE.md, RF-49). La posición no toca src/logica/estado.ts ni
- *  localStorage en ningún momento: se lee y se usa para centrar el mapa en
- *  la misma función y ahí se queda (RNF-31). Si se deniega o falla, un
- *  aviso breve junto al botón y el mapa se queda como estaba: sin
+ *  CLAUDE.md, RF-49). La posición se usa para centrar el mapa en la misma
+ *  función (RNF-31: nunca sale de aquí hacia una petición de red) y, si se
+ *  ha dado `alEncontrarUbicacion`, para avisar a quien montó el mapa de las
+ *  coordenadas (RF-37: la página decide qué zona corresponde y la cambia;
+ *  este componente no conoce ni provincias ni zonas). Si se deniega o
+ *  falla, un aviso breve junto al botón y el mapa se queda como estaba: sin
  *  reintentos automáticos ni volver a pedir permiso por su cuenta. */
 class ControlUbicacion implements IControl {
   private mapa: MapaLibre | null = null;
@@ -147,6 +149,8 @@ class ControlUbicacion implements IControl {
   private aviso: HTMLParagraphElement | null = null;
   private temporizadorAviso: ReturnType<typeof setTimeout> | null = null;
   private pendiente = false;
+
+  constructor(private alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void) {}
 
   onAdd(mapa: MapaLibre): HTMLElement {
     this.mapa = mapa;
@@ -221,6 +225,7 @@ class ControlUbicacion implements IControl {
         } else {
           this.mapa.flyTo({ center: centro, duration: 650 });
         }
+        this.alEncontrarUbicacion?.({ lat: posicion.coords.latitude, lon: posicion.coords.longitude });
       },
       (error) => {
         terminar();
@@ -232,8 +237,14 @@ class ControlUbicacion implements IControl {
 }
 
 /** Monta el mapa en `contenedor` y lo mantiene sincronizado con el estado.
+ *  `alEncontrarUbicacion` (RF-37) se invoca con las coordenadas cuando el
+ *  botón "mi ubicación" las consigue; quien monte el mapa decide qué zona
+ *  corresponde y la aplica, este módulo no conoce zonas.
  *  Devuelve una función para desuscribirse y liberar el mapa. */
-export function montarMapa(contenedor: HTMLElement): () => void {
+export function montarMapa(
+  contenedor: HTMLElement,
+  alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void,
+): () => void {
   let mapa: MapaLibre | null = null;
   let cargado = false;
   let fallido = false;
@@ -653,7 +664,7 @@ export function montarMapa(contenedor: HTMLElement): () => void {
 
     // RF-17: sobre el mapa, junto al resto de controles de MapLibre — no en
     // la cabecera (presupuesto de interfaz, docs/05-diseno.md).
-    mapa.addControl(new ControlUbicacion(), 'top-right');
+    mapa.addControl(new ControlUbicacion(alEncontrarUbicacion), 'top-right');
 
     // Endurecimiento: el contenedor vive dentro de un layout flex (RNF-24,
     // rail que hace scroll interno) cuyo tamaño final puede no estar fijado

@@ -40,6 +40,10 @@ export interface ResumenProvincia {
   nombre: string;
   estaciones: number;
   minimos: Partial<Record<ClavePrecio, number>>;
+  /** Centro de la provincia: media de las coordenadas de sus estaciones, no
+   *  un límite administrativo. Solo sirve para encontrar la provincia más
+   *  cercana a una posición (RF-37); no es una forma de dibujar fronteras. */
+  centro: { lat: number; lon: number };
 }
 
 export type TipoZona = 'provincia' | 'ccaa';

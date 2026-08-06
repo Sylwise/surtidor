@@ -37,6 +37,14 @@ export function montarLista(contenedor: HTMLElement): () => void {
       return;
     }
 
+    // RF-49: sin zona elegida todavía (recién llegado, sin nada guardado en
+    // localStorage), no hay que confundirlo con RF-42 (zona sin ese
+    // combustible): aquí no hay zona en absoluto.
+    if (!estado.cargando && estado.zonaId === null) {
+      contenedor.append(crearAviso('Elige una zona arriba para ver sus estaciones.'));
+      return;
+    }
+
     // RF-48: las estaciones sin venta al público se excluyen en toda la
     // interfaz, no solo aquí; el mapa y la ficha aplican el mismo filtro.
     const visiblesTipoVenta = estacionesVisibles(estado.estaciones);

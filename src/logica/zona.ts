@@ -73,6 +73,34 @@ export function zonaDeReserva(indice: Indice): Zona {
   return zona;
 }
 
+/** Distancia entre dos puntos en km (fórmula de Haversine). Solo hace falta
+ *  para encontrar la provincia más cercana a una posición (RF-37); no
+ *  justifica traer una librería geoespacial por esto. */
+function distanciaKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const radioTierraKm = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLon = ((b.lon - a.lon) * Math.PI) / 180;
+  const rLat1 = (a.lat * Math.PI) / 180;
+  const rLat2 = (b.lat * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * radioTierraKm * Math.asin(Math.sqrt(h));
+}
+
+/**
+ * Provincia más cercana a una posición, por distancia a su centro (media de
+ * las coordenadas de sus estaciones — ver `centro` en ResumenProvincia). No
+ * es una zona a medida (ADR-0005): es solo la forma de traducir "aquí estoy"
+ * a una de las 52 provincias que ya existen, para RF-37 (botón de ubicación).
+ */
+export function provinciaMasCercana(indice: Indice, posicion: { lat: number; lon: number }): ResumenProvincia {
+  if (indice.provincias.length === 0) {
+    throw new Error('No hay ninguna provincia disponible en el índice.');
+  }
+  return indice.provincias.reduce((mas, actual) =>
+    distanciaKm(actual.centro, posicion) < distanciaKm(mas.centro, posicion) ? actual : mas
+  );
+}
+
 /**
  * Carga en paralelo los ficheros de provincia de una zona y los fusiona.
  *
