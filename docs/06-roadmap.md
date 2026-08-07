@@ -187,13 +187,13 @@ euros por 100 km, que es la unidad real de lo que cuesta conducir.
 
 **Ordenar por distancia** con geolocalización concedida (RF-26).
 
-**Cargar la provincia vecina al desplazar el mapa.** Desde Vitoria-Gasteiz se
-reposta en Miranda de Ebro, y la frontera provincial no significa nada para quien
-conduce. Se descartó resolverlo con zonas de limítrofes porque generaba contenido
-duplicado (ver ADR-0005): la solución correcta es cargar la provincia contigua
-cuando el mapa entra en ella. La tabla de adyacencia entre las 52 provincias
-—dato fijo, escrito a mano y con prueba de simetría— hace falta aquí y en ningún
-otro sitio.
+**El mapa manda.** Desde Vitoria-Gasteiz se reposta en Miranda de Ebro, y la
+frontera provincial no significa nada para quien conduce. Al desplazar o alejar
+el mapa se carga lo que ocupa pantalla y se suelta lo que sale de ella: la
+lista, los colores, el selector y la dirección siguen a la vista. Al alejar del
+todo, las estaciones dan paso a una pastilla por provincia con su precio medio.
+Sin páginas nuevas y sin tabla de adyacencia que mantener. Ver
+[ADR-0014](adr/0014-el-mapa-manda.md).
 
 **Precio congelado.** Algunas dejan de actualizar para parecer baratas. Con el
 histórico se detecta si lleva días sin moverse y se marca. Genera confianza
@@ -217,9 +217,6 @@ valora.
 **Páginas editoriales automáticas.** "Las provincias más baratas de España hoy",
 "la gasolinera más barata del país ahora mismo". Se generan solas con los datos
 que ya hay, se actualizan cada dos horas, cero mantenimiento, e imanes de enlaces.
-
-**PWA con la última zona en caché.** Funciona con mala cobertura, que es
-exactamente la situación de quien mira esto en una gasolinera de carretera.
 
 ---
 
@@ -258,3 +255,8 @@ exige servidor y tiempo. La fuente oficial es obligatoria por ley y suficiente.
 
 **Sincronización entre dispositivos.** Consecuencia de no tener cuentas. Se
 asume.
+
+**PWA con funcionamiento sin conexión.** Descartada, no aplazada. Sin conexión
+no hay precio fresco, y un precio que no es el del cartel no sirve para decidir
+dónde repostar. Además es el único componente que no se corrige desplegando.
+El motivo completo, en [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md).
