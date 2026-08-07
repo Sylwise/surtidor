@@ -13,7 +13,14 @@ import { join } from 'node:path';
 import '../../estilos/tokens.css';
 import '../../estilos/interfaz.css';
 import marcaSvg from '../../assets/marca.svg?raw';
-import type { Indice, Zona } from '../../../scripts/lib/tipos.ts';
+import { fusionarProvincias, UMBRAL_HIDRATACION_EMBEBIDA, type EstacionZona } from '../../logica/zona.ts';
+import { estacionesVisibles } from '../../logica/visibilidad.ts';
+import { crearEscala } from '../../logica/escala.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import type { ClavePrecio, DatosProvincia, Indice, Zona } from '../../../scripts/lib/tipos.ts';
+
+const DIRECTORIO_DATOS = join(import.meta.dirname, '..', '..', '..', 'public', 'data');
 
 export async function getStaticPaths() {
   const rutaIndice = join(import.meta.dirname, '..', '..', '..', 'public', 'data', 'indice.json');
@@ -33,6 +40,116 @@ const { zona } = Astro.props;
 
 const titulo = `Precios de gasolina y diésel en ${zona.nombre} · Surtidor`;
 const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizados cada dos horas, sin anuncios ni registro.`;
+
+// RF-61: los precios tienen que estar en el HTML servido, no inyectados solo
+// por JavaScript. Esto corre en Node durante el build (igual que
+// getStaticPaths arriba): lee los ficheros de provincia de la zona del disco,
+// sin red, y los fusiona con la misma función que usa el cliente al cambiar
+// de zona (src/logica/zona.ts), para que las dos vías no diverjan.
+const datosPorProvincia: DatosProvincia[] = zona.provincias.map((id) => {
+  const ruta = join(DIRECTORIO_DATOS, 'provincias', `${id}.json`);
+  return JSON.parse(readFileSync(ruta, 'utf-8')) as DatosProvincia;
+});
+const { estaciones, mock, actualizado } = fusionarProvincias(datosPorProvincia);
+
+// --- Tabla estática, acotada (corrección tras medir la primera versión) ---
+// Una tabla con las 2.000 y pico estaciones de una comunidad no posiciona
+// mejor que una con 30: Google no premia el volcado exhaustivo, y esas filas
+// de más hay que parsearlas en el móvil aunque el gzip las disimule. Aquí solo
+// van las 30 más baratas con sus cuatro precios, más un resumen por
+// municipio (RF-74: es lo que enlaza esta página con sus municipios cuando
+// existan, segunda mitad de H10). La tabla completa de una gasolinera por
+// gasolinera vive en la página de SU municipio, donde sí son pocas y son el
+// contenido entero de la página.
+//
+// Deliberadamente NO es la misma lista que hidrata la aplicación interactiva
+// de más abajo: esa se pinta con el combustible por defecto porque el elegido
+// de verdad vive en localStorage, que el build no puede leer, así que
+// reordenarla al montar el cliente es inevitable. Esta tabla, en cambio, no
+// depende de ningún combustible activo —enseña los cuatro a la vez— y no se
+// toca nunca desde JavaScript: se queda exactamente como la sirvió el build.
+const visiblesTabla = estacionesVisibles(estaciones);
+const multiProvinciaTabla = new Set(visiblesTabla.map((e) => e.provinciaId)).size > 1;
+
+const LIMITE_TABLA = 30;
+
+// Orden por Gasolina 95 (el combustible por defecto de toda la aplicación,
+// ver COMBUSTIBLE_POR_DEFECTO en src/logica/estado.ts): sin eso no hay un
+// "más barato" único con cuatro precios por fila. Sin ese dato, al final.
+const filasTabla: EstacionZona[] = [...visiblesTabla]
+  .sort((a, b) => {
+    const pa = a.precios.gasolina95e5;
+    const pb = b.precios.gasolina95e5;
+    if (pa === null && pb === null) return 0;
+    if (pa === null) return 1;
+    if (pb === null) return -1;
+    return pa - pb;
+  })
+  .slice(0, LIMITE_TABLA);
+
+// Una escala de color por combustible (RF-12: percentil dentro de la zona
+// mostrada, no solo dentro de las 30 filas de la tabla), independiente entre
+// columnas: la banda de la gasolina 95 de una fila no tiene por qué coincidir
+// con la del diésel de esa misma fila.
+const escalasPorCombustible = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((clave) => [
+    clave,
+    crearEscala(visiblesTabla.map((e) => e.precios[clave]).filter((p): p is number => p !== null)),
+  ])
+) as Record<ClavePrecio, ReturnType<typeof crearEscala>>;
+
+function bandaPrecio(clave: ClavePrecio, precio: number): string {
+  const escala = escalasPorCombustible[clave];
+  return escala.esMasBarata(precio) ? 'barata' : escala.banda(precio);
+}
+
+// --- Resumen por municipio ---
+// Nombre, número de estaciones y precio mínimo de gasolina 95 (mismo
+// combustible que ordena la tabla de arriba). Sin enlace todavía: las páginas
+// de municipio son la segunda mitad de H10 y no existen aún, así que enlazar
+// hoy sería un 404 disfrazado de resultado de búsqueda. El hueco para el
+// `href` está aquí, comentado, para cuando existan.
+interface ResumenMunicipio {
+  municipio: string;
+  provinciaId: string;
+  provinciaNombre: string;
+  estaciones: number;
+  precioMinimo: number | null;
+}
+
+const municipiosPorClave = new Map<string, ResumenMunicipio>();
+for (const estacion of visiblesTabla) {
+  const clave = `${estacion.provinciaId}::${estacion.municipio}`;
+  const precio = estacion.precios.gasolina95e5;
+  const existente = municipiosPorClave.get(clave);
+  if (existente) {
+    existente.estaciones += 1;
+    if (precio !== null && (existente.precioMinimo === null || precio < existente.precioMinimo)) {
+      existente.precioMinimo = precio;
+    }
+  } else {
+    municipiosPorClave.set(clave, {
+      municipio: estacion.municipio,
+      provinciaId: estacion.provinciaId,
+      provinciaNombre: estacion.provinciaNombre,
+      estaciones: 1,
+      precioMinimo: precio,
+    });
+  }
+}
+const resumenMunicipios = [...municipiosPorClave.values()].sort((a, b) =>
+  a.municipio.localeCompare(b.municipio, 'es')
+);
+
+// Payload de hidratación: la misma zona fusionada arriba, para que el script
+// del cliente inicialice el estado con esto en vez de volver a pedir por red
+// los JSON de provincia. Solo por debajo de UMBRAL_HIDRATACION_EMBEBIDA (ver
+// el porqué en src/logica/zona.ts): a partir de ahí el bloque embebido sale
+// más caro que el fetch que sustituye (sin caché de CDN, se repite entero en
+// cada visita), así que la página no lo lleva y el cliente vuelve a pedir los
+// JSON de provincia como hacía antes de H10.
+const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
+const datosHidratacion = hidratacionEmbebida ? JSON.stringify({ estaciones, mock, actualizado }) : '';
 ---
 
 <html lang="es">
@@ -47,7 +164,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
     <meta name="theme-color" content="#16323B" />
   </head>
   <body>
-    <div class="app" id="app" data-zona-id={zona.id}>
+    <div class="app" id="app" data-zona-id={zona.id} data-zona-nombre={zona.nombre}>
       <header class="cabecera">
         <span class="marca">
           <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
@@ -75,6 +192,92 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       </div>
     </div>
 
+    {hidratacionEmbebida && (
+      <script type="application/json" id="datos-zona" is:inline set:html={datosHidratacion.replace(/</g, '\\u003c')} />
+    )}
+
+    <section class="tabla-zona" aria-label={`Las más baratas y los municipios de ${zona.nombre}`}>
+      <h2 class="tabla-zona__titulo">Las {filasTabla.length} más baratas de {zona.nombre}</h2>
+      {actualizado && (
+        <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
+      )}
+      <div class="tabla-zona__scroll">
+        <table class="tabla-zona__tabla">
+          <thead>
+            <tr>
+              <th scope="col">Gasolinera</th>
+              <th scope="col">Dirección</th>
+              <th scope="col">Municipio</th>
+              {multiProvinciaTabla && <th scope="col">Provincia</th>}
+              {ORDEN_COMBUSTIBLES.map((clave) => <th scope="col">{ETIQUETA[clave]}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {filasTabla.map((estacion) => (
+              <tr>
+                <th scope="row">{estacion.rotulo}</th>
+                <td>{cajaDeTitulo(estacion.direccion)}</td>
+                <td>{cajaDeTitulo(estacion.municipio)}</td>
+                {multiProvinciaTabla && <td>{estacion.provinciaNombre}</td>}
+                {ORDEN_COMBUSTIBLES.map((clave) => {
+                  const precio = estacion.precios[clave];
+                  return (
+                    <td>
+                      {precio === null ? (
+                        <span class="tabla-zona__ausente">no vende</span>
+                      ) : (
+                        <span class={`precio precio--${bandaPrecio(clave, precio)}`}>
+                          {formatearPrecio(precio)}
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="tabla-zona__titulo tabla-zona__titulo--municipios">
+        Precios por municipio en {zona.nombre}
+      </h2>
+      <div class="tabla-zona__scroll">
+        <table class="tabla-zona__tabla">
+          <thead>
+            <tr>
+              <th scope="col">Municipio</th>
+              {multiProvinciaTabla && <th scope="col">Provincia</th>}
+              <th scope="col">Estaciones</th>
+              <th scope="col">Gasolina 95 desde</th>
+            </tr>
+          </thead>
+          <tbody>
+            {resumenMunicipios.map((resumen) => (
+              <tr>
+                {/* RF-74, cuando existan las páginas de municipio (H10,
+                    segunda mitad): este <th> pasa a envolver un <a href={...}>
+                    a la página del municipio. Hasta entonces, texto plano: no
+                    hay nada real a lo que enlazar todavía. */}
+                <th scope="row">{cajaDeTitulo(resumen.municipio)}</th>
+                {multiProvinciaTabla && <td>{resumen.provinciaNombre}</td>}
+                <td>{resumen.estaciones}</td>
+                <td>
+                  {resumen.precioMinimo === null ? (
+                    <span class="tabla-zona__ausente">no vende</span>
+                  ) : (
+                    <span class={`precio precio--${bandaPrecio('gasolina95e5', resumen.precioMinimo)}`}>
+                      {formatearPrecio(resumen.precioMinimo)}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <script>
       // Orquestación de la página de zona. A diferencia de src/pages/index.astro
       // (que elige la zona guardada en localStorage o, si no hay ninguna,
@@ -84,13 +287,20 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       // los mismos módulos de src/logica/ y src/componentes/ que index.astro:
       // nada de lógica de carga o fusión duplicada a mano.
       import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../../logica/estado.ts';
-      import { cargarIndice, cargarZona, zonaDeReserva, provinciaMasCercana } from '../../logica/zona.ts';
+      import {
+        cargarIndice,
+        cargarZona,
+        zonaDeReserva,
+        provinciaMasCercana,
+        type EstacionZona,
+        type FalloProvincia,
+      } from '../../logica/zona.ts';
       import { montarControles } from '../../componentes/Controles.ts';
       import { montarLista } from '../../componentes/Lista.ts';
       import { montarTotem } from '../../componentes/Totem.ts';
       import { montarHoja } from '../../componentes/Hoja.ts';
       import { datosDesactualizados } from '../../logica/frescura.ts';
-      import type { FalloProvincia } from '../../logica/zona.ts';
+      import { formatearFechaHora } from '../../logica/formato.ts';
       import type { Indice } from '../../../scripts/lib/tipos.ts';
 
       function elemento(id: string): HTMLElement {
@@ -126,25 +336,13 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       // página, fuera del estado global.
       let actualizadoZona: string | null = null;
 
-      function horaDelDato(iso: string): string {
-        const fecha = new Date(iso);
-        if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
-        return fecha.toLocaleString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      }
-
       // Zona que promete esta página, tal y como la fijó getStaticPaths en el
       // build. Si el selector de zona la cambia, no recargamos en sitio:
       // navegamos a la URL de la otra zona, para que el <title> y la <meta
       // description> sigan correspondiendo a lo que se ve.
       const zonaDeLaPagina = contenedorApp.dataset.zonaId;
-      if (!zonaDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
-
-      actualizarEstado({ zonaId: zonaDeLaPagina });
+      const nombreDeLaPagina = contenedorApp.dataset.zonaNombre;
+      if (!zonaDeLaPagina || !nombreDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
 
       function crearAviso(
         texto: string,
@@ -158,14 +356,17 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
           const boton = document.createElement('button');
           boton.type = 'button';
           boton.textContent = 'Reintentar';
-          boton.addEventListener('click', () => {
-            cargarTodo();
-          });
+          boton.addEventListener('click', () => cargarZonaPorFetch());
           div.append(boton);
         }
         return div;
       }
 
+      // RF-36 (fallo parcial de provincia) y el aviso de error con
+      // "Reintentar" solo son alcanzables en la ruta de fetch (zonas grandes,
+      // más abajo): con los datos embebidos no hay red de por medio que
+      // pueda fallar. En la ruta embebida estas dos ramas simplemente nunca
+      // se disparan.
       function renderAvisos(estado: EstadoApp): void {
         contenedorAvisos.innerHTML = '';
         insigniaMock.hidden = !estado.mock;
@@ -186,7 +387,7 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
         }
         if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
           contenedorAvisos.append(
-            crearAviso(`Datos de las ${horaDelDato(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
+            crearAviso(`Datos de las ${formatearFechaHora(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
           );
         }
       }
@@ -194,35 +395,61 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
       let indice: Indice | null = null;
       let controlesMontados = false;
 
-      // Carga (o recarga) el índice si hace falta, monta el selector de
-      // controles en cuanto hay índice, y carga la zona de la página. Fallo
-      // parcial de zona (RF-36): un fallo de provincia no tumba las demás.
-      // Sirve también como función de reintento desde el botón de los avisos.
-      async function cargarTodo(): Promise<void> {
+      // Índice compartido por dos consumidores: el selector de zona (RF-32,
+      // siempre por red, el catálogo de las 71 zonas nunca va embebido) y,
+      // en zonas grandes, la ruta de fetch de más abajo (necesita
+      // `zona.provincias` para saber qué ficheros pedir). Se pide una sola
+      // vez y se reutiliza.
+      async function obtenerIndiceYControles(): Promise<Indice> {
+        if (!indice) {
+          indice = await cargarIndice();
+        }
+        if (!controlesMontados) {
+          montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
+          controlesMontados = true;
+          actualizarAlturaCabecera();
+        }
+        return indice;
+      }
+
+      // Monta solo el selector de zona, sin tocar los datos de la zona
+      // activa (que ya están en pantalla, vía el bloque embebido). Un fallo
+      // aquí no toca precios ni lista (regla dura 2 de CLAUDE.md extendida al
+      // selector): solo deja el selector sin montar, con su propio botón de
+      // reintentar.
+      async function montarSelectorZona(): Promise<void> {
+        try {
+          await obtenerIndiceYControles();
+        } catch {
+          contenedorControlesIdentidad.innerHTML = '';
+          const aviso = document.createElement('span');
+          aviso.textContent = 'Selector de zona no disponible. ';
+          const boton = document.createElement('button');
+          boton.type = 'button';
+          boton.textContent = 'Reintentar';
+          boton.addEventListener('click', () => montarSelectorZona());
+          aviso.append(boton);
+          contenedorControlesIdentidad.append(aviso);
+        }
+      }
+
+      // Ruta de fetch: la que existía antes del bloque embebido, para las
+      // zonas por encima de UMBRAL_HIDRATACION_EMBEBIDA (src/logica/zona.ts)
+      // y para el botón de "Reintentar" de los avisos. RF-36: un fallo de
+      // provincia no tumba las demás.
+      async function cargarZonaPorFetch(): Promise<void> {
         actualizarEstado({ cargando: true, error: null });
         try {
-          if (!indice) {
-            indice = await cargarIndice();
-          }
-          if (!controlesMontados) {
-            montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
-            controlesMontados = true;
-            actualizarAlturaCabecera();
-          }
+          const indiceActual = await obtenerIndiceYControles();
 
           // Red de seguridad: si la zona de esta página ya no existe en el
           // índice (los datos se regeneran cada dos horas), cae a la zona de
-          // reserva (src/logica/zona.ts, no una elección editorial). El
-          // cambio de zonaId dispara la navegación de abajo.
-          const zona = indice.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? zonaDeReserva(indice);
+          // reserva (src/logica/zona.ts, no una elección editorial).
+          const zona = indiceActual.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? zonaDeReserva(indiceActual);
           if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
 
-          const resultado = await cargarZona(zona, indice.provincias);
+          const resultado = await cargarZona(zona, indiceActual.provincias);
           actualizadoZona = resultado.actualizado;
-          const estacionSeleccionada = obtenerEstado().estacionId;
-          const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
-            ? estacionSeleccionada
-            : null;
 
           actualizarEstado({
             zonaNombre: zona.nombre,
@@ -234,7 +461,6 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
               resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
                 ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
                 : null,
-            estacionId: siguienteSeleccion,
           });
         } catch (error) {
           actualizadoZona = null;
@@ -245,16 +471,48 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
         }
       }
 
-      // Regla dura 1 de CLAUDE.md: temporizador de rescate que resuelve el
-      // estado de carga pase lo que pase.
-      setTimeout(() => {
-        if (obtenerEstado().cargando) {
-          actualizarEstado({
-            cargando: false,
-            error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
-          });
-        }
-      }, 12000);
+      const datosZonaEl = document.getElementById('datos-zona');
+
+      if (datosZonaEl) {
+        // Zona pequeña (≤ UMBRAL_HIDRATACION_EMBEBIDA): el HTML ya trae la
+        // zona fusionada embebida —es la misma tabla estática de más abajo,
+        // sin el filtro de tipoVenta ni el orden por combustible activo, que
+        // aplican Lista.ts y Totem.ts igual que siempre— así que el estado se
+        // rellena con esto en vez de pedirlo por red.
+        const datosZona = JSON.parse(datosZonaEl.textContent ?? 'null') as {
+          estaciones: EstacionZona[];
+          mock: boolean;
+          actualizado: string | null;
+        } | null;
+        if (!datosZona) throw new Error('El bloque de datos de la zona embebido en el HTML está vacío.');
+
+        actualizadoZona = datosZona.actualizado;
+        actualizarEstado({
+          zonaId: zonaDeLaPagina,
+          zonaNombre: nombreDeLaPagina,
+          estaciones: datosZona.estaciones,
+          provinciasFallidas: [],
+          mock: datosZona.mock,
+          cargando: false,
+          error: null,
+        });
+        montarSelectorZona();
+      } else {
+        // Zona grande: sin bloque embebido (src/logica/zona.ts explica el
+        // porqué), así que hay que pedirla por red, con el mismo temporizador
+        // de rescate que cualquier estado de carga (regla dura 1 de
+        // CLAUDE.md).
+        actualizarEstado({ zonaId: zonaDeLaPagina, zonaNombre: nombreDeLaPagina });
+        cargarZonaPorFetch();
+        setTimeout(() => {
+          if (obtenerEstado().cargando) {
+            actualizarEstado({
+              cargando: false,
+              error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+            });
+          }
+        }, 12000);
+      }
 
       suscribir((estado) => {
         renderAvisos(estado);
@@ -295,8 +553,6 @@ const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizad
           aviso.textContent = 'El mapa no se ha podido cargar. La lista y la ficha funcionan igual.';
           contenedorMapa.append(aviso);
         });
-
-      cargarTodo();
     </script>
   </body>
 </html>

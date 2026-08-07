@@ -12,6 +12,20 @@ export function formatearEuros(cantidad: number): string {
   return `${cantidad.toFixed(2).replace('.', ',')} €`;
 }
 
+/** Fecha y hora legibles ("06/08 a las 16:49"), para el aviso de frescura
+ *  (RF-43) en el cliente y para la marca de "actualizado" de la tabla
+ *  estática de zona. Misma función en los dos sitios para que no diverjan. */
+export function formatearFechaHora(iso: string): string {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
+  return fecha.toLocaleString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 // RF-86: el ministerio devuelve dirección y municipio en mayúsculas. Es
 // prosa, no un rótulo, así que se pasa a caja de título con estas
 // partículas en minúscula (docs/05-diseno.md#Mayúsculas). El rótulo de la

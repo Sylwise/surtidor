@@ -31,6 +31,27 @@ export interface ResultadoZona {
   actualizado: string | null;
 }
 
+/**
+ * Umbral de estaciones a partir del cual una página de zona
+ * (src/pages/[zona]/index.astro) deja de llevar el bloque JSON de
+ * hidratación embebido, y el cliente vuelve a pedir los JSON de provincia
+ * por fetch, como antes de H10.
+ *
+ * Por debajo del umbral gana el bloque embebido: una sola descarga, sin ida
+ * y vuelta de red. Por encima pierde, y no por el tamaño en sí: los ficheros
+ * de `public/data/provincias/` los cachea el CDN y se reaprovechan entre
+ * páginas que comparten provincia (las 8 páginas de provincia de Andalucía y
+ * la página de la comunidad entera piden los mismos 8 ficheros), mientras
+ * que el bloque embebido va sin caché y se descarga entero en cada visita.
+ * En una zona grande, el fetch sale más barato, no más caro.
+ *
+ * 300 es el punto, medido con datos reales de agosto de 2026, en el que una
+ * comunidad autónoma grande (Andalucía, más de 2.000 estaciones) se acerca al
+ * presupuesto de 120 KB comprimidos por página; una sola provincia grande
+ * (Madrid, Barcelona) también lo supera y cae al mismo lado.
+ */
+export const UMBRAL_HIDRATACION_EMBEBIDA = 300;
+
 const TIMEOUT_MS = 8000;
 
 async function obtenerJson<T>(ruta: string): Promise<T> {
@@ -102,6 +123,41 @@ export function provinciaMasCercana(indice: Indice, posicion: { lat: number; lon
 }
 
 /**
+ * Fusiona los datos ya obtenidos de varias provincias en un único conjunto de
+ * estaciones, con la provincia de origen adjunta a cada una (RF-24). No hace
+ * ninguna carga por sí misma: recibe los `DatosProvincia` ya en memoria, sea
+ * cual sea su procedencia. La usan tanto `cargarZona` de aquí abajo (fetch, en
+ * el navegador) como `src/pages/[zona]/index.astro` (lectura de disco en el
+ * build, sin red): las dos vías cargan distinto pero fusionan igual.
+ */
+export function fusionarProvincias(datosPorProvincia: DatosProvincia[]): {
+  estaciones: EstacionZona[];
+  mock: boolean;
+  actualizado: string | null;
+} {
+  const estaciones: EstacionZona[] = [];
+  let mock = false;
+  let actualizado: string | null = null;
+
+  for (const datos of datosPorProvincia) {
+    if (datos.mock) mock = true;
+    // El dato de la zona es tan fresco como su provincia más antigua.
+    if (actualizado === null || new Date(datos.actualizado).getTime() < new Date(actualizado).getTime()) {
+      actualizado = datos.actualizado;
+    }
+    for (const estacion of datos.estaciones) {
+      estaciones.push({
+        ...estacion,
+        provinciaId: datos.provincia.id,
+        provinciaNombre: datos.provincia.nombre,
+      });
+    }
+  }
+
+  return { estaciones, mock, actualizado };
+}
+
+/**
  * Carga en paralelo los ficheros de provincia de una zona y los fusiona.
  *
  * Fallo parcial (RF-36): si un fichero falla, el resto se muestra igual y se
@@ -113,34 +169,20 @@ export async function cargarZona(zona: Zona, catalogoProvincias: ResumenProvinci
     zona.provincias.map((id) => obtenerJson<DatosProvincia>(`/data/provincias/${id}.json`))
   );
 
-  const estaciones: EstacionZona[] = [];
   const provinciasFallidas: FalloProvincia[] = [];
-  let mock = false;
-  let actualizado: string | null = null;
+  const datosCargados: DatosProvincia[] = [];
 
   resultados.forEach((resultado, indice) => {
     const id = zona.provincias[indice];
-    const nombreCatalogo = catalogoProvincias.find((p) => p.id === id)?.nombre ?? id;
-
     if (resultado.status === 'fulfilled') {
-      const datos = resultado.value;
-      if (datos.mock) mock = true;
-      // El dato de la zona es tan fresco como su provincia más antigua.
-      if (actualizado === null || new Date(datos.actualizado).getTime() < new Date(actualizado).getTime()) {
-        actualizado = datos.actualizado;
-      }
-      for (const estacion of datos.estaciones) {
-        estaciones.push({
-          ...estacion,
-          provinciaId: datos.provincia.id,
-          provinciaNombre: datos.provincia.nombre,
-        });
-      }
+      datosCargados.push(resultado.value);
     } else {
+      const nombreCatalogo = catalogoProvincias.find((p) => p.id === id)?.nombre ?? id;
       const motivo = resultado.reason instanceof Error ? resultado.reason.message : 'error desconocido';
       provinciasFallidas.push({ id, nombre: nombreCatalogo, motivo });
     }
   });
 
+  const { estaciones, mock, actualizado } = fusionarProvincias(datosCargados);
   return { estaciones, provinciasFallidas, mock, actualizado };
 }

@@ -12,10 +12,16 @@
   box-sizing: border-box;
 }
 
+/* Antes "height:100dvh; overflow:hidden": bloqueaba el documento entero a una
+   sola pantalla, que es lo que quiere index.astro (nada vive después de
+   #app). Las páginas de zona sí tienen la tabla estática debajo (H10,
+   RF-61) y necesitan poder desplazarse hasta ella. #app fija su propia
+   altura a 100dvh (ver más abajo) y no depende de esto, así que en
+   index.astro no cambia nada: el body sigue midiendo exactamente un
+   viewport porque no hay más contenido que desplazar. */
 body {
   margin: 0;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
   background: var(--paper);
   color: var(--petrol);
   font-family: var(--sans);
@@ -946,9 +952,18 @@ input {
     min-height: 0;
   }
 
+  /* "position: fixed" (antes de H10) anclaba el mapa y la hoja al viewport
+     entero, lo cual daba por hecho que no había nada más en el documento.
+     Con la tabla estática de zona debajo (RF-61) eso los dejaría flotando
+     sobre ella para siempre, sin forma de llegar a leerla. "absolute" dentro
+     de .layout (ya "position: relative" arriba) ocupa el mismo hueco exacto
+     mientras la página está en su primera pantalla —.layout ya empieza justo
+     debajo de la cabecera y los avisos, así que "top: 0" basta, sin repetir
+     --cabecera-alto— y se desplaza fuera de la vista junto con el resto de
+     .app en cuanto el usuario baja a ver la tabla. */
   .mapa-hueco {
-    position: fixed;
-    top: var(--cabecera-alto, 56px);
+    position: absolute;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
@@ -956,7 +971,7 @@ input {
   }
 
   .hoja {
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
@@ -1045,4 +1060,85 @@ input {
     opacity: 1;
     pointer-events: auto;
   }
+}
+
+/* ---------- Tabla estática de zona (H10, RF-61) ----------
+   Vive fuera de #app, después de ella en el documento: no es una isla, no se
+   hidrata ni se sustituye (ver el frontmatter de
+   src/pages/[zona]/index.astro). Reutiliza los tokens y las mismas bandas de
+   precio que la lista y el tótem (.precio / .precio--p1..p5 / .precio--barata
+   de más arriba); no se inventa color nuevo. Sin entrada todavía en
+   docs/05-diseno.md. */
+.tabla-zona {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 16px 56px;
+}
+
+.tabla-zona__titulo {
+  font-size: var(--fs-5);
+  margin: 0 0 4px;
+}
+
+.tabla-zona__actualizado {
+  color: var(--muted);
+  font-size: var(--fs-3);
+  margin: 0 0 18px;
+}
+
+.tabla-zona__titulo--municipios {
+  margin-top: 32px;
+}
+
+.tabla-zona__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+}
+
+.tabla-zona__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-3);
+}
+
+.tabla-zona__tabla th,
+.tabla-zona__tabla td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--hair);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla-zona__tabla tbody tr:last-child th,
+.tabla-zona__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-zona__tabla thead th {
+  font-size: var(--fs-1);
+  text-transform: uppercase;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+}
+
+.tabla-zona__tabla tbody th {
+  font-weight: 700;
+}
+
+/* Mismo bloque tipográfico que .precio (mono, tabular-nums), pero en el
+   tamaño de cuerpo de la tabla en vez del --fs-6 de la píldora de la lista:
+   ahí es la única cifra en pantalla, aquí hay cuatro por fila. */
+.tabla-zona__tabla .precio {
+  font-size: var(--fs-3);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.tabla-zona__ausente {
+  color: var(--muted);
 }
