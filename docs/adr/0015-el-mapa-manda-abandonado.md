@@ -33,6 +33,11 @@ provincias peninsulares.
 El caso que ADR-0005 dejó abierto —repostar cruzando frontera provincial,
 de Vitoria-Gasteiz a Miranda de Ebro— vuelve a quedar sin cubrir. Se acepta.
 
+**Alcance de este descarte.** Lo que se descarta es que la vista del mapa
+determine qué se carga. No se descarta la navegación en cliente en general:
+un cambio de zona disparado por una elección explícita del usuario no tiene
+bucle, porque ocurre una sola vez y el mapa no decide nada. Ver ADR-0016.
+
 ## Motivos
 
 **1. Una escala relativa no soporta un conjunto que cambia solo.** Por

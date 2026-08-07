@@ -69,6 +69,7 @@ esté publicada.
 | RF-85 | M | Los nombres de combustible salen de la tabla canónica de `docs/05-diseno.md` y son idénticos en pestañas, lista, ficha, títulos de página y JSON-LD. Un producto, un nombre. |
 | RF-86 | M | El rótulo se muestra verbatim; la dirección y el municipio se pasan a caja de título; la provincia, verbatim. |
 | RF-87 | M | El lado de la vía se dice "A la derecha de la vía" o "A la izquierda de la vía". Con `Margen` a `N` no se muestra nada. |
+| RF-88 | M | Estando en una página de zona, elegir otra zona no recarga el documento: se cargan sus datos, el mapa vuela sin reconstruirse y la dirección cambia con `pushState` a la página real de esa zona. La tabla de precios servida y el `<title>` se actualizan en la misma operación. Atrás y adelante del navegador devuelven a la zona anterior. Desde una página de municipio, elegir zona sigue siendo navegación completa. Ver [ADR-0016](adr/0016-cambio-de-zona-sin-recarga.md). |
 | RF-77 | M | No existen zonas definidas a mano. Toda zona sale de un límite administrativo oficial o de la adyacencia geográfica. |
 | RF-36 | M | Una zona de varias provincias descarga sus ficheros en paralelo y los fusiona. Si alguno falla, se muestra lo que sí ha llegado y se avisa de qué falta. |
 | RF-37 | S | Cuando el usuario pulsa el botón de ubicación, se le propone además cambiar a la zona que le corresponde. |

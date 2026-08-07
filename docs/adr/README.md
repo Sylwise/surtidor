@@ -24,6 +24,7 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0013](0013-pwa-sin-conexion-descartada.md) | PWA con funcionamiento sin conexión | **descartado** |
 | [0014](0014-el-mapa-manda.md) | El mapa manda: la vista decide la zona mostrada | **superado por 0015** |
 | [0015](0015-el-mapa-manda-abandonado.md) | El mapa no manda: se abandona la carga dinámica por vista | aceptado |
+| [0016](0016-cambio-de-zona-sin-recarga.md) | Cambiar de zona no recarga la página | aceptado |
 
 ## Plantilla
 
