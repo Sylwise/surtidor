@@ -275,6 +275,62 @@ para que lista y mapa hablen el mismo idioma cromático.
 
 Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
 
+### Pie de contenido
+
+Es la parte de la página de zona y de municipio que va **debajo de la
+aplicación**: las tablas de precios servidas en el HTML y el enlazado
+interno hacia otros municipios.
+
+No es relleno ni decoración. Es el activo de captación del proyecto
+([ADR-0007](adr/0007-paginas-por-municipio.md)): los precios escritos en el
+HTML son lo que indexa Google, y los enlaces internos son lo que evita que
+las 800 páginas municipales queden huérfanas.
+
+De ahí salen dos prohibiciones. **No se oculta**: contenido servido al
+buscador que el usuario no puede alcanzar es *cloaking*, y se penaliza.
+**No se muda a otra URL**: llevárselo a una página aparte vacía la página
+municipal y crea dos páginas parecidas compitiendo, que es el contenido
+delgado que ADR-0007 evita.
+
+Lo que sí se hace es ordenarlo.
+
+**Frontera visible.** El pie no empieza sin avisar. Entre la aplicación y
+el pie va una banda a todo el ancho en `--petrol`, con la microetiqueta en
+mayúsculas de siempre. Marca que se ha salido de la aplicación y se ha
+entrado en otra parte de la página.
+
+**Entrada en móvil.** Con la hoja en posición completa, la última fila de
+la lista es un enlace —"Ver todos los precios de {municipio}"— que desplaza
+hasta el pie. Aparece solo cuando el usuario ya ha agotado la lista, así que
+no estorba a quien únicamente quiere repostar, y no consume ningún control
+de la cabecera, que está cerrada.
+
+Nada flotante sobre el mapa. La única excepción sigue siendo la hoja.
+
+**Las filas son el componente `Lista`, no una tabla.** Número de orden en
+monoespaciada a la izquierda, rótulo y municipio en el centro, precio en
+píldora de color a la derecha, con la misma banda que el marcador. Una tabla
+de seis columnas no cabe en 360 px y hoy se corta por la derecha. En
+escritorio, donde sobra ancho, se mantiene la tabla, con anchos de columna
+fijos y sin desbordar nunca el contenedor.
+
+**Plegado por defecto.** Se muestran las tres primeras filas y un control
+"Ver las {n}" que despliega el resto. El contenido sigue en el HTML y se
+alcanza de un toque: es revelación progresiva, no ocultación.
+
+**Los enlaces a otros municipios son pastillas, no texto subrayado.** Fondo
+claro, filete de `--hair`, texto en `--petrol`, sin subrayado, y el precio
+mínimo del municipio al lado en monoespaciada con su color de banda. Se
+muestran los primeros y un "+ {n} más" despliega los demás.
+
+Esto corrige tres incumplimientos que había: enlaces en el azul por defecto
+del navegador —un color que no está en `tokens.css` y que además es lo único
+cromático de la pantalla que no es un precio—, áreas de pulsación de unos
+20 px cuando el mínimo es 44, y la tabla desbordada por debajo de 360 px.
+
+El precio de cada pastilla sale del JSON de la provincia, que ya se lee en
+el build de esa página. No hay ningún dato nuevo que generar.
+
 ## Estados de error y vacío
 
 No son un adorno: son la mitad del trabajo en una aplicación que depende de
