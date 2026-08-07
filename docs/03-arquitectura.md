@@ -59,7 +59,7 @@ Verificar estas cifras antes de tocar la cadencia, porque cambian.
 | Servicio | Límite gratuito | Uso previsto | Margen |
 |---|---|---|---|
 | GitHub Actions (repo público) | minutos ilimitados | 12 ejecuciones/día × ~2 min | holgado |
-| Cloudflare Pages | 500 despliegues/mes, 20.000 ficheros | 12/día ≈ 360/mes, ~60 ficheros | ajustado, vigilar |
+| Cloudflare Pages | 500 despliegues/mes, 20.000 ficheros | 12/día ≈ 360/mes, ~2.400 ficheros (1161 páginas + 1160 `og/*.png`, H11) | despliegues ajustado y a vigilar; ficheros holgado |
 | Cloudflare Pages | ancho de banda ilimitado | — | sin problema |
 | OpenFreeMap | sin límite de peticiones ni registro | tiles del mapa | sin problema |
 | API MITECO | sin límite publicado | 52 peticiones cada 2 h | sin problema |
@@ -81,10 +81,11 @@ y dejar Pages solo para el código. No antes.
 | Datos | Node script + `zod` para validar | Validar en el borde para que un cambio en la API falle ruidosamente. |
 | Alojamiento | Cloudflare Pages | Gratis, CDN global, despliegue desde Actions. |
 | Programación | GitHub Actions con `schedule` | Gratis en repos públicos. |
-| Redirección de municipio | Cloudflare Pages Function (`functions/`) | Por petición, en el borde — no un proceso continuo (RNF-02). Ver [ADR-0010](adr/0010-redireccion-municipio-con-pages-function.md). |
+| Imagen de compartición | `@resvg/resvg-js`, solo en el build | Rasteriza a PNG un SVG propio (sin motor de layout externo). Corre en Node durante `npm run build`, nunca en el navegador — no cuenta para RNF-11. Ver [ADR-0011](adr/0011-imagen-og-generada-en-build-con-resvg.md). |
 
-Dependencias permitidas: `astro`, `maplibre-gl`, `zod`, `typescript`. Cualquier
-otra cosa necesita justificación en el pull request.
+Dependencias permitidas: `astro`, `maplibre-gl`, `zod`, `typescript`,
+`@resvg/resvg-js` (solo en `scripts/`, nunca en el bundle del navegador).
+Cualquier otra cosa necesita justificación en el pull request.
 
 ## Estructura del repositorio
 
@@ -107,21 +108,20 @@ surtidor/
 ├── scripts/
 │   ├── descargar-datos.ts     # llama al MITECO, normaliza, escribe JSON
 │   ├── datos-mock.ts          # genera datos falsos para desarrollo sin red
+│   ├── generar-imagenes-compartir.ts # RF-66 (H11): og:image por zona y municipio (ADR-0011)
 │   └── lib/
 │       ├── miteco.ts          # cliente de la API y esquemas zod
 │       ├── normalizar.ts      # String con coma → number | null
 │       ├── horario.ts         # intérprete del campo Horario
 │       ├── municipios.ts      # cruza estaciones reales con Listados/Municipios
-│       └── slug.ts            # nombre del catálogo → tramo de URL, sin colisiones
-├── functions/
-│   └── [provincia]/
-│       └── [municipio].js     # RF-60: redirige a la provincia si no hay página (ADR-0010)
+│       ├── slug.ts            # nombre del catálogo → tramo de URL, sin colisiones
+│       └── fuentes/           # Inter y JetBrains Mono (OFL), solo para el build de imágenes
 ├── src/
 │   ├── pages/
 │   │   ├── index.astro                        # redirige a la última zona o la elige
 │   │   ├── [zona]/index.astro                 # una página por zona, para SEO
 │   │   ├── [provincia]/[municipio]/index.astro # una página por municipio (H10)
-│   │   ├── 404.astro                          # 404 real, también lo usa ADR-0010
+│   │   ├── 404.astro                          # 404 real; municipio sin página cae aquí (ADR-0012)
 │   │   └── sitemap.xml.ts                     # RF-64, regenerado en cada build
 │   ├── componentes/
 │   │   ├── AppInteractiva.astro # cascarón interactivo, compartido por zona y municipio
@@ -137,13 +137,15 @@ surtidor/
 │   └── estilos/
 │       └── tokens.css         # única fuente de verdad del diseño
 ├── datos-build/
-│   ├── municipios.json         # catálogo de municipios (H10). NO se despliega, ver más abajo
-│   └── provincias-slugs.json   # slug → id de provincia, lo lee functions/ (ADR-0010)
+│   └── municipios.json         # catálogo de municipios (H10). NO se despliega, ver más abajo
 └── public/
-    └── data/
-        ├── indice.json         # provincias, zonas, marca de tiempo — lo pide el navegador
-        └── provincias/
-            └── 01.json … 52.json
+    ├── data/
+    │   ├── indice.json         # provincias, zonas, marca de tiempo — lo pide el navegador
+    │   └── provincias/
+    │       └── 01.json … 52.json
+    └── og/                     # RF-66 (H11): un PNG 1200×630 por zona y por municipio
+        ├── p-01.png … ccaa-19.png
+        └── {provincia}/{municipio}.png
 ```
 
 ## Contrato de los ficheros de datos
@@ -268,31 +270,30 @@ antes de escribir nada que dos provincias, o dos municipios de la misma
 provincia, no generen el mismo slug (`comprobarSlugsUnicos`): una colisión
 aborta la generación entera, igual que un fallo de red (RF-05).
 
-### Redirección de municipio sin página (RF-60): una Pages Function, no `_redirects`
+### Municipio sin página (RF-60): 404, no redirección
 
 Un municipio por debajo de `MINIMO_ESTACIONES_MUNICIPIO` no tiene página
-propia y redirige a la de su provincia. La primera versión de esto era un
-comodín en `public/_redirects` (`/{provincia}/*  /p-{id}/  301`); se retiró
-**verificado y roto**: Cloudflare Pages aplica los redirects antes de mirar
-si existe un asset estático en esa misma ruta, así que el comodín también
-redirigía las páginas de municipio reales. El número real de municipios sin
-página (2.178) tampoco cabía como líneas literales: `_redirects` limita a
-2.000 reglas estáticas. Los dos caminos obvios fallan; el detalle completo y
-las alternativas descartadas están en [ADR-0010](adr/0010-redireccion-municipio-con-pages-function.md).
+propia. Esa URL no la enlaza ninguna página del sitio (ni la tabla de zona
+ni el resumen de municipio enlazan por debajo del mínimo), así que quien
+llega ahí lo hace por un enlace externo o un typo: **da un 404 real**
+(`src/pages/404.astro`), con los tokens de marca y un enlace de vuelta al
+selector de zona.
 
-La solución: `functions/[provincia]/[municipio].js`, una Pages Function con
-la misma forma de ruta que las páginas de municipio. Por petición: intenta
-servir el asset estático real con `env.ASSETS.fetch()`; si existe, lo
-devuelve tal cual; si no (404 de verdad, que exige tener un `404.html` en la
-raíz — `src/pages/404.astro`, nuevo en H10 — o Cloudflare asume una SPA y
-sirve `index.html` con 200 para todo), busca la provincia en
-`datos-build/provincias-slugs.json` y redirige con 301.
-
-No es un servidor ni un proceso continuo (RNF-02 intacto): corre por
-petición, en el borde, igual que el resto de Cloudflare Pages ya hace para
-servir cualquier página. Verificado con `wrangler pages dev` contra un build
-real, con 10 URLs al azar (5 páginas reales, 5 municipios por debajo del
-mínimo, provincias distintas): todas se resuelven como toca.
+No siempre fue así. Se probaron, por este orden, un comodín en
+`_redirects`, una Cloudflare Pages Function, y unas reglas estáticas en
+`_redirects` — los tres verificados y descartados con datos reales, no
+por lectura de documentación. La cadena completa, con lo que falló de cada
+uno y por qué, está en [ADR-0012](adr/0012-municipio-sin-pagina-404.md)
+(supera a [ADR-0010](adr/0010-redireccion-municipio-con-pages-function.md)).
+Resumen: el comodín se comía las páginas reales porque Cloudflare aplica
+los redirects antes de mirar si existe el asset; la Pages Function lo
+arreglaba pero se invocaba en **todas** las peticiones que casan su ruta,
+también en las 1.089 páginas de municipio reales que traen el tráfico —
+gastaba cuota de Workers en el camino caliente para proteger un camino frío
+que nadie visita; y las 2.178 reglas estáticas que habría hecho falta para
+redirigir cada municipio sin página superan el límite de Cloudflare
+(2.000), que descarta las últimas en silencio en vez de fallar. Sin ninguna
+salida limpia, la respuesta que queda es la más simple: 404.
 
 ## Despliegue
 

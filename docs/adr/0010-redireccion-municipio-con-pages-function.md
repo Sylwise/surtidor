@@ -1,6 +1,6 @@
 # ADR-0010 · La redirección de municipio sin página usa una Pages Function, no `_redirects`
 
-**Fecha:** 2026-08-07 · **Estado:** aceptado · **Amplía:** ADR-0007
+**Fecha:** 2026-08-07 · **Estado:** superado por [ADR-0012](0012-municipio-sin-pagina-404.md) · **Amplía:** ADR-0007
 
 ## Contexto
 
@@ -63,7 +63,24 @@ el modelo del proyecto: la Function corre en el borde, por petición, nunca
 como proceso continuo (RNF-02 sigue intacto: no hay nada "encendido" entre
 peticiones, igual que el resto de Cloudflare Pages). El plan gratuito de
 Pages Functions permite muchas más peticiones al día de las que este sitio
-va a recibir (RNF-01).
+va a recibir (RNF-01) — matizado más abajo: esta frase asumía que la
+función solo se invoca cuando redirige, y no es así.
+
+**Corrección (2026-08-07):** esta frase asumía, sin comprobarlo, que la
+función solo entraba en juego para los 2.178 municipios sin página. No es
+así: verificado con cabeceras de depuración contra `wrangler pages dev`
+(mismo método que ya destapó el problema de `_redirects` de más arriba),
+Cloudflare invoca la función en **todas** las peticiones que casan la ruta
+de dos segmentos, también en las páginas de municipio reales que sí
+existen como asset estático — es la función, por dentro, la que decide
+servir el asset o redirigir, no Cloudflare antes de invocarla. Eso significa
+que la cuota gratuita de Pages Functions la consume el tráfico de las
+páginas de municipio en general, no solo las redirecciones. El detalle y la
+cifra de margen están en docs/03-arquitectura.md, sección "Redirección de
+municipio sin página" y la tabla de límites. La decisión de este ADR no
+cambia: sigue siendo la única vía viable dentro de Cloudflare Pages; lo que
+cambia es cuánto margen de cuota queda, que pasa de "sin problema" a "a
+vigilar".
 
 ## Consecuencias
 

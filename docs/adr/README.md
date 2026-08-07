@@ -18,7 +18,9 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0007](0007-paginas-por-municipio.md) | Páginas por municipio como activo de captación | aceptado |
 | [0008](0008-zona-inicial-sin-servidor.md) | La zona inicial se resuelve sin servidor | aceptado |
 | [0009](0009-descuentos-en-el-dispositivo.md) | Descuentos por marca | **descartado** |
-| [0010](0010-redireccion-municipio-con-pages-function.md) | Redirección de municipio sin página con una Pages Function | aceptado |
+| [0010](0010-redireccion-municipio-con-pages-function.md) | Redirección de municipio sin página con una Pages Function | **superado por 0012** |
+| [0011](0011-imagen-og-generada-en-build-con-resvg.md) | Imagen `og:image` generada en el build con `resvg` y fuentes propias | aceptado |
+| [0012](0012-municipio-sin-pagina-404.md) | El municipio sin página propia devuelve 404, no redirección | aceptado |
 
 ## Plantilla
 

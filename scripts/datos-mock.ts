@@ -8,9 +8,8 @@
 import { join } from 'node:path';
 import { escribirJsonAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
-import { generarSlug } from './lib/slug.ts';
 import type { MunicipioCatalogo } from './lib/miteco.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type ProvinciaSlug, type ResumenProvincia, type Zona } from './lib/tipos.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 interface ProvinciaEstatica {
   id: string;
@@ -248,11 +247,6 @@ async function main(): Promise<void> {
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
-  const provinciasSlugs: ProvinciaSlug[] = resumenProvincias.map((p) => ({
-    slug: generarSlug(p.nombre),
-    id: p.id,
-  }));
-  await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'provincias-slugs.json'), provinciasSlugs);
 
   const municipiosConPagina = municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO).length;
   console.log(

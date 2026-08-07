@@ -65,7 +65,8 @@ elimina el problema de detectar dónde está (ADR-0008).
 Malas: 800 páginas más en cada despliegue. Hay que vigilar el límite de 20.000
 ficheros de Cloudflare Pages —queda muy lejos— y el tiempo de build. Y hay riesgo
 de contenido delgado si una página municipal tiene dos estaciones: por debajo de
-un mínimo, no se genera página propia y se redirige a la comarcal.
+un mínimo, no se genera página propia (da 404, ver
+[ADR-0012](0012-municipio-sin-pagina-404.md)).
 
 **Expectativa realista: de tres a seis meses** para ver resultados. El SEO de un
 dominio nuevo no es rápido y no hay atajo. Darse de alta en Search Console el día

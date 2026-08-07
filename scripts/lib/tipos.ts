@@ -73,17 +73,6 @@ export interface ResumenMunicipio {
  *  (ver ADR-0010) manda esas URLs a la página de su provincia. */
 export const MINIMO_ESTACIONES_MUNICIPIO = 3;
 
-/** Slug de provincia → id de dos dígitos, en `datos-build/provincias-slugs.json`.
- *  Lo lee `functions/[provincia]/[municipio].js` (JavaScript plano, fuera del
- *  proyecto TypeScript) para construir el destino `/p-{id}/` de la
- *  redirección de RF-60 sin tener que repetir la lista de provincias a mano
- *  ahí. Igual que `IndiceMunicipios`, fuera de `public/`: el navegador nunca
- *  lo pide, solo el Function en el edge. */
-export interface ProvinciaSlug {
-  slug: string;
-  id: string;
-}
-
 /** Índice del catálogo de municipios, en `datos-build/municipios.json`.
  *  Deliberadamente FUERA de `public/`: no lo lee nunca el navegador, solo
  *  `getStaticPaths` de `src/pages/[provincia]/[municipio]/index.astro` y

@@ -17,8 +17,8 @@ import {
 import { normalizarEstaciones, type EstacionCruda } from './lib/normalizar.ts';
 import { escribirJsonAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
-import { generarSlug, comprobarSlugsUnicos } from './lib/slug.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ProvinciaSlug, type ResumenProvincia, type Zona } from './lib/tipos.ts';
+import { comprobarSlugsUnicos } from './lib/slug.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
@@ -202,14 +202,6 @@ async function main(): Promise<void> {
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
-  // ADR-0010: functions/[provincia]/[municipio].js necesita el id de dos
-  // dígitos de cada provincia para construir el destino de la redirección
-  // de RF-60, y solo tiene el slug (viene de la URL).
-  const provinciasSlugs: ProvinciaSlug[] = resumenProvincias.map((p) => ({
-    slug: generarSlug(p.nombre),
-    id: p.id,
-  }));
-  await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'provincias-slugs.json'), provinciasSlugs);
 
   const avisosFinales = [
     totalDescartadas > 0 ? `${totalDescartadas} descartadas en total` : null,

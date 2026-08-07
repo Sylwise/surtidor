@@ -5,16 +5,18 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run comprobar:datos && astro build",
+    "build": "npm run comprobar:datos && npm run generar:imagenes && astro build",
     "preview": "astro preview",
     "check": "astro check && tsc -p scripts/tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types scripts/**/*.test.ts src/**/*.test.ts",
     "data:fetch": "node --experimental-strip-types scripts/descargar-datos.ts",
     "data:mock": "node --experimental-strip-types scripts/datos-mock.ts",
     "comprobar:datos": "node --experimental-strip-types scripts/comprobar-datos-reales.ts",
+    "generar:imagenes": "node --experimental-strip-types scripts/generar-imagenes-compartir.ts",
     "deploy": "wrangler pages deploy dist/ --project-name=surtidor"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "astro": "^7.1.6",
     "maplibre-gl": "^4.0.0",
     "zod": "^3.23.0"

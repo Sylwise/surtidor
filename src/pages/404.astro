@@ -11,7 +11,14 @@
 //    pedir el asset estático — y solo lo hace si hay un 404.html en la raíz
 //    del despliegue. Ver el comentario de esa función para el porqué
 //    completo.
+//
+// Es una página que va a ver gente de verdad (enlaces viejos, typos,
+// marcadores caducados de RF-60), así que lleva la marca en vez del HTML
+// desnudo de un error genérico: fondo --petrol y tótem en --signal, igual
+// que docs/07-marca.md#Qué-es. Sin ilustración ni humor, y el texto no
+// culpa a quien ha llegado aquí.
 import '../estilos/tokens.css';
+import marcaSvg from '../assets/marca.svg?raw';
 ---
 
 <html lang="es">
@@ -22,6 +29,7 @@ import '../estilos/tokens.css';
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#16323B" />
     <style>
       body {
@@ -31,33 +39,69 @@ import '../estilos/tokens.css';
         align-items: center;
         justify-content: center;
         font-family: var(--sans);
-        background: var(--paper);
-        color: var(--petrol);
+        background: var(--petrol);
+        color: var(--paper);
         text-align: center;
         padding: 24px;
       }
       main {
-        max-width: 420px;
+        max-width: 380px;
+      }
+      .marca {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--signal);
+        font-size: var(--fs-5);
+        font-weight: 700;
+        margin-bottom: 28px;
+      }
+      .marca__icono {
+        display: inline-flex;
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
+      }
+      .marca__icono svg {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
       h1 {
-        font-size: 22px;
+        font-size: var(--fs-6);
         margin: 0 0 8px;
       }
       p {
         line-height: 1.5;
-        margin: 0 0 20px;
+        margin: 0 0 24px;
+        color: var(--muted-light);
       }
       a {
+        display: inline-block;
         color: var(--petrol);
+        background: var(--signal);
         font-weight: 650;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        min-height: 44px;
+        line-height: 20px;
+      }
+      a:focus-visible {
+        outline: 2px solid var(--paper);
+        outline-offset: 2px;
       }
     </style>
   </head>
   <body>
     <main>
+      <p class="marca">
+        <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
+        Surtidor
+      </p>
       <h1>Página no encontrada</h1>
-      <p>Esa dirección no corresponde a ninguna zona ni municipio de Surtidor.</p>
-      <a href="/">Volver al inicio</a>
+      <p>Esta dirección no corresponde a ninguna zona ni municipio de Surtidor.</p>
+      <a href="/">Volver al selector de zona</a>
     </main>
   </body>
 </html>
