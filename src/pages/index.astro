@@ -247,12 +247,20 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         }
       }, 12000);
 
+      // RF-35: la URL tiene que reflejar la zona para poder compartir un
+      // enlace concreto. Antes, un cambio de zona aquí se resolvía en sitio
+      // (cargarTodo() de nuevo) y la URL se quedaba en "/" para siempre —
+      // quien copiara esa URL no compartía la zona que veía, compartía la
+      // portada. Ahora, igual que ya hacen las páginas de zona y municipio
+      // (AppInteractiva.astro), un cambio de zona navega a su página
+      // estática propia: el selector, "mi ubicación" (RF-37) y la carga
+      // inicial desde localStorage acaban todos aquí.
       let zonaAnterior = obtenerEstado().zonaId;
       suscribir((estado) => {
         renderAvisos(estado);
-        if (estado.zonaId !== zonaAnterior) {
+        if (estado.zonaId !== zonaAnterior && estado.zonaId !== null) {
           zonaAnterior = estado.zonaId;
-          cargarTodo();
+          location.href = `/${estado.zonaId}/`;
         }
       });
       renderAvisos(obtenerEstado());
