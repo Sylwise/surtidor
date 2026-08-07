@@ -192,7 +192,13 @@ export function montarControles(
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
-    nombreZonaSpan.textContent = zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona';
+    // RF-88: mientras se cargan los datos de una zona —incluido un cambio de
+    // zona sin recargar (ADR-0016)— el botón lo dice, para que la interfaz
+    // no se quede congelada sin señal mientras el resto (mapa, lista,
+    // #tabla-zona) sigue mostrando la zona anterior a propósito.
+    nombreZonaSpan.textContent = estado.cargando
+      ? 'Cargando…'
+      : (zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona');
 
     for (const [clave, boton] of botonesCombustible) {
       const activo = clave === estado.combustible;

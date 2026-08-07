@@ -34,6 +34,12 @@ interface Props {
   estaciones?: EstacionZona[];
   mock?: boolean;
   actualizado?: string | null;
+  /** RF-88 (ADR-0016): en una página de zona, elegir otra zona no recarga —
+   *  se cambia en sitio y `#tabla-zona` se regenera. En una página de
+   *  municipio (`false`), elegir zona sigue siendo una navegación completa:
+   *  es otro tipo de página, con su `<h1>` y su JSON-LD propios, que este
+   *  componente no sabe regenerar. */
+  esPaginaDeZona: boolean;
 }
 
 const {
@@ -43,6 +49,7 @@ const {
   estaciones = [],
   mock = false,
   actualizado = null,
+  esPaginaDeZona,
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
@@ -50,7 +57,7 @@ const datosHidratacion = hidratacionEmbebida
   : '';
 ---
 
-<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre}>
+<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
   <header class="cabecera">
     <span class="marca">
       <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
@@ -88,6 +95,19 @@ const datosHidratacion = hidratacionEmbebida
   // para que la página siempre enseñe la zona que prometen su <title> y su
   // URL — a diferencia de src/pages/index.astro, que elige la zona guardada
   // en localStorage o, si no hay ninguna, abre el selector.
+  //
+  // RF-88 (ADR-0016): en una página de zona (data-es-pagina-de-zona="true"),
+  // elegir otra zona en el selector ya NO recarga el documento. Antes sí,
+  // porque el <title> y la <meta description> servidos llevan el nombre de
+  // la zona y su precio mínimo, y un cambio en sitio los habría dejado
+  // describiendo otra zona. El motivo por el que eso ya no aplica —quien lee
+  // esas etiquetas nunca está en la pestaña del usuario— está en ADR-0016;
+  // aquí solo cambia la mecánica: `cambiarZonaSinRecarga`, más abajo, carga
+  // la zona nueva y actualiza mapa, lista, `#tabla-zona`, título y dirección
+  // a la vez, o no toca nada si falla. En una página de municipio
+  // (data-es-pagina-de-zona="false") el comportamiento de antes se queda
+  // igual: es otro tipo de página, con su propio <h1> y JSON-LD, que este
+  // componente no sabe regenerar.
   import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
   import {
     cargarIndice,
@@ -101,8 +121,10 @@ const datosHidratacion = hidratacionEmbebida
   import { montarLista } from './Lista.ts';
   import { montarTotem } from './Totem.ts';
   import { montarHoja } from './Hoja.ts';
+  import { renderizarTablaZona } from './TablaZona.ts';
   import { datosDesactualizados } from '../logica/frescura.ts';
   import { formatearFechaHora } from '../logica/formato.ts';
+  import { tituloZona, descripcionZona } from '../logica/metaZona.ts';
   import type { Indice } from '../../scripts/lib/tipos.ts';
 
   function elemento(id: string): HTMLElement {
@@ -122,6 +144,10 @@ const datosHidratacion = hidratacionEmbebida
   const insigniaMock = elemento('insignia-mock');
   const hoja = elemento('hoja');
   const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
+  // Solo existe en páginas de zona (src/pages/[zona]/index.astro le pone el
+  // id): en páginas de municipio es `null` y no se usa, porque ahí
+  // `esPaginaDeZona` es `false` y `cambiarZonaSinRecarga` nunca se llama.
+  const contenedorTablaZona = document.getElementById('tabla-zona');
 
   // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006) y
   // necesita saber su alto real.
@@ -136,13 +162,28 @@ const datosHidratacion = hidratacionEmbebida
   // RF-43: dato derivado local a la página, fuera del estado global.
   let actualizadoZona: string | null = null;
 
-  // Zona que promete esta página, tal y como la fijó el build. Si el
-  // selector de zona la cambia, no recargamos en sitio: navegamos a la URL
-  // de la otra zona, para que el <title> y la <meta description> sigan
-  // correspondiendo a lo que se ve.
+  // Zona que promete esta página, tal y como la fijó el build.
   const zonaDeLaPagina = contenedorApp.dataset.zonaId;
   const nombreDeLaPagina = contenedorApp.dataset.zonaNombre;
   if (!zonaDeLaPagina || !nombreDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
+  const esPaginaDeZona = contenedorApp.dataset.esPaginaDeZona === 'true';
+
+  // Zona realmente mostrada ahora mismo (mapa, lista, #tabla-zona, <title>).
+  // Arranca igual que `zonaDeLaPagina` y solo se mueve cuando
+  // `cambiarZonaSinRecarga`, más abajo, termina con éxito — nunca antes, y
+  // nunca si falla. Es la referencia contra la que se compara `estado.zonaId`
+  // en la suscripción de más abajo: no `zonaDeLaPagina`, que se queda fija
+  // aunque el usuario encadene varios cambios de zona en la misma visita.
+  let zonaMostrada = zonaDeLaPagina;
+
+  // Qué reintenta el botón "Reintentar" de abajo: por defecto, recargar la
+  // zona de esta página por fetch (comportamiento de siempre). Mientras
+  // `cambiarZonaSinRecarga` tiene un intento fallido pendiente, apunta a
+  // reintentar ESA zona en concreto — si apuntara siempre a
+  // `cargarZonaPorFetch`, "Reintentar" tras un cambio de zona fallido
+  // recargaría la zona vieja en vez de tantear otra vez la que el usuario
+  // pidió.
+  let alReintentar: () => void = () => cargarZonaPorFetch();
 
   function crearAviso(
     texto: string,
@@ -156,7 +197,7 @@ const datosHidratacion = hidratacionEmbebida
       const boton = document.createElement('button');
       boton.type = 'button';
       boton.textContent = 'Reintentar';
-      boton.addEventListener('click', () => cargarZonaPorFetch());
+      boton.addEventListener('click', () => alReintentar());
       div.append(boton);
     }
     return div;
@@ -270,6 +311,78 @@ const datosHidratacion = hidratacionEmbebida
     }
   }
 
+  // RF-88 (ADR-0016): solo en páginas de zona. Carga la zona `nuevaZonaId`
+  // (RF-36: fallo parcial incluido) y, si sale bien, actualiza mapa, lista,
+  // `#tabla-zona`, <title>, <meta description> y dirección A LA VEZ —
+  // `history.pushState`, nunca `location.href`, para no reconstruir el
+  // mapa. Si falla, no toca ninguna de esas piezas: revierte `zonaId` a
+  // `zonaMostrada` y enseña el error como cualquier otro fallo de carga
+  // (regla dura del precio del cartel: media pantalla actualizada es peor
+  // que ninguna).
+  //
+  // `zonaSolicitada` hace doble servicio:
+  // 1) Descarta resultados atrasados si el usuario encadena varios cambios
+  //    de zona antes de que el primero termine: solo se aplica el resultado
+  //    de la ÚLTIMA zona pedida.
+  // 2) Corta la reentrada: el `actualizarEstado({ cargando: true })` de
+  //    aquí abajo notifica a la suscripción de más abajo SÍNCRONAMENTE, y
+  //    hasta que este intento termina `zonaMostrada` todavía no se ha
+  //    movido — sin este cortafuegos, esa misma notificación vuelve a ver
+  //    `estado.zonaId !== zonaMostrada` y llama otra vez a
+  //    `cambiarZonaSinRecarga` con la misma zona, sin fin (se comprobó a
+  //    mano: sin la guarda, la pestaña entera cuelga).
+  let zonaSolicitada: string | null = null;
+
+  async function cambiarZonaSinRecarga(nuevaZonaId: string): Promise<void> {
+    if (nuevaZonaId === zonaMostrada || nuevaZonaId === zonaSolicitada) return;
+    zonaSolicitada = nuevaZonaId;
+    alReintentar = () => cambiarZonaSinRecarga(nuevaZonaId);
+    actualizarEstado({ cargando: true, error: null });
+    try {
+      const indiceActual = await obtenerIndiceYControles();
+      const zona = indiceActual.zonas.find((z) => z.id === nuevaZonaId);
+      if (!zona) throw new Error(`La zona «${nuevaZonaId}» ya no está disponible.`);
+
+      const resultado = await cargarZona(zona, indiceActual.provincias);
+      if (resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0) {
+        throw new Error(`No se ha podido cargar ninguna provincia de ${zona.nombre}.`);
+      }
+      if (zonaSolicitada !== nuevaZonaId) return; // una elección más reciente ha tomado el relevo
+
+      alReintentar = () => cargarZonaPorFetch();
+      zonaMostrada = zona.id;
+      actualizadoZona = resultado.actualizado;
+      if (contenedorTablaZona) {
+        renderizarTablaZona(contenedorTablaZona, zona.nombre, resultado.estaciones, resultado.actualizado);
+      }
+      document.title = tituloZona(zona.nombre);
+      document.querySelector('meta[name="description"]')?.setAttribute('content', descripcionZona(zona.nombre));
+      history.pushState(null, '', `/${zona.id}/`);
+
+      const estacionActual = obtenerEstado().estacionId;
+      actualizarEstado({
+        zonaNombre: zona.nombre,
+        estaciones: resultado.estaciones,
+        provinciasFallidas: resultado.provinciasFallidas,
+        mock: resultado.mock,
+        cargando: false,
+        error: null,
+        estacionId: resultado.estaciones.some((e) => e.id === estacionActual) ? estacionActual : null,
+      });
+    } catch (error) {
+      if (zonaSolicitada !== nuevaZonaId) return;
+      // Libera la guarda de reentrada ANTES de tocar el estado: si no,
+      // "Reintentar" pediría otra vez esta misma `nuevaZonaId` y el primer
+      // `if` de arriba la descartaría por creerla ya en marcha.
+      zonaSolicitada = null;
+      actualizarEstado({
+        zonaId: zonaMostrada,
+        cargando: false,
+        error: error instanceof Error ? error.message : 'No se han podido cargar los datos de esa zona.',
+      });
+    }
+  }
+
   const datosZonaEl = document.getElementById('datos-zona');
 
   if (datosZonaEl) {
@@ -311,14 +424,21 @@ const datosHidratacion = hidratacionEmbebida
 
   suscribir((estado) => {
     renderAvisos(estado);
-    // El selector de controles cambia zonaId en memoria (está pensado para
-    // src/pages/index.astro, que sí recarga en sitio). Aquí cada página es
-    // de una sola zona: si zonaId se aparta de la de esta URL, navegamos a
-    // la página estática de la zona nueva —también desde una página de
-    // municipio, que "asciende" a la zona/provincia recién elegida— en vez
-    // de mostrar datos que no corresponden al <title> ni a la <meta
-    // description> ya servidos.
-    if (estado.zonaId !== zonaDeLaPagina) {
+    // El selector de controles cambia zonaId en memoria sin más (está
+    // pensado también para src/pages/index.astro). Aquí se compara contra
+    // `zonaMostrada` —la zona realmente en pantalla—, no contra
+    // `zonaDeLaPagina` —la que fijó el build—: tras un cambio de zona sin
+    // recargar, las dos dejan de coincidir a propósito. Si la revierte
+    // `cambiarZonaSinRecarga` por un fallo de carga, `estado.zonaId` vuelve
+    // a ser `zonaMostrada` y esta condición no se dispara.
+    if (estado.zonaId === zonaMostrada) return;
+    if (esPaginaDeZona) {
+      cambiarZonaSinRecarga(estado.zonaId ?? zonaMostrada);
+    } else {
+      // Página de municipio: elegir zona sigue siendo una navegación
+      // completa, también "ascendiendo" desde el municipio a la
+      // zona/provincia recién elegida (comportamiento sin cambios, RF-88
+      // primera parte no lo toca).
       location.href = `/${estado.zonaId}/`;
     }
   });

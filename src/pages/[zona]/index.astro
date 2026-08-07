@@ -23,13 +23,12 @@ import { join } from 'node:path';
 import '../../estilos/tokens.css';
 import '../../estilos/interfaz.css';
 import AppInteractiva from '../../componentes/AppInteractiva.astro';
-import { fusionarProvincias, UMBRAL_HIDRATACION_EMBEBIDA, type EstacionZona } from '../../logica/zona.ts';
-import { estacionesVisibles } from '../../logica/visibilidad.ts';
-import { crearEscala } from '../../logica/escala.ts';
+import { fusionarProvincias, UMBRAL_HIDRATACION_EMBEBIDA } from '../../logica/zona.ts';
+import { calcularTablaZona, bandaPrecioZona, hrefMunicipioZona } from '../../logica/tablaZona.ts';
+import { tituloZona, descripcionZona } from '../../logica/metaZona.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
 import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
-import { generarSlug } from '../../../scripts/lib/slug.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type Zona } from '../../../scripts/lib/tipos.ts';
+import type { DatosProvincia, Indice, Zona } from '../../../scripts/lib/tipos.ts';
 
 const DIRECTORIO_DATOS = join(process.cwd(), 'public', 'data');
 
@@ -52,8 +51,8 @@ interface Props {
 
 const { zona } = Astro.props;
 
-const titulo = `Precios de gasolina y diésel en ${zona.nombre} · Surtidor`;
-const descripcion = `Precios de gasolina y diésel en ${zona.nombre}, actualizados cada dos horas, sin anuncios ni registro.`;
+const titulo = tituloZona(zona.nombre);
+const descripcion = descripcionZona(zona.nombre);
 const canonical = new URL(`/${zona.id}/`, Astro.site);
 // H11 (RF-66): la tarjeta la genera scripts/generar-imagenes-compartir.ts en
 // el build, con el mismo id de zona que esta ruta. og:image tiene que ser
@@ -87,87 +86,12 @@ const { estaciones, mock, actualizado } = fusionarProvincias(datosPorProvincia);
 // de verdad vive en localStorage, que el build no puede leer, así que
 // reordenarla al montar el cliente es inevitable. Esta tabla, en cambio, no
 // depende de ningún combustible activo —enseña los cuatro a la vez— y no se
-// toca nunca desde JavaScript: se queda exactamente como la sirvió el build.
-const visiblesTabla = estacionesVisibles(estaciones);
-const multiProvinciaTabla = new Set(visiblesTabla.map((e) => e.provinciaId)).size > 1;
-
-const LIMITE_TABLA = 30;
-
-// Orden por Gasolina 95 (el combustible por defecto de toda la aplicación,
-// ver COMBUSTIBLE_POR_DEFECTO en src/logica/estado.ts): sin eso no hay un
-// "más barato" único con cuatro precios por fila. Sin ese dato, al final.
-const filasTabla: EstacionZona[] = [...visiblesTabla]
-  .sort((a, b) => {
-    const pa = a.precios.gasolina95e5;
-    const pb = b.precios.gasolina95e5;
-    if (pa === null && pb === null) return 0;
-    if (pa === null) return 1;
-    if (pb === null) return -1;
-    return pa - pb;
-  })
-  .slice(0, LIMITE_TABLA);
-
-// Una escala de color por combustible (RF-12: percentil dentro de la zona
-// mostrada, no solo dentro de las 30 filas de la tabla), independiente entre
-// columnas: la banda de la gasolina 95 de una fila no tiene por qué coincidir
-// con la del diésel de esa misma fila.
-const escalasPorCombustible = Object.fromEntries(
-  ORDEN_COMBUSTIBLES.map((clave) => [
-    clave,
-    crearEscala(visiblesTabla.map((e) => e.precios[clave]).filter((p): p is number => p !== null)),
-  ])
-) as Record<ClavePrecio, ReturnType<typeof crearEscala>>;
-
-function bandaPrecio(clave: ClavePrecio, precio: number): string {
-  const escala = escalasPorCombustible[clave];
-  return escala.esMasBarata(precio) ? 'barata' : escala.banda(precio);
-}
-
-// --- Resumen por municipio ---
-// Nombre, número de estaciones y precio mínimo de gasolina 95 (mismo
-// combustible que ordena la tabla de arriba). El número de estaciones aquí
-// es exactamente el mismo que usa scripts/lib/municipios.ts para decidir si
-// el municipio tiene página propia (RF-60): una zona siempre cubre
-// provincias enteras, así que contar dentro de la zona o dentro de la
-// provincia da el mismo total. Solo se enlaza a los que llegan al mínimo;
-// por debajo, texto plano (esa URL no existe: public/_redirects la manda
-// aquí mismo, no tiene sentido enlazarla).
-interface ResumenMunicipio {
-  municipio: string;
-  provinciaId: string;
-  provinciaNombre: string;
-  estaciones: number;
-  precioMinimo: number | null;
-}
-
-const municipiosPorClave = new Map<string, ResumenMunicipio>();
-for (const estacion of visiblesTabla) {
-  const clave = `${estacion.provinciaId}::${estacion.municipio}`;
-  const precio = estacion.precios.gasolina95e5;
-  const existente = municipiosPorClave.get(clave);
-  if (existente) {
-    existente.estaciones += 1;
-    if (precio !== null && (existente.precioMinimo === null || precio < existente.precioMinimo)) {
-      existente.precioMinimo = precio;
-    }
-  } else {
-    municipiosPorClave.set(clave, {
-      municipio: estacion.municipio,
-      provinciaId: estacion.provinciaId,
-      provinciaNombre: estacion.provinciaNombre,
-      estaciones: 1,
-      precioMinimo: precio,
-    });
-  }
-}
-const resumenMunicipios = [...municipiosPorClave.values()].sort((a, b) =>
-  a.municipio.localeCompare(b.municipio, 'es')
-);
-
-function hrefMunicipio(resumen: ResumenMunicipio): string | null {
-  if (resumen.estaciones < MINIMO_ESTACIONES_MUNICIPIO) return null;
-  return `/${generarSlug(resumen.provinciaNombre)}/${generarSlug(resumen.municipio)}/`;
-}
+// pinta con JavaScript en la primera carga: la sirve el build. RF-88
+// (ADR-0016) sí la regenera después, en cliente, si el usuario cambia de
+// zona sin recargar — con este mismo cálculo, src/logica/tablaZona.ts, para
+// que las dos vías no diverjan.
+const { filas: filasTabla, multiProvincia: multiProvinciaTabla, escalas: escalasPorCombustible, resumenMunicipios } =
+  calcularTablaZona(estaciones);
 
 // Solo por debajo de UMBRAL_HIDRATACION_EMBEBIDA (ver el porqué en
 // src/logica/zona.ts) va embebido el bloque de hidratación del widget
@@ -203,9 +127,10 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
       estaciones={estaciones}
       mock={mock}
       actualizado={actualizado}
+      esPaginaDeZona={true}
     />
 
-    <section class="tabla-zona" aria-label={`Las más baratas y los municipios de ${zona.nombre}`}>
+    <section id="tabla-zona" class="tabla-zona" aria-label={`Las más baratas y los municipios de ${zona.nombre}`}>
       <h2 class="tabla-zona__titulo">Las {filasTabla.length} más baratas de {zona.nombre}</h2>
       {actualizado && (
         <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
@@ -235,7 +160,7 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
                       {precio === null ? (
                         <span class="tabla-zona__ausente">no vende</span>
                       ) : (
-                        <span class={`precio precio--${bandaPrecio(clave, precio)}`}>
+                        <span class={`precio precio--${bandaPrecioZona(escalasPorCombustible, clave, precio)}`}>
                           {formatearPrecio(precio)}
                         </span>
                       )}
@@ -263,7 +188,7 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
           </thead>
           <tbody>
             {resumenMunicipios.map((resumen) => {
-              const href = hrefMunicipio(resumen);
+              const href = hrefMunicipioZona(resumen);
               return (
                 <tr>
                   <th scope="row">
@@ -275,7 +200,7 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
                     {resumen.precioMinimo === null ? (
                       <span class="tabla-zona__ausente">no vende</span>
                     ) : (
-                      <span class={`precio precio--${bandaPrecio('gasolina95e5', resumen.precioMinimo)}`}>
+                      <span class={`precio precio--${bandaPrecioZona(escalasPorCombustible, 'gasolina95e5', resumen.precioMinimo)}`}>
                         {formatearPrecio(resumen.precioMinimo)}
                       </span>
                     )}
