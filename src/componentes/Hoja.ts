@@ -156,11 +156,37 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
   // Al seleccionar una estación (desde el mapa o desde la lista), la hoja
   // sube del todo para que la ficha quepa entera sin depender de medir su
   // alto real.
+  //
+  // La ficha se pinta ENCIMA de la lista dentro del mismo contenedor con
+  // scroll (.hoja__cuerpo, RF-39): si se ha bajado por la lista para tocar
+  // una fila lejana, la ficha se abre fuera de la vista, por encima del
+  // scroll actual, y quedaba en silencio hasta que alguien se daba cuenta y
+  // subía a mano. Se sube el scroll a la ficha al abrir, y se devuelve a
+  // donde estaba la lista al cerrar (por cualquiera de las tres formas de
+  // RF-83: la X, tocar el mapa o arrastrar la hoja hacia abajo, todas pasan
+  // por el mismo cambio de estacionId a null).
+  const cuerpo = hoja.querySelector<HTMLElement>('.hoja__cuerpo');
+  let scrollListaGuardado = 0;
+
   let estacionAnterior = obtenerEstado().estacionId;
   const cancelarSuscripcion = suscribir((estadoApp) => {
+    const haySeleccion = estadoApp.estacionId !== null;
+    const habiaSeleccion = estacionAnterior !== null;
+
     if (estadoApp.estacionId && estadoApp.estacionId !== estacionAnterior) {
       aplicar('completa', true);
     }
+
+    if (cuerpo && haySeleccion !== habiaSeleccion) {
+      const comportamiento: ScrollBehavior = prefiereMovimientoReducido() ? 'auto' : 'smooth';
+      if (haySeleccion) {
+        scrollListaGuardado = cuerpo.scrollTop;
+        cuerpo.scrollTo({ top: 0, behavior: comportamiento });
+      } else {
+        cuerpo.scrollTo({ top: scrollListaGuardado, behavior: comportamiento });
+      }
+    }
+
     estacionAnterior = estadoApp.estacionId;
   });
 
