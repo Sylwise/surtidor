@@ -13,6 +13,29 @@ prohíbe en mapa y lista (docs/05-diseno.md) no aplica al icono de la aplicació
 El fondo oscuro es deliberado: funciona igual en pestaña clara y oscura, sin
 necesitar dos versiones.
 
+## Marca reducida (por debajo de 32 px)
+
+El tótem completo —cartel, poste y peana— necesita sitio para leerse como lo
+que es. Por debajo de 32 px el poste y la peana dejan de leerse como
+"anclaje al mapa" y se leen como el pie de una copa: la silueta entera pasa a
+verse como un trofeo, no como un cartel de precio. Pasó en la imagen de
+compartición (RF-66), con el tótem a unos 19×10 px.
+
+**Por debajo de 32 px se usa solo el cartel** —el rectángulo redondeado de
+arriba— sin poste ni peana:
+
+```
+┌────────┐
+│        │   ← solo esto: un rectángulo redondeado
+└────────┘
+```
+
+Mismas coordenadas que el maestro (`marca/icono.svg`, cartel en
+`x=11 y=11 width=42 height=23 rx=6` sobre un lienzo de 64), simplemente sin
+dibujar los otros dos `<rect>`. No es un icono nuevo que mantener: es el
+mismo tótem, con menos piezas, para el tamaño en el que las piezas de más
+estorban en vez de ayudar.
+
 ## Ficheros
 
 | Fichero | Para qué |
