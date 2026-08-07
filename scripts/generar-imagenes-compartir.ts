@@ -29,7 +29,7 @@ import { Resvg } from '@resvg/resvg-js';
 import { fusionarProvincias, type EstacionZona } from '../src/logica/zona.ts';
 import { estacionesVisibles } from '../src/logica/visibilidad.ts';
 import { ETIQUETA } from '../src/logica/combustibles.ts';
-import { cajaDeTitulo, formatearPrecio } from '../src/logica/formato.ts';
+import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../src/logica/formato.ts';
 import { generarSlug } from './lib/slug.ts';
 import {
   MINIMO_ESTACIONES_MUNICIPIO,
@@ -45,24 +45,36 @@ const DIR_FUENTES = join(RAIZ, 'scripts', 'lib', 'fuentes');
 
 const ANCHO = 1200;
 const ALTO = 630;
-const MARGEN = 64;
+// Zona segura (encargo del rediseño): nada esencial a menos de 60 px del
+// borde, porque WhatsApp y Telegram recortan la tarjeta según el cliente.
+// 72 px de margen, con holgura sobre el mínimo.
+const MARGEN = 72;
 const ANCHO_UTIL = ANCHO - MARGEN * 2;
 
 // Colores: solo tokens de src/estilos/tokens.css, copiados literalmente
 // (este script corre en Node, no puede leer custom properties de CSS).
 const COLOR_FONDO = '#16323B'; // --petrol
 const COLOR_PAPEL = '#EDEFEF'; // --paper
-const COLOR_MEJOR = '#046A38'; // --mejor
+// --mejor RELLENA, --mejor-texto ESCRIBE (docs/05-diseno.md#Tokens): el
+// precio aquí es color de texto directo sobre --petrol, así que es
+// --mejor-texto, nunca --mejor (~2:1 de contraste, ilegible).
+const COLOR_MEJOR_TEXTO = '#3FD69A'; // --mejor-texto
 const COLOR_SIGNAL = '#F5B921'; // --signal
 const COLOR_MUTED_LIGHT = 'rgba(255,255,255,0.58)'; // --muted-light
 const COLOR_NO_VENDE = 'rgba(255,255,255,0.28)'; // --no-vende
 
 interface Tarjeta {
   rutaSalida: string;
-  nombre: string;
+  /** Municipio + provincia ("Vitoria-Gasteiz, Araba/Álava"), o el nombre de
+   *  zona a secas para las páginas de provincia y comunidad. Antetítulo,
+   *  pequeño: el héroe de la imagen es el precio, no el nombre (ver el
+   *  informe de medición del hito H11 sobre el primer diseño, que lo tenía
+   *  al revés). */
+  antetitulo: string;
   precioGasolina95: number | null;
   precioDiesel: number | null;
   estacionMasBarata: string | null;
+  actualizado: string | null;
 }
 
 function escaparXml(texto: string): string {
@@ -70,52 +82,29 @@ function escaparXml(texto: string): string {
 }
 
 /**
- * Ancho aproximado de una línea en Inter Bold, en px: 0,58 em por carácter,
- * una estimación deliberadamente generosa (Inter real promedia más cerca de
- * 0,52-0,55) para no arriesgarse a que un nombre largo desborde el lienzo.
- * Calibrado a ojo contra el render real de los 20 municipios y zonas más
- * largos de España (ver el informe de medición del hito H11).
+ * Ancho aproximado de una línea en Inter, en px por carácter: 0,58 em, una
+ * estimación deliberadamente generosa (Inter real promedia más cerca de
+ * 0,52-0,55) para no arriesgarse a que un texto largo desborde el lienzo.
+ * Calibrado a ojo contra el render real de los nombres y rótulos más largos
+ * de España (ver el informe de medición del hito H11).
  */
 function anchoEstimado(texto: string, tamFuente: number): number {
   return texto.length * tamFuente * 0.58;
 }
 
-const TAMANOS_TITULO = [64, 56, 48, 42, 36, 32, 28];
-
-/** Envuelve el nombre de zona o municipio en 1 o 2 líneas, con el tamaño de
- *  fuente más grande de TAMANOS_TITULO que quepa. España tiene municipios de
- *  más de 50 caracteres ("Alquería de la Condesa/Alqueria de la Comtessa
- *  (l')"), así que una sola línea a tamaño fijo no basta. */
-function ajustarTitulo(nombre: string): { lineas: string[]; tamFuente: number } {
-  for (const tam of TAMANOS_TITULO) {
-    if (anchoEstimado(nombre, tam) <= ANCHO_UTIL) {
-      return { lineas: [nombre], tamFuente: tam };
-    }
+/** Recorta con puntos suspensivos si no cabe en `anchoMaximo` a `tamFuente`.
+ *  España tiene rótulos de estación de hasta 86 caracteres ("ESTACION DE
+ *  SERVICIO DIEGO PILETA Y AUTOLAVADO AGUA OSMOTIZADA: HIJOS DE DIEGO
+ *  PILETA", dato real del MITECO) y municipios con provincia que juntos
+ *  superan la línea, así que truncar no es un caso de borde, es lo normal
+ *  en el extremo largo de la distribución. */
+function truncarConElipsis(texto: string, anchoMaximo: number, tamFuente: number): string {
+  if (anchoEstimado(texto, tamFuente) <= anchoMaximo) return texto;
+  let recortado = texto;
+  while (recortado.length > 1 && anchoEstimado(`${recortado}…`, tamFuente) > anchoMaximo) {
+    recortado = recortado.slice(0, -1);
   }
-  // No cabe en una línea ni al tamaño mínimo: se parte en dos por el espacio
-  // más cercano al centro del texto.
-  const centro = Math.floor(nombre.length / 2);
-  let corte = -1;
-  for (let distancia = 0; distancia < centro; distancia += 1) {
-    if (nombre[centro + distancia] === ' ') {
-      corte = centro + distancia;
-      break;
-    }
-    if (nombre[centro - distancia] === ' ') {
-      corte = centro - distancia;
-      break;
-    }
-  }
-  if (corte === -1) {
-    // Sin espacios (raro): se deja en una línea al tamaño mínimo, aunque
-    // desborde un poco. Es preferible a partir una palabra por la mitad.
-    return { lineas: [nombre], tamFuente: TAMANOS_TITULO.at(-1)! };
-  }
-  const linea1 = nombre.slice(0, corte).trim();
-  const linea2 = nombre.slice(corte + 1).trim();
-  const anchoPeor = Math.max(linea1.length, linea2.length);
-  const tam = TAMANOS_TITULO.find((t) => anchoPeor * t * 0.58 <= ANCHO_UTIL) ?? TAMANOS_TITULO.at(-1)!;
-  return { lineas: [linea1, linea2], tamFuente: tam };
+  return `${recortado.trimEnd()}…`;
 }
 
 /** La estación más barata de gasolina 95 (el combustible por defecto de toda
@@ -139,80 +128,106 @@ function precioMinimo(estaciones: EstacionZona[], clave: 'gasolina95e5' | 'gasol
 }
 
 // JetBrains Mono es monoespaciada de verdad (avance de 0,6 em por carácter,
-// ver su METADATA): el ancho de la píldora se puede calcular exacto en vez
-// de estimarlo, a diferencia del título en Inter (proporcional).
+// ver su METADATA): el ancho de un número se puede calcular exacto en vez de
+// estimarlo, a diferencia del texto en Inter (proporcional).
 const AVANCE_MONO = 0.6;
 
-function filaPrecio(y: number, etiqueta: string, precio: number | null): string {
-  const yEtiqueta = y;
-  const yPrecio = y + 66;
-  const etiquetaSvg = `<text x="${MARGEN}" y="${yEtiqueta}" font-family="Inter" font-weight="600" font-size="20" letter-spacing="2" fill="${COLOR_MUTED_LIGHT}">${escaparXml(etiqueta.toUpperCase())}</text>`;
-
-  if (precio === null) {
-    return `
-      ${etiquetaSvg}
-      <text x="${MARGEN}" y="${yPrecio}" font-family="Inter" font-weight="400" font-size="34" fill="${COLOR_NO_VENDE}">no vende</text>`;
-  }
-
-  // El precio va en --mejor (RF/encargo H11), pero nunca como color de texto
-  // directo sobre --petrol: esa pareja da ~2:1 de contraste, muy por debajo
-  // del 4,5:1 de RNF-22. docs/05-diseno.md ya resuelve esto en el resto de
-  // la interfaz con el mismo color — la más barata es "fondo --mejor, texto
-  // blanco, a más de 7:1"— así que aquí se repite el mismo patrón: una
-  // píldora rellena de --mejor con el número en --paper encima, en vez de
-  // inventar una regla de color nueva solo para esta imagen.
-  const texto = `${formatearPrecio(precio)} €/L`;
-  const tamFuente = 64;
-  const padH = 22;
-  const padV = 16;
-  const anchoTexto = texto.length * tamFuente * AVANCE_MONO;
-  const pillX = MARGEN - padH;
-  const pillY = yPrecio - tamFuente * 0.78 - padV;
-  const pillAncho = anchoTexto + padH * 2;
-  const pillAlto = tamFuente * 0.78 + padV * 2;
-  return `
-    ${etiquetaSvg}
-    <rect x="${pillX}" y="${pillY}" width="${pillAncho}" height="${pillAlto}" rx="14" fill="${COLOR_MEJOR}" />
-    <text x="${MARGEN}" y="${yPrecio}" font-family="JetBrains Mono" font-weight="700" font-size="${tamFuente}" fill="${COLOR_PAPEL}">${texto}</text>`;
+/** Qué combustible es el héroe de la imagen: gasolina 95, el combustible por
+ *  defecto de toda la aplicación (COMBUSTIBLE_POR_DEFECTO en
+ *  src/logica/estado.ts); si esa zona o municipio no lo vende, diésel pasa a
+ *  héroe y gasolina 95 baja a la fila secundaria. No verificado con datos
+ *  reales de hoy: las 1160 zonas y municipios con página venden los dos —
+ *  mismo caso ya señalado para "no vende" en H11, ver ADR-0011. */
+function elegirHeroe(
+  tarjeta: Tarjeta,
+): { clave: 'gasolina95e5' | 'gasoleoA'; precio: number | null } {
+  if (tarjeta.precioGasolina95 !== null) return { clave: 'gasolina95e5', precio: tarjeta.precioGasolina95 };
+  if (tarjeta.precioDiesel !== null) return { clave: 'gasoleoA', precio: tarjeta.precioDiesel };
+  return { clave: 'gasolina95e5', precio: null };
 }
 
-// Tótem en miniatura: la misma silueta de marca/icono.svg (docs/07-marca.md),
-// como trazos SVG propios — no hace falta rasterizar un PNG aparte para esto.
-function totemMini(x: number, y: number): string {
-  const e = 0.4; // escala: el tótem original es un viewBox de 64
+/** (a) El precio del combustible principal: el héroe de la imagen. Enorme,
+ *  monoespaciada, --mejor-texto — nunca --mejor de relleno, que sobre
+ *  --petrol da ~2:1 de contraste (ver tokens.css). "€/L" pequeño al lado,
+ *  posicionado con el ancho exacto del número (JetBrains Mono es
+ *  monoespaciada de verdad, así que no hace falta medir el render). */
+function heroPrecio(yBaseline: number, precio: number | null): string {
+  if (precio === null) {
+    return `<text x="${MARGEN}" y="${yBaseline}" font-family="Inter" font-weight="400" font-size="56" fill="${COLOR_NO_VENDE}">no vende</text>`;
+  }
+  const tamFuente = 176;
+  const numero = formatearPrecio(precio);
+  const anchoNumero = numero.length * tamFuente * AVANCE_MONO;
+  const xUnidad = MARGEN + anchoNumero + 16;
   return `
-    <g transform="translate(${x}, ${y}) scale(${e})" fill="${COLOR_SIGNAL}">
-      <rect x="11" y="11" width="42" height="23" rx="6" />
-      <rect x="28" y="34" width="8" height="12" />
-      <rect x="19" y="46" width="26" height="6" rx="3" />
-    </g>`;
+    <text x="${MARGEN}" y="${yBaseline}" font-family="JetBrains Mono" font-weight="700" font-size="${tamFuente}" fill="${COLOR_MEJOR_TEXTO}">${numero}</text>
+    <text x="${xUnidad}" y="${yBaseline}" font-family="Inter" font-weight="600" font-size="40" fill="${COLOR_MUTED_LIGHT}">€/L</text>`;
+}
+
+/** (c) El otro combustible: etiqueta a la izquierda, número alineado a la
+ *  derecha en tabular — una fila secundaria, nunca compite con el héroe. */
+function filaSecundaria(yBaseline: number, etiqueta: string, precio: number | null): string {
+  const etiquetaSvg = `<text x="${MARGEN}" y="${yBaseline}" font-family="Inter" font-weight="600" font-size="30" fill="${COLOR_MUTED_LIGHT}">${escaparXml(etiqueta)}</text>`;
+  if (precio === null) {
+    return `${etiquetaSvg}
+    <text x="${ANCHO - MARGEN}" y="${yBaseline}" text-anchor="end" font-family="Inter" font-weight="400" font-size="30" fill="${COLOR_NO_VENDE}">no vende</text>`;
+  }
+  const texto = `${formatearPrecio(precio)} €/L`;
+  return `${etiquetaSvg}
+    <text x="${ANCHO - MARGEN}" y="${yBaseline}" text-anchor="end" font-family="JetBrains Mono" font-weight="700" font-size="38" fill="${COLOR_PAPEL}">${texto}</text>`;
+}
+
+// Tótem reducido: SOLO el cartel, sin poste ni peana (docs/07-marca.md#Marca
+// reducida). Por debajo de 32 px el tótem completo deja de leerse como un
+// cartel de precio y se lee como el pie de una copa — pasó aquí mismo, con
+// el tótem a unos 19×10 px. Mismas coordenadas que marca/icono.svg, con el
+// poste y la peana (los otros dos <rect>) sencillamente sin dibujar.
+function totemReducido(x: number, y: number, escala: number): string {
+  return `<rect x="${x + 11 * escala}" y="${y + 11 * escala}" width="${42 * escala}" height="${23 * escala}" rx="${6 * escala}" fill="${COLOR_SIGNAL}" />`;
 }
 
 export function renderizarSvg(tarjeta: Tarjeta): string {
-  const { lineas, tamFuente } = ajustarTitulo(tarjeta.nombre);
-  const yBase = lineas.length === 1 ? 150 : 118;
-  const lineHeight = tamFuente * 1.12;
-  const tituloSvg = lineas
-    .map(
-      (linea, i) =>
-        `<text x="${MARGEN}" y="${yBase + i * lineHeight}" font-family="Inter" font-weight="700" font-size="${tamFuente}" fill="${COLOR_PAPEL}">${escaparXml(linea)}</text>`,
-    )
-    .join('\n');
+  const antetituloSvg = `<text x="${MARGEN}" y="96" font-family="Inter" font-weight="600" font-size="28" letter-spacing="0.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(truncarConElipsis(tarjeta.antetitulo, ANCHO_UTIL, 28))}</text>`;
 
-  const yPrecios = lineas.length === 1 ? 260 : 300;
+  const heroe = elegirHeroe(tarjeta);
+  const claveSecundaria = heroe.clave === 'gasolina95e5' ? 'gasoleoA' : 'gasolina95e5';
+  const precioSecundario = claveSecundaria === 'gasolina95e5' ? tarjeta.precioGasolina95 : tarjeta.precioDiesel;
 
+  const etiquetaHeroeSvg = `<text x="${MARGEN}" y="158" font-family="Inter" font-weight="600" font-size="26" letter-spacing="1.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(ETIQUETA[heroe.clave].toUpperCase())}</text>`;
+
+  // (d) + (e) en la misma fila, para que ocupen todo el ancho en vez de dos
+  // líneas cortas y sueltas por la izquierda (espacio muerto en el cuadrante
+  // inferior derecho, encargo del rediseño): rótulo a la izquierda, fecha
+  // del dato alineada a la derecha. La fecha es imprescindible (sin ella una
+  // imagen de hace una semana parece de hoy), así que su ancho se reserva
+  // primero y el rótulo se trunca con lo que quede.
+  const yPie = 486;
+  const fechaTexto = tarjeta.actualizado ? `Actualizado el ${formatearFechaHora(tarjeta.actualizado)}` : '';
+  const anchoFecha = fechaTexto ? anchoEstimado(fechaTexto, 24) : 0;
+  const anchoRotuloDisponible = ANCHO_UTIL - (fechaTexto ? anchoFecha + 40 : 0);
   const estacionSvg = tarjeta.estacionMasBarata
-    ? `<text x="${MARGEN}" y="${yPrecios + 205}" font-family="Inter" font-weight="400" font-size="26" fill="${COLOR_MUTED_LIGHT}">Más barata: ${escaparXml(tarjeta.estacionMasBarata)}</text>`
+    ? `<text x="${MARGEN}" y="${yPie}" font-family="Inter" font-weight="400" font-size="28" fill="${COLOR_MUTED_LIGHT}">${escaparXml(truncarConElipsis(`Más barata: ${tarjeta.estacionMasBarata}`, anchoRotuloDisponible, 28))}</text>`
     : '';
+  const actualizadoSvg = fechaTexto
+    ? `<text x="${ANCHO - MARGEN}" y="${yPie}" text-anchor="end" font-family="Inter" font-weight="400" font-size="24" fill="${COLOR_MUTED_LIGHT}">${escaparXml(fechaTexto)}</text>`
+    : '';
+
+  // Marca, en una esquina (encargo del rediseño): tótem reducido + "Surtidor"
+  // en --signal. Zona segura de 60 px del borde inferior (WhatsApp/Telegram
+  // recortan según el cliente) — aquí con 66 px, algo más holgado.
+  const marcaSvg = `
+    ${totemReducido(MARGEN, ALTO - 89, 0.62)}
+    <text x="${MARGEN + 46}" y="${ALTO - 66}" font-family="Inter" font-weight="700" font-size="26" fill="${COLOR_SIGNAL}">Surtidor</text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${ANCHO}" height="${ALTO}" viewBox="0 0 ${ANCHO} ${ALTO}">
     <rect width="${ANCHO}" height="${ALTO}" fill="${COLOR_FONDO}" />
-    ${tituloSvg}
-    ${filaPrecio(yPrecios, ETIQUETA.gasolina95e5, tarjeta.precioGasolina95)}
-    ${filaPrecio(yPrecios + 100, ETIQUETA.gasoleoA, tarjeta.precioDiesel)}
+    ${antetituloSvg}
+    ${etiquetaHeroeSvg}
+    ${heroPrecio(340, heroe.precio)}
+    ${filaSecundaria(424, ETIQUETA[claveSecundaria], precioSecundario)}
     ${estacionSvg}
-    ${totemMini(MARGEN, ALTO - 64)}
-    <text x="${MARGEN + 40}" y="${ALTO - 40}" font-family="Inter" font-weight="700" font-size="24" fill="${COLOR_SIGNAL}">Surtidor</text>
+    ${actualizadoSvg}
+    ${marcaSvg}
   </svg>`;
 }
 
@@ -265,15 +280,16 @@ export function construirTarjetas(): Tarjeta[] {
   // src/pages/[zona]/index.astro para no divergir sobre qué es "la zona".
   for (const zona of indice.zonas) {
     const datos = zona.provincias.map(leerProvincia);
-    const { estaciones } = fusionarProvincias(datos);
+    const { estaciones, actualizado } = fusionarProvincias(datos);
     const visibles = estacionesVisibles(estaciones);
     const barata = estacionMasBarata(visibles);
     tarjetas.push({
       rutaSalida: join(DIR_SALIDA, `${zona.id}.png`),
-      nombre: zona.nombre,
+      antetitulo: zona.nombre,
       precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
       precioDiesel: precioMinimo(visibles, 'gasoleoA'),
       estacionMasBarata: barata?.rotulo ?? null,
+      actualizado,
     });
   }
 
@@ -284,17 +300,20 @@ export function construirTarjetas(): Tarjeta[] {
     const provincia = provinciasPorId.get(municipio.provinciaId);
     if (!provincia) continue;
     const datos = leerProvincia(municipio.provinciaId);
-    const { estaciones } = fusionarProvincias([datos]);
+    const { estaciones, actualizado } = fusionarProvincias([datos]);
     const visibles = estacionesVisibles(estaciones).filter((e) => e.municipio.trim() === municipio.nombre.trim());
     const barata = estacionMasBarata(visibles);
     const provinciaSlug = generarSlug(provincia.nombre);
     const municipioSlug = generarSlug(municipio.nombre);
     tarjetas.push({
       rutaSalida: join(DIR_SALIDA, provinciaSlug, `${municipioSlug}.png`),
-      nombre: cajaDeTitulo(municipio.nombre),
+      // (b) Municipio y provincia, antetítulo: municipio en caja de título
+      // (RF-86, es prosa), provincia verbatim (RF-76, es como el catálogo).
+      antetitulo: `${cajaDeTitulo(municipio.nombre)}, ${provincia.nombre}`,
       precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
       precioDiesel: precioMinimo(visibles, 'gasoleoA'),
       estacionMasBarata: barata?.rotulo ?? null,
+      actualizado,
     });
   }
 
