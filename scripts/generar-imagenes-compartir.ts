@@ -62,6 +62,7 @@ const COLOR_MEJOR_TEXTO = '#3FD69A'; // --mejor-texto
 const COLOR_SIGNAL = '#F5B921'; // --signal
 const COLOR_MUTED_LIGHT = 'rgba(255,255,255,0.58)'; // --muted-light
 const COLOR_NO_VENDE = 'rgba(255,255,255,0.28)'; // --no-vende
+const COLOR_HAIR_DARK = 'rgba(255,255,255,0.13)'; // --hair-dark: la línea separadora del pie
 
 interface Tarjeta {
   rutaSalida: string;
@@ -132,102 +133,191 @@ function precioMinimo(estaciones: EstacionZona[], clave: 'gasolina95e5' | 'gasol
 // estimarlo, a diferencia del texto en Inter (proporcional).
 const AVANCE_MONO = 0.6;
 
-/** Qué combustible es el héroe de la imagen: gasolina 95, el combustible por
- *  defecto de toda la aplicación (COMBUSTIBLE_POR_DEFECTO en
- *  src/logica/estado.ts); si esa zona o municipio no lo vende, diésel pasa a
- *  héroe y gasolina 95 baja a la fila secundaria. No verificado con datos
- *  reales de hoy: las 1160 zonas y municipios con página venden los dos —
- *  mismo caso ya señalado para "no vende" en H11, ver ADR-0011. */
+/** Qué combustible es el héroe de la imagen: el más barato de los dos, el que
+ *  se lleva el verde y el cuerpo grande — ADR-0003 dice que el verde marca lo
+ *  barato, no que marque siempre el mismo combustible. Si solo hay uno
+ *  disponible, ese es el héroe sin comparar nada. En empate exacto gana
+ *  gasolina 95, el combustible por defecto de toda la aplicación
+ *  (COMBUSTIBLE_POR_DEFECTO en src/logica/estado.ts). Verificado con datos
+ *  reales: Castilla-La Mancha (2026-08-07) vende diésel a 1,460 y gasolina 95
+ *  a 1,465 — el diésel es el héroe ahí. */
 function elegirHeroe(
   tarjeta: Tarjeta,
 ): { clave: 'gasolina95e5' | 'gasoleoA'; precio: number | null } {
-  if (tarjeta.precioGasolina95 !== null) return { clave: 'gasolina95e5', precio: tarjeta.precioGasolina95 };
-  if (tarjeta.precioDiesel !== null) return { clave: 'gasoleoA', precio: tarjeta.precioDiesel };
-  return { clave: 'gasolina95e5', precio: null };
+  const { precioGasolina95, precioDiesel } = tarjeta;
+  if (precioGasolina95 === null && precioDiesel === null) return { clave: 'gasolina95e5', precio: null };
+  if (precioDiesel === null) return { clave: 'gasolina95e5', precio: precioGasolina95 };
+  if (precioGasolina95 === null) return { clave: 'gasoleoA', precio: precioDiesel };
+  return precioGasolina95 <= precioDiesel
+    ? { clave: 'gasolina95e5', precio: precioGasolina95 }
+    : { clave: 'gasoleoA', precio: precioDiesel };
 }
 
-/** (a) El precio del combustible principal: el héroe de la imagen. Enorme,
- *  monoespaciada, --mejor-texto — nunca --mejor de relleno, que sobre
- *  --petrol da ~2:1 de contraste (ver tokens.css). "€/L" pequeño al lado,
- *  posicionado con el ancho exacto del número (JetBrains Mono es
- *  monoespaciada de verdad, así que no hace falta medir el render). */
-function heroPrecio(yBaseline: number, precio: number | null): string {
-  if (precio === null) {
-    return `<text x="${MARGEN}" y="${yBaseline}" font-family="Inter" font-weight="400" font-size="56" fill="${COLOR_NO_VENDE}">no vende</text>`;
-  }
-  const tamFuente = 176;
-  const numero = formatearPrecio(precio);
-  const anchoNumero = numero.length * tamFuente * AVANCE_MONO;
-  const xUnidad = MARGEN + anchoNumero + 16;
-  return `
-    <text x="${MARGEN}" y="${yBaseline}" font-family="JetBrains Mono" font-weight="700" font-size="${tamFuente}" fill="${COLOR_MEJOR_TEXTO}">${numero}</text>
-    <text x="${xUnidad}" y="${yBaseline}" font-family="Inter" font-weight="600" font-size="40" fill="${COLOR_MUTED_LIGHT}">€/L</text>`;
+/** Tamaño de la etiqueta según el tamaño del número que corona: usado tanto
+ *  al dibujarla como al calcular cuánto alto reservarle, para que las dos
+ *  cuentas no puedan divergir. */
+function tamEtiquetaPara(tamNumero: number): number {
+  return tamNumero >= 150 ? 26 : 24;
 }
 
-/** (c) El otro combustible: etiqueta a la izquierda, número alineado a la
- *  derecha en tabular — una fila secundaria, nunca compite con el héroe. */
-function filaSecundaria(yBaseline: number, etiqueta: string, precio: number | null): string {
-  const etiquetaSvg = `<text x="${MARGEN}" y="${yBaseline}" font-family="Inter" font-weight="600" font-size="30" fill="${COLOR_MUTED_LIGHT}">${escaparXml(etiqueta)}</text>`;
+// Fracción del tamaño de fuente que ocupa la altura de mayúscula (el cuerpo
+// del glifo por encima de su línea de base). Estimación generosa —mismo
+// criterio que anchoEstimado más abajo—: JetBrains Mono Bold e Inter
+// SemiBold rondan 0,72-0,74 reales; se redondea al alza para no arriesgar
+// que el número invada la línea de la etiqueta que tiene encima.
+const ALTURA_MAYUSCULA = 0.75;
+// Aire entre la línea de base de la etiqueta y la parte superior del número.
+// 14px quitaba el solape (el bug original) pero a ojo, en el render real,
+// seguía leyéndose pegado — encargo tras verlo: más aire de separación.
+const ESPACIO_ETIQUETA_NUMERO = 34;
+
+/** Bloque de precio: etiqueta encima, número debajo, en la línea de base
+ *  que le pasen (para que el héroe y el secundario compartan una sola línea
+ *  de base, no el borde superior — encargo del segundo rediseño). Cada
+ *  columna reserva su propio alto de etiqueta (`yNumero` se calcula en la
+ *  llamada a partir de `ALTURA_MAYUSCULA` del número más grande de la
+ *  tarjeta, nunca de un offset fijo), así que la etiqueta nunca puede quedar
+ *  a la altura de un número, ni el suyo ni el de la otra columna. "€/L"
+ *  pequeño al lado del número, posicionado con su ancho exacto: JetBrains
+ *  Mono es monoespaciada de verdad, no hace falta medir el render. */
+function bloquePrecio(
+  x: number,
+  yEtiqueta: number,
+  yNumero: number,
+  etiqueta: string,
+  precio: number | null,
+  tamNumero: number,
+  colorNumero: string,
+  tamUnidad: number,
+): string {
+  const tamEtiqueta = tamEtiquetaPara(tamNumero);
+  const etiquetaSvg = `<text x="${x}" y="${yEtiqueta}" font-family="Inter" font-weight="600" font-size="${tamEtiqueta}" letter-spacing="1.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(etiqueta.toUpperCase())}</text>`;
   if (precio === null) {
     return `${etiquetaSvg}
-    <text x="${ANCHO - MARGEN}" y="${yBaseline}" text-anchor="end" font-family="Inter" font-weight="400" font-size="30" fill="${COLOR_NO_VENDE}">no vende</text>`;
+    <text x="${x}" y="${yNumero}" font-family="Inter" font-weight="400" font-size="${Math.round(tamNumero * 0.3)}" fill="${COLOR_NO_VENDE}">no vende</text>`;
   }
-  const texto = `${formatearPrecio(precio)} €/L`;
+  const numero = formatearPrecio(precio);
+  const anchoNumero = numero.length * tamNumero * AVANCE_MONO;
+  const xUnidad = x + anchoNumero + tamUnidad * 0.4;
   return `${etiquetaSvg}
-    <text x="${ANCHO - MARGEN}" y="${yBaseline}" text-anchor="end" font-family="JetBrains Mono" font-weight="700" font-size="38" fill="${COLOR_PAPEL}">${texto}</text>`;
+    <text x="${x}" y="${yNumero}" font-family="JetBrains Mono" font-weight="700" font-size="${tamNumero}" fill="${colorNumero}">${numero}</text>
+    <text x="${xUnidad}" y="${yNumero}" font-family="Inter" font-weight="600" font-size="${tamUnidad}" fill="${COLOR_MUTED_LIGHT}">€/L</text>`;
 }
 
 // Tótem reducido: SOLO el cartel, sin poste ni peana (docs/07-marca.md#Marca
 // reducida). Por debajo de 32 px el tótem completo deja de leerse como un
-// cartel de precio y se lee como el pie de una copa — pasó aquí mismo, con
-// el tótem a unos 19×10 px. Mismas coordenadas que marca/icono.svg, con el
-// poste y la peana (los otros dos <rect>) sencillamente sin dibujar.
+// cartel de precio y se lee como el pie de una copa. Coordenadas de
+// marca/icono.svg, con el poste y la peana (los otros dos <rect>)
+// sencillamente sin dibujar.
 function totemReducido(x: number, y: number, escala: number): string {
   return `<rect x="${x + 11 * escala}" y="${y + 11 * escala}" width="${42 * escala}" height="${23 * escala}" rx="${6 * escala}" fill="${COLOR_SIGNAL}" />`;
 }
 
-export function renderizarSvg(tarjeta: Tarjeta): string {
-  const antetituloSvg = `<text x="${MARGEN}" y="96" font-family="Inter" font-weight="600" font-size="28" letter-spacing="0.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(truncarConElipsis(tarjeta.antetitulo, ANCHO_UTIL, 28))}</text>`;
+/** Tótem completo (cartel + poste + peana), la misma silueta que
+ *  marca/icono.svg. Por encima de 32 px las tres piezas se leen como lo que
+ *  son —un cartel anclado a un punto—, no como el pie de una copa
+ *  (docs/07-marca.md#Marca-reducida). `(x, y)` es el origen del `translate`,
+ *  antes de compensar el desplazamiento de 11 unidades del cartel en el
+ *  viewBox de 64 — igual que `totemReducido`, para que las dos funciones se
+ *  usen igual. */
+function totemCompleto(x: number, y: number, escala: number): string {
+  return `
+    <g transform="translate(${x - 11 * escala}, ${y - 11 * escala}) scale(${escala})" fill="${COLOR_SIGNAL}">
+      <rect x="11" y="11" width="42" height="23" rx="6" />
+      <rect x="28" y="34" width="8" height="12" />
+      <rect x="19" y="46" width="26" height="6" rx="3" />
+    </g>`;
+}
 
+/**
+ * Tres bandas, dos de ancho completo (segundo rediseño: la primera
+ * composición era una pila de líneas alineadas a la izquierda con todo el
+ * lado derecho vacío — "un 45% de vacío a la derecha", en las palabras del
+ * encargo):
+ *
+ * 1. Banda superior, ancho completo: antetítulo a la izquierda, tótem
+ *    completo a la derecha. Ancla esa esquina, que antes no tenía nada, y
+ *    sube la marca desde el pie, donde flotaba sin relación con nada.
+ * 2. Bloque central en dos columnas: el combustible principal (héroe) a la
+ *    izquierda, el otro combustible a la derecha, misma estructura a menor
+ *    escala. Los dos números comparten línea de base.
+ * 3. Pie, ancho completo, con una línea separadora fina: la estación más
+ *    barata a la izquierda, la fecha del dato a la derecha.
+ */
+export function renderizarSvg(tarjeta: Tarjeta): string {
   const heroe = elegirHeroe(tarjeta);
   const claveSecundaria = heroe.clave === 'gasolina95e5' ? 'gasoleoA' : 'gasolina95e5';
   const precioSecundario = claveSecundaria === 'gasolina95e5' ? tarjeta.precioGasolina95 : tarjeta.precioDiesel;
+  const hayColumnaSecundaria = precioSecundario !== null;
 
-  const etiquetaHeroeSvg = `<text x="${MARGEN}" y="158" font-family="Inter" font-weight="600" font-size="26" letter-spacing="1.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(ETIQUETA[heroe.clave].toUpperCase())}</text>`;
+  // --- 1. Banda superior ---
+  const yAntetitulo = 110;
+  const escalaTotemBanda = 1.27; // 41×1.27 ≈ 52 px de alto: por encima del umbral de 32 px
+  const anchoTotemBanda = 42 * escalaTotemBanda;
+  const gapTotem = 28;
+  const anchoAntetituloDisponible = ANCHO_UTIL - anchoTotemBanda - gapTotem;
+  const antetituloSvg = `<text x="${MARGEN}" y="${yAntetitulo}" font-family="Inter" font-weight="600" font-size="28" letter-spacing="0.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(truncarConElipsis(tarjeta.antetitulo, anchoAntetituloDisponible, 28))}</text>`;
+  const totemBandaSvg = totemCompleto(ANCHO - MARGEN - anchoTotemBanda, MARGEN, escalaTotemBanda);
+  // Alto real de la banda superior: el tótem (translate en MARGEN, 41 unidades
+  // de viewBox × escalaTotemBanda) llega más abajo que el antetítulo. Con 10 px
+  // de aire detrás, para no partir el bloque central pegado a sus glifos.
+  const alturaCabecera = MARGEN + 41 * escalaTotemBanda + 10;
 
-  // (d) + (e) en la misma fila, para que ocupen todo el ancho en vez de dos
-  // líneas cortas y sueltas por la izquierda (espacio muerto en el cuadrante
-  // inferior derecho, encargo del rediseño): rótulo a la izquierda, fecha
-  // del dato alineada a la derecha. La fecha es imprescindible (sin ella una
-  // imagen de hace una semana parece de hoy), así que su ancho se reserva
-  // primero y el rótulo se trunca con lo que quede.
-  const yPie = 486;
+  // --- 3. Pie, ancho completo, con línea separadora ---
+  // Se calcula antes que el bloque central (aunque se dibuja después) porque
+  // el bloque 2 necesita su borde superior (la línea) para centrarse en el
+  // hueco que queda entre cabecera y pie.
+  const yLinea = 512;
+  const yPie = 555;
+
+  // --- 2. Bloque central, dos columnas, números en la misma línea de base ---
+  // Reparto vertical: la etiqueta y el número del héroe (el bloque más alto
+  // de la tarjeta) se centran como una sola unidad en el hueco entre el fin
+  // de la cabecera y la línea del pie, con el mismo aire arriba que abajo.
+  // Antes yEtiquetas/yNumeros eran offsets fijos (300/440): dejaban 124 px
+  // vacíos arriba y solo 72 px de aire abajo, pegando el precio al pie.
+  const tamNumeroHeroe = 160;
+  const tamEtiquetaHeroe = tamEtiquetaPara(tamNumeroHeroe);
+  const alturaEtiqueta = tamEtiquetaHeroe * ALTURA_MAYUSCULA;
+  const alturaNumeroHeroe = tamNumeroHeroe * ALTURA_MAYUSCULA;
+  const alturaBloqueCentral = alturaEtiqueta + ESPACIO_ETIQUETA_NUMERO + alturaNumeroHeroe;
+  const huecoCentral = yLinea - alturaCabecera;
+  const aireVertical = (huecoCentral - alturaBloqueCentral) / 2;
+  const yColumnaSuperior = alturaCabecera + aireVertical;
+  const yEtiquetas = yColumnaSuperior + alturaEtiqueta;
+  const yNumeros = yEtiquetas + ESPACIO_ETIQUETA_NUMERO + alturaNumeroHeroe;
+
+  const xColIzquierda = MARGEN;
+  const xColDerecha = 830;
+  // Sin segundo combustible, el héroe ocupa el ancho completo: no hay
+  // columna derecha que dejar vacía con un "no vende" huérfano (encargo del
+  // primer rediseño, que sigue en pie).
+  const bloqueHeroeSvg = bloquePrecio(
+    xColIzquierda, yEtiquetas, yNumeros, ETIQUETA[heroe.clave], heroe.precio, tamNumeroHeroe, COLOR_MEJOR_TEXTO, 40,
+  );
+  const bloqueSecundarioSvg = hayColumnaSecundaria
+    ? bloquePrecio(xColDerecha, yEtiquetas, yNumeros, ETIQUETA[claveSecundaria], precioSecundario, 76, COLOR_PAPEL, 24)
+    : '';
+  const lineaSvg = `<line x1="${MARGEN}" y1="${yLinea}" x2="${ANCHO - MARGEN}" y2="${yLinea}" stroke="${COLOR_HAIR_DARK}" stroke-width="1.5" />`;
   const fechaTexto = tarjeta.actualizado ? `Actualizado el ${formatearFechaHora(tarjeta.actualizado)}` : '';
   const anchoFecha = fechaTexto ? anchoEstimado(fechaTexto, 24) : 0;
   const anchoRotuloDisponible = ANCHO_UTIL - (fechaTexto ? anchoFecha + 40 : 0);
   const estacionSvg = tarjeta.estacionMasBarata
-    ? `<text x="${MARGEN}" y="${yPie}" font-family="Inter" font-weight="400" font-size="28" fill="${COLOR_MUTED_LIGHT}">${escaparXml(truncarConElipsis(`Más barata: ${tarjeta.estacionMasBarata}`, anchoRotuloDisponible, 28))}</text>`
+    ? `<text x="${MARGEN}" y="${yPie}" font-family="Inter" font-weight="400" font-size="26" fill="${COLOR_MUTED_LIGHT}">${escaparXml(truncarConElipsis(`Más barata: ${tarjeta.estacionMasBarata}`, anchoRotuloDisponible, 26))}</text>`
     : '';
   const actualizadoSvg = fechaTexto
     ? `<text x="${ANCHO - MARGEN}" y="${yPie}" text-anchor="end" font-family="Inter" font-weight="400" font-size="24" fill="${COLOR_MUTED_LIGHT}">${escaparXml(fechaTexto)}</text>`
     : '';
 
-  // Marca, en una esquina (encargo del rediseño): tótem reducido + "Surtidor"
-  // en --signal. Zona segura de 60 px del borde inferior (WhatsApp/Telegram
-  // recortan según el cliente) — aquí con 66 px, algo más holgado.
-  const marcaSvg = `
-    ${totemReducido(MARGEN, ALTO - 89, 0.62)}
-    <text x="${MARGEN + 46}" y="${ALTO - 66}" font-family="Inter" font-weight="700" font-size="26" fill="${COLOR_SIGNAL}">Surtidor</text>`;
-
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${ANCHO}" height="${ALTO}" viewBox="0 0 ${ANCHO} ${ALTO}">
     <rect width="${ANCHO}" height="${ALTO}" fill="${COLOR_FONDO}" />
     ${antetituloSvg}
-    ${etiquetaHeroeSvg}
-    ${heroPrecio(340, heroe.precio)}
-    ${filaSecundaria(424, ETIQUETA[claveSecundaria], precioSecundario)}
+    ${totemBandaSvg}
+    ${bloqueHeroeSvg}
+    ${bloqueSecundarioSvg}
+    ${lineaSvg}
     ${estacionSvg}
     ${actualizadoSvg}
-    ${marcaSvg}
   </svg>`;
 }
 
@@ -270,21 +360,14 @@ export const RUTA_PREDETERMINADA = join(DIR_SALIDA, 'predeterminada.png');
 export function renderizarSvgPredeterminada(): string {
   const centroX = ANCHO / 2;
 
-  // Tótem COMPLETO (cartel + poste + peana), no el reducido de
-  // docs/07-marca.md#Marca-reducida: aquí el icono es grande —a más de
-  // 32 px de sobra— así que las tres piezas se leen como lo que son, un
-  // cartel anclado a un punto, no como el pie de una copa.
+  // Tótem completo, grande (docs/07-marca.md#Marca-reducida: por debajo de
+  // 32 px se usa el reducido, este va muy por encima).
   const escalaTotem = 2.6; // 42×2.6 ≈ 109 px de ancho, sobre un lienzo de 1200
   const anchoTotem = 42 * escalaTotem;
   const altoTotem = 41 * escalaTotem; // de y=11 a y=52 en el viewBox de 64
   const totemX = centroX - anchoTotem / 2;
   const totemY = 122;
-  const totemSvg = `
-    <g transform="translate(${totemX - 11 * escalaTotem}, ${totemY - 11 * escalaTotem}) scale(${escalaTotem})" fill="${COLOR_SIGNAL}">
-      <rect x="11" y="11" width="42" height="23" rx="6" />
-      <rect x="28" y="34" width="8" height="12" />
-      <rect x="19" y="46" width="26" height="6" rx="3" />
-    </g>`;
+  const totemSvg = totemCompleto(totemX, totemY, escalaTotem);
 
   const marcaTextoY = totemY + altoTotem + 62;
   const marcaTextoSvg = `<text x="${centroX}" y="${marcaTextoY}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="52" letter-spacing="0.5" fill="${COLOR_SIGNAL}">Surtidor</text>`;

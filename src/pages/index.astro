@@ -81,222 +81,238 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
       import type { FalloProvincia } from '../logica/zona.ts';
       import type { Indice } from '../../scripts/lib/tipos.ts';
 
-      function elemento(id: string): HTMLElement {
-        const el = document.getElementById(id);
-        if (!el) throw new Error(`Falta el elemento #${id} en el HTML de la página.`);
-        return el;
-      }
+      // RF-35: si ya hay una zona guardada de una visita anterior, esto ya
+      // no es la portada: es la página de esa zona, con su HTML, su
+      // JSON-LD y su og:image propios (src/pages/[zona]/index.astro). Antes
+      // esto se resolvía en sitio (el resto de este script cargaba la zona
+      // sobre la marcha) y la URL se quedaba en "/" para siempre: compartir
+      // ese enlace mandaba a quien lo abriera a SU zona guardada, no a la
+      // que se estaba viendo (incumple RF-35). replace() y no href/assign:
+      // así el botón atrás no deja atrapado en un bucle entre "/" y
+      // "/{zona}/". Esto es solo la raíz: las páginas de zona y de
+      // municipio ya fijan su zona desde la URL y no miran localStorage
+      // para decidir dónde quedarse.
+      const zonaInicial = obtenerEstado().zonaId;
+      if (zonaInicial !== null) {
+        location.replace(`/${zonaInicial}/`);
+      } else {
+        function elemento(id: string): HTMLElement {
+          const el = document.getElementById(id);
+          if (!el) throw new Error(`Falta el elemento #${id} en el HTML de la página.`);
+          return el;
+        }
 
-      const contenedorCabecera = document.querySelector('.cabecera') as HTMLElement;
-      const contenedorControlesIdentidad = elemento('controles-identidad');
-      const contenedorControlesRapidos = elemento('controles-rapidos');
-      const contenedorTotem = elemento('totem');
-      const contenedorLista = elemento('lista');
-      const contenedorMapa = elemento('mapa');
-      const contenedorAvisos = elemento('avisos');
-      const insigniaMock = elemento('insignia-mock');
-      const hoja = elemento('hoja');
-      const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
+        const contenedorCabecera = document.querySelector('.cabecera') as HTMLElement;
+        const contenedorControlesIdentidad = elemento('controles-identidad');
+        const contenedorControlesRapidos = elemento('controles-rapidos');
+        const contenedorTotem = elemento('totem');
+        const contenedorLista = elemento('lista');
+        const contenedorMapa = elemento('mapa');
+        const contenedorAvisos = elemento('avisos');
+        const insigniaMock = elemento('insignia-mock');
+        const hoja = elemento('hoja');
+        const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
 
-      // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006):
-      // necesita saber su alto real, que puede variar si el nombre de zona
-      // envuelve a una segunda línea o aparece la insignia de datos de
-      // prueba. Un ResizeObserver es más fiable que adivinar un número fijo.
-      const actualizarAlturaCabecera = (): void => {
-        document.documentElement.style.setProperty('--cabecera-alto', `${contenedorCabecera.offsetHeight}px`);
-      };
-      new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
-      actualizarAlturaCabecera();
+        // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006):
+        // necesita saber su alto real, que puede variar si el nombre de zona
+        // envuelve a una segunda línea o aparece la insignia de datos de
+        // prueba. Un ResizeObserver es más fiable que adivinar un número fijo.
+        const actualizarAlturaCabecera = (): void => {
+          document.documentElement.style.setProperty('--cabecera-alto', `${contenedorCabecera.offsetHeight}px`);
+        };
+        new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
+        actualizarAlturaCabecera();
 
-      montarHoja(hoja, asaHoja, contenedorMapa);
+        montarHoja(hoja, asaHoja, contenedorMapa);
 
-      let indice: Indice | null = null;
-      let controlesMontados = false;
-      let controles: { abrirSelector: () => void } | null = null;
+        let indice: Indice | null = null;
+        let controlesMontados = false;
+        let controles: { abrirSelector: () => void } | null = null;
 
-      // RF-43: aviso de frescura de los datos. Vive fuera del estado global
-      // (src/logica/estado.ts) a propósito: es un dato derivado que solo usa
-      // esta página, y el hito del mapa (H8) también toca ese fichero.
-      let actualizadoZona: string | null = null;
+        // RF-43: aviso de frescura de los datos. Vive fuera del estado global
+        // (src/logica/estado.ts) a propósito: es un dato derivado que solo usa
+        // esta página, y el hito del mapa (H8) también toca ese fichero.
+        let actualizadoZona: string | null = null;
 
-      function horaDelDato(iso: string): string {
-        const fecha = new Date(iso);
-        if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
-        return fecha.toLocaleString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      }
-
-      function crearAviso(
-        texto: string,
-        tipo: 'error' | 'parcial' | 'desactualizado',
-        conReintentar: boolean
-      ): HTMLDivElement {
-        const div = document.createElement('div');
-        div.className = `aviso aviso--${tipo}`;
-        div.append(document.createTextNode(texto));
-        if (conReintentar) {
-          const boton = document.createElement('button');
-          boton.type = 'button';
-          boton.textContent = 'Reintentar';
-          boton.addEventListener('click', () => {
-            cargarTodo();
+        function horaDelDato(iso: string): string {
+          const fecha = new Date(iso);
+          if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
+          return fecha.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
           });
-          div.append(boton);
         }
-        return div;
-      }
 
-      function renderAvisos(estado: EstadoApp): void {
-        contenedorAvisos.innerHTML = '';
-        insigniaMock.hidden = !estado.mock;
-
-        if (estado.error) {
-          contenedorAvisos.append(crearAviso(estado.error, 'error', true));
-          return;
-        }
-        if (estado.provinciasFallidas.length > 0) {
-          const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
-          contenedorAvisos.append(
-            crearAviso(
-              `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
-              'parcial',
-              true
-            )
-          );
-        }
-        // RF-43: aviso discreto, no bloquea ni compite con los de arriba.
-        if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
-          contenedorAvisos.append(
-            crearAviso(`Datos de las ${horaDelDato(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
-          );
-        }
-      }
-
-      // Carga (o recarga) el índice si hace falta, monta el selector de zona
-      // en cuanto hay índice, y carga la zona activa. Fallo parcial de zona
-      // (RF-36): un fallo de provincia no tumba las demás. Sirve también como
-      // función de reintento completa desde el botón de los avisos.
-      async function cargarTodo(): Promise<void> {
-        actualizarEstado({ cargando: true, error: null });
-        try {
-          if (!indice) {
-            indice = await cargarIndice();
+        function crearAviso(
+          texto: string,
+          tipo: 'error' | 'parcial' | 'desactualizado',
+          conReintentar: boolean
+        ): HTMLDivElement {
+          const div = document.createElement('div');
+          div.className = `aviso aviso--${tipo}`;
+          div.append(document.createTextNode(texto));
+          if (conReintentar) {
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.textContent = 'Reintentar';
+            boton.addEventListener('click', () => {
+              cargarTodo();
+            });
+            div.append(boton);
           }
-          if (!controlesMontados) {
-            controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
-            controlesMontados = true;
-            actualizarAlturaCabecera();
-          }
+          return div;
+        }
 
-          // RF-49: sin zona guardada y sin página de aterrizaje, el siguiente
-          // paso es el selector, no una zona elegida por nosotros.
-          const zonaGuardada = obtenerEstado().zonaId;
-          if (zonaGuardada === null) {
-            actualizarEstado({ cargando: false });
-            controles?.abrirSelector();
+        function renderAvisos(estado: EstadoApp): void {
+          contenedorAvisos.innerHTML = '';
+          insigniaMock.hidden = !estado.mock;
+
+          if (estado.error) {
+            contenedorAvisos.append(crearAviso(estado.error, 'error', true));
             return;
           }
-
-          // Caso imposible (no editorial, ver src/logica/zona.ts): la zona
-          // guardada ya no existe en el índice porque los datos se
-          // regeneraron entre medias.
-          const zona = indice.zonas.find((z) => z.id === zonaGuardada) ?? zonaDeReserva(indice);
-          if (zona.id !== zonaGuardada) actualizarEstado({ zonaId: zona.id });
-
-          const resultado = await cargarZona(zona, indice.provincias);
-          actualizadoZona = resultado.actualizado;
-          const estacionSeleccionada = obtenerEstado().estacionId;
-          const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
-            ? estacionSeleccionada
-            : null;
-
-          actualizarEstado({
-            zonaNombre: zona.nombre,
-            estaciones: resultado.estaciones,
-            provinciasFallidas: resultado.provinciasFallidas,
-            mock: resultado.mock,
-            cargando: false,
-            error:
-              resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
-                ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
-                : null,
-            estacionId: siguienteSeleccion,
-          });
-        } catch (error) {
-          actualizadoZona = null;
-          actualizarEstado({
-            cargando: false,
-            error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
-          });
+          if (estado.provinciasFallidas.length > 0) {
+            const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
+            contenedorAvisos.append(
+              crearAviso(
+                `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
+                'parcial',
+                true
+              )
+            );
+          }
+          // RF-43: aviso discreto, no bloquea ni compite con los de arriba.
+          if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
+            contenedorAvisos.append(
+              crearAviso(`Datos de las ${horaDelDato(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
+            );
+          }
         }
-      }
 
-      // Regla dura 1 de CLAUDE.md: temporizador de rescate que resuelve el
-      // estado de carga pase lo que pase, aunque algo se quede colgado más
-      // allá de los timeouts propios de cada petición.
-      setTimeout(() => {
-        if (obtenerEstado().cargando) {
-          actualizarEstado({
-            cargando: false,
-            error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
-          });
+        // Carga (o recarga) el índice si hace falta, monta el selector de zona
+        // en cuanto hay índice, y carga la zona activa. Fallo parcial de zona
+        // (RF-36): un fallo de provincia no tumba las demás. Sirve también como
+        // función de reintento completa desde el botón de los avisos.
+        async function cargarTodo(): Promise<void> {
+          actualizarEstado({ cargando: true, error: null });
+          try {
+            if (!indice) {
+              indice = await cargarIndice();
+            }
+            if (!controlesMontados) {
+              controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
+              controlesMontados = true;
+              actualizarAlturaCabecera();
+            }
+
+            // RF-49: sin zona guardada y sin página de aterrizaje, el siguiente
+            // paso es el selector, no una zona elegida por nosotros.
+            const zonaGuardada = obtenerEstado().zonaId;
+            if (zonaGuardada === null) {
+              actualizarEstado({ cargando: false });
+              controles?.abrirSelector();
+              return;
+            }
+
+            // Caso imposible (no editorial, ver src/logica/zona.ts): la zona
+            // guardada ya no existe en el índice porque los datos se
+            // regeneraron entre medias.
+            const zona = indice.zonas.find((z) => z.id === zonaGuardada) ?? zonaDeReserva(indice);
+            if (zona.id !== zonaGuardada) actualizarEstado({ zonaId: zona.id });
+
+            const resultado = await cargarZona(zona, indice.provincias);
+            actualizadoZona = resultado.actualizado;
+            const estacionSeleccionada = obtenerEstado().estacionId;
+            const siguienteSeleccion = resultado.estaciones.some((e) => e.id === estacionSeleccionada)
+              ? estacionSeleccionada
+              : null;
+
+            actualizarEstado({
+              zonaNombre: zona.nombre,
+              estaciones: resultado.estaciones,
+              provinciasFallidas: resultado.provinciasFallidas,
+              mock: resultado.mock,
+              cargando: false,
+              error:
+                resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
+                  ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+                  : null,
+              estacionId: siguienteSeleccion,
+            });
+          } catch (error) {
+            actualizadoZona = null;
+            actualizarEstado({
+              cargando: false,
+              error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
+            });
+          }
         }
-      }, 12000);
 
-      // RF-35: la URL tiene que reflejar la zona para poder compartir un
-      // enlace concreto. Antes, un cambio de zona aquí se resolvía en sitio
-      // (cargarTodo() de nuevo) y la URL se quedaba en "/" para siempre —
-      // quien copiara esa URL no compartía la zona que veía, compartía la
-      // portada. Ahora, igual que ya hacen las páginas de zona y municipio
-      // (AppInteractiva.astro), un cambio de zona navega a su página
-      // estática propia: el selector, "mi ubicación" (RF-37) y la carga
-      // inicial desde localStorage acaban todos aquí.
-      let zonaAnterior = obtenerEstado().zonaId;
-      suscribir((estado) => {
-        renderAvisos(estado);
-        if (estado.zonaId !== zonaAnterior && estado.zonaId !== null) {
-          zonaAnterior = estado.zonaId;
-          location.href = `/${estado.zonaId}/`;
-        }
-      });
-      renderAvisos(obtenerEstado());
+        // Regla dura 1 de CLAUDE.md: temporizador de rescate que resuelve el
+        // estado de carga pase lo que pase, aunque algo se quede colgado más
+        // allá de los timeouts propios de cada petición.
+        setTimeout(() => {
+          if (obtenerEstado().cargando) {
+            actualizarEstado({
+              cargando: false,
+              error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+            });
+          }
+        }, 12000);
 
-      montarLista(contenedorLista);
-      montarTotem(contenedorTotem);
-
-      // RF-37: al encontrar la ubicación, se cambia a la provincia más
-      // cercana (no una zona a medida: ver src/logica/zona.ts). Si el
-      // índice todavía no ha llegado (pulsar el botón antes de que cargue
-      // nada, poco probable pero posible), no hay nada que resolver todavía.
-      function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
-        if (!indice) return;
-        const provincia = provinciaMasCercana(indice, posicion);
-        actualizarEstado({ zonaId: `p-${provincia.id}` });
-      }
-
-      // El mapa se importa dinámicamente: MapLibre pesa bastante más que el
-      // resto del bundle inicial, y RNF-11 solo cuenta el JS de antes de
-      // MapLibre. Con import() dinámico, MapLibre entra en su propio chunk y
-      // se descarga aparte y después, sin retrasar el primer pintado del
-      // resto de la interfaz. Regla dura 2 de CLAUDE.md: si ni siquiera se
-      // puede descargar ese chunk (red caída de verdad), el hueco del mapa
-      // explica el fallo y el resto de la aplicación sigue intacta; Mapa.ts
-      // ya gestiona por su cuenta cualquier fallo de MapLibre o de los tiles.
-      import('../componentes/Mapa.ts')
-        .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
-        .catch(() => {
-          contenedorMapa.innerHTML = '';
-          contenedorMapa.removeAttribute('style');
-          const aviso = document.createElement('p');
-          aviso.textContent = 'El mapa no se ha podido cargar. La lista y la ficha funcionan igual.';
-          contenedorMapa.append(aviso);
+        // RF-35: la URL tiene que reflejar la zona para poder compartir un
+        // enlace concreto. Antes, un cambio de zona aquí se resolvía en sitio
+        // (cargarTodo() de nuevo) y la URL se quedaba en "/" para siempre —
+        // quien copiara esa URL no compartía la zona que veía, compartía la
+        // portada. Ahora, igual que ya hacen las páginas de zona y municipio
+        // (AppInteractiva.astro), un cambio de zona navega a su página
+        // estática propia: el selector, "mi ubicación" (RF-37) y la carga
+        // inicial desde localStorage acaban todos aquí.
+        let zonaAnterior = obtenerEstado().zonaId;
+        suscribir((estado) => {
+          renderAvisos(estado);
+          if (estado.zonaId !== zonaAnterior && estado.zonaId !== null) {
+            zonaAnterior = estado.zonaId;
+            location.href = `/${estado.zonaId}/`;
+          }
         });
+        renderAvisos(obtenerEstado());
 
-      cargarTodo();
+        montarLista(contenedorLista);
+        montarTotem(contenedorTotem);
+
+        // RF-37: al encontrar la ubicación, se cambia a la provincia más
+        // cercana (no una zona a medida: ver src/logica/zona.ts). Si el
+        // índice todavía no ha llegado (pulsar el botón antes de que cargue
+        // nada, poco probable pero posible), no hay nada que resolver todavía.
+        function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
+          if (!indice) return;
+          const provincia = provinciaMasCercana(indice, posicion);
+          actualizarEstado({ zonaId: `p-${provincia.id}` });
+        }
+
+        // El mapa se importa dinámicamente: MapLibre pesa bastante más que el
+        // resto del bundle inicial, y RNF-11 solo cuenta el JS de antes de
+        // MapLibre. Con import() dinámico, MapLibre entra en su propio chunk y
+        // se descarga aparte y después, sin retrasar el primer pintado del
+        // resto de la interfaz. Regla dura 2 de CLAUDE.md: si ni siquiera se
+        // puede descargar ese chunk (red caída de verdad), el hueco del mapa
+        // explica el fallo y el resto de la aplicación sigue intacta; Mapa.ts
+        // ya gestiona por su cuenta cualquier fallo de MapLibre o de los tiles.
+        import('../componentes/Mapa.ts')
+          .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
+          .catch(() => {
+            contenedorMapa.innerHTML = '';
+            contenedorMapa.removeAttribute('style');
+            const aviso = document.createElement('p');
+            aviso.textContent = 'El mapa no se ha podido cargar. La lista y la ficha funcionan igual.';
+            contenedorMapa.append(aviso);
+          });
+
+        cargarTodo();
+      }
     </script>
   </body>
 </html>
