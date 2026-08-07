@@ -55,9 +55,29 @@ export interface Zona {
   provincias: string[];
 }
 
+/** Un municipio con al menos una estación visible (RF-48), tal como lo
+ *  cruza scripts/descargar-datos.ts entre `Listados/Municipios` y las
+ *  estaciones reales de su provincia. `nombre` es el nombre canónico del
+ *  catálogo del ministerio (RF-76): las páginas de municipio (H10, segunda
+ *  mitad) se generan solo para los que llegan a RF-60 (3 estaciones o más);
+ *  los slugs de URL se derivan de `nombre` con scripts/lib/slug.ts, siempre
+ *  en el momento de usarse, nunca guardados aquí. */
+export interface ResumenMunicipio {
+  nombre: string;
+  provinciaId: string;
+  estaciones: number;
+}
+
+/** RF-60: mínimo de estaciones visibles para que un municipio tenga página
+ *  propia. Por debajo no se genera: `public/_redirects` (generado en el
+ *  mismo paso que `indice.json`) manda esas URLs a la página de su
+ *  provincia. */
+export const MINIMO_ESTACIONES_MUNICIPIO = 3;
+
 export interface Indice {
   actualizado: string;
   mock?: true;
   provincias: ResumenProvincia[];
   zonas: Zona[];
+  municipios: ResumenMunicipio[];
 }

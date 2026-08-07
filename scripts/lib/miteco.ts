@@ -293,3 +293,37 @@ export async function obtenerComunidadesAutonomas(
     opciones,
   );
 }
+
+/**
+ * Forma cruda de un elemento de `Listados/Municipios`. `Municipio` llega en
+ * caja de título de verdad ("Vitoria-Gasteiz", no "VITORIA-GASTEIZ"), y
+ * coincide —comprobado contra datos reales— con el campo `Municipio` que
+ * devuelve `EstacionesTerrestres/FiltroProvincia`, una vez recortado el
+ * espacio sobrante: alguna entrada del catálogo trae un espacio final que la
+ * estación no lleva (docs/06-roadmap.md#H10, segunda mitad).
+ */
+export const MunicipioCatalogoEsquema = z
+  .object({
+    IDMunicipio: z.string(),
+    IDProvincia: z.string(),
+    IDCCAA: z.string(),
+    Municipio: z.string(),
+    Provincia: z.string(),
+    CCAA: z.string(),
+  })
+  .passthrough();
+
+export type MunicipioCatalogo = z.infer<typeof MunicipioCatalogoEsquema>;
+
+/**
+ * Catálogo completo de municipios de España (unos 8.100), vía
+ * `Listados/Municipios`. Es la fuente oficial para las páginas por
+ * municipio (RF-60): no se inventa ningún nombre ni agrupación (RF-76,
+ * ADR-0005), se cruza con las estaciones reales de cada provincia para saber
+ * cuántas tiene cada uno.
+ */
+export async function obtenerMunicipios(
+  opciones: OpcionesPeticionMiteco = {},
+): Promise<MunicipioCatalogo[]> {
+  return pedirJsonMiteco('Listados/Municipios/', z.array(MunicipioCatalogoEsquema), opciones);
+}

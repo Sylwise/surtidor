@@ -11,15 +11,20 @@ import {
   obtenerEstacionesPorProvincia,
   obtenerProvincias,
   obtenerComunidadesAutonomas,
+  obtenerMunicipios,
   type ProvinciaCatalogo,
 } from './lib/miteco.ts';
 import { normalizarEstaciones, type EstacionCruda } from './lib/normalizar.ts';
-import { escribirJsonAtomico } from './lib/escritura.ts';
-import type { ClavePrecio, DatosProvincia, Indice, ResumenProvincia, Zona } from './lib/tipos.ts';
+import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
+import { construirMunicipios } from './lib/municipios.ts';
+import { generarRedirecciones } from './lib/redirecciones.ts';
+import { comprobarSlugsUnicos } from './lib/slug.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
-const DIRECTORIO_DATOS = join(import.meta.dirname, '..', 'public', 'data');
+const DIRECTORIO_PUBLIC = join(import.meta.dirname, '..', 'public');
+const DIRECTORIO_DATOS = join(DIRECTORIO_PUBLIC, 'data');
 
 /** Ejecuta `tarea` sobre `items` con un máximo de `limite` en vuelo a la vez. */
 async function mapConLimite<T, R>(
@@ -93,12 +98,16 @@ function construirZonasCcaa(
 async function main(): Promise<void> {
   const actualizado = new Date().toISOString();
 
-  console.log('Descargando catálogo de provincias y comunidades autónomas…');
-  const [provinciasCatalogo, ccaaCatalogo] = await Promise.all([
+  console.log('Descargando catálogo de provincias, comunidades autónomas y municipios…');
+  const [provinciasCatalogo, ccaaCatalogo, municipiosCatalogo] = await Promise.all([
     obtenerProvincias(),
     obtenerComunidadesAutonomas(),
+    obtenerMunicipios(),
   ]);
-  console.log(`  ${provinciasCatalogo.length} provincias, ${ccaaCatalogo.length} comunidades autónomas.`);
+  console.log(
+    `  ${provinciasCatalogo.length} provincias, ${ccaaCatalogo.length} comunidades autónomas, ` +
+      `${municipiosCatalogo.length} municipios.`,
+  );
 
   let totalEstaciones = 0;
   let totalDescartadas = 0;
@@ -160,10 +169,25 @@ async function main(): Promise<void> {
 
   const zonasCcaa = construirZonasCcaa(provinciasCatalogo, ccaaCatalogo);
 
+  const { municipios, sinCatalogar } = construirMunicipios(datosPorProvincia, municipiosCatalogo);
+  if (sinCatalogar > 0) {
+    console.log(
+      `  Aviso: ${sinCatalogar} estaciones con un municipio que no aparece en Listados/Municipios ` +
+        'para su provincia (se cuentan igual, con el nombre tal como lo declara la estación).',
+    );
+  }
+
+  // Guarda contra colisión de URL (docs/06-roadmap.md#H10): dos provincias o
+  // dos municipios de la misma provincia que generasen el mismo slug se
+  // pisarían la página. Antes de escribir nada, no después.
+  comprobarSlugsUnicos(resumenProvincias, (p) => p.nombre, () => 'global', 'Provincias');
+  comprobarSlugsUnicos(municipios, (m) => m.nombre, (m) => m.provinciaId, 'Municipios');
+
   const indice: Indice = {
     actualizado,
     provincias: resumenProvincias,
     zonas: [...zonasProvincia, ...zonasCcaa],
+    municipios,
   };
 
   console.log('Escribiendo ficheros…');
@@ -173,6 +197,7 @@ async function main(): Promise<void> {
     ),
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
+  await escribirTextoAtomico(join(DIRECTORIO_PUBLIC, '_redirects'), generarRedirecciones(resumenProvincias));
 
   const avisosFinales = [
     totalDescartadas > 0 ? `${totalDescartadas} descartadas en total` : null,
@@ -180,8 +205,10 @@ async function main(): Promise<void> {
     totalMargenInesperados > 0 ? `${totalMargenInesperados} con Margen inesperado` : null,
   ].filter((aviso): aviso is string => aviso !== null);
 
+  const municipiosConPagina = municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO).length;
   console.log(
-    `Hecho: ${datosPorProvincia.length} provincias, ${totalEstaciones} estaciones` +
+    `Hecho: ${datosPorProvincia.length} provincias, ${totalEstaciones} estaciones, ` +
+      `${municipios.length} municipios con estaciones (${municipiosConPagina} con página propia)` +
       (avisosFinales.length > 0 ? `, ${avisosFinales.join(', ')}` : '') +
       '.',
   );

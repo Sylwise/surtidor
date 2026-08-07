@@ -1142,3 +1142,33 @@ input {
 .tabla-zona__ausente {
   color: var(--muted);
 }
+
+/* ---------- Migas de pan y enlazado (H10, RF-65/RF-74) ----------
+   Solo en la página de municipio: Inicio › provincia › municipio, y el
+   enlace de vuelta a la provincia + la lista de municipios vecinos, después
+   de la tabla. Mismos tokens que el resto de la tabla estática, ninguno
+   nuevo. */
+.migas {
+  font-size: var(--fs-2);
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.migas a {
+  color: var(--muted);
+}
+
+.tabla-zona__enlace-provincia {
+  font-size: var(--fs-3);
+  margin: 18px 0 0;
+}
+
+.lista-vecinos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--fs-3);
+}

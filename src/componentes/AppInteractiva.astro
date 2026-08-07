@@ -1,0 +1,351 @@
+---
+// H10 · El cascarón interactivo (cabecera, hoja, mapa, lista, tótem) que
+// comparten src/pages/[zona]/index.astro y
+// src/pages/[provincia]/[municipio]/index.astro (segunda mitad de H10): la
+// misma aplicación de siempre, con la zona activa fijada desde un prop en
+// vez de localStorage, para que cada página estática enseñe siempre la zona
+// que prometen su <title> y su URL.
+//
+// Extraído de [zona]/index.astro para no duplicar ~400 líneas de
+// orquestación entre las dos páginas: cualquier cambio de comportamiento se
+// hace aquí una vez. El <html>/<head>/<body>, el <title> y la tabla estática
+// de SEO son cosa de cada página, no de este componente.
+//
+// `hidratacionEmbebida` la decide quien llama, no este componente:
+// - La página de zona la calcula por tamaño (UMBRAL_HIDRATACION_EMBEBIDA,
+//   ver el porqué en src/logica/zona.ts).
+// - La página de municipio la fuerza siempre a `false`: su widget
+//   interactivo muestra la PROVINCIA entera (no hay "zona" de un solo
+//   municipio en el modelo de datos), y esa provincia la comparten todas las
+//   páginas de sus municipios más su propia página de zona. Si cada una
+//   embebiera los mismos datos, se repetirían una vez por página sin caché;
+//   con fetch, el navegador y el CDN reaprovechan el mismo
+//   /data/provincias/NN.json entre todas.
+import marcaSvg from '../assets/marca.svg?raw';
+import type { EstacionZona } from '../logica/zona.ts';
+
+interface Props {
+  zonaId: string;
+  zonaNombre: string;
+  /** Si `true`, `estaciones`/`mock`/`actualizado` van embebidos en el HTML
+   *  para que el cliente arranque sin red. Si `false`, esos tres props se
+   *  ignoran y el cliente los pide por fetch, como antes de H10. */
+  hidratacionEmbebida: boolean;
+  estaciones?: EstacionZona[];
+  mock?: boolean;
+  actualizado?: string | null;
+}
+
+const {
+  zonaId,
+  zonaNombre,
+  hidratacionEmbebida,
+  estaciones = [],
+  mock = false,
+  actualizado = null,
+} = Astro.props;
+
+const datosHidratacion = hidratacionEmbebida
+  ? JSON.stringify({ estaciones, mock, actualizado }).replace(/</g, '\\u003c')
+  : '';
+---
+
+<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre}>
+  <header class="cabecera">
+    <span class="marca">
+      <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
+      <span class="marca__texto">Surtidor</span>
+    </span>
+    <div id="controles-identidad" class="controles-identidad" aria-label="Zona"></div>
+    <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
+  </header>
+
+  <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
+
+  <div class="layout">
+    <aside class="hoja" id="hoja" data-estado="media">
+      <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones. Flecha arriba o abajo para cambiar de tamaño."></button>
+      <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible"></div>
+      <div class="hoja__cuerpo">
+        <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
+        <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+      </div>
+    </aside>
+
+    <div id="mapa" class="mapa-hueco">
+      <p>Cargando mapa…</p>
+    </div>
+  </div>
+</div>
+
+{hidratacionEmbebida && (
+  <script type="application/json" id="datos-zona" is:inline set:html={datosHidratacion} />
+)}
+
+<script>
+  // Orquestación de la aplicación interactiva. La zona activa se fija a la
+  // que declara #app (data-zona-id/data-zona-nombre) antes de cargar nada,
+  // para que la página siempre enseñe la zona que prometen su <title> y su
+  // URL — a diferencia de src/pages/index.astro, que elige la zona guardada
+  // en localStorage o, si no hay ninguna, abre el selector.
+  import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
+  import {
+    cargarIndice,
+    cargarZona,
+    zonaDeReserva,
+    provinciaMasCercana,
+    type EstacionZona,
+    type FalloProvincia,
+  } from '../logica/zona.ts';
+  import { montarControles } from './Controles.ts';
+  import { montarLista } from './Lista.ts';
+  import { montarTotem } from './Totem.ts';
+  import { montarHoja } from './Hoja.ts';
+  import { datosDesactualizados } from '../logica/frescura.ts';
+  import { formatearFechaHora } from '../logica/formato.ts';
+  import type { Indice } from '../../scripts/lib/tipos.ts';
+
+  function elemento(id: string): HTMLElement {
+    const el = document.getElementById(id);
+    if (!el) throw new Error(`Falta el elemento #${id} en el HTML de la página.`);
+    return el;
+  }
+
+  const contenedorApp = elemento('app');
+  const contenedorCabecera = document.querySelector('.cabecera') as HTMLElement;
+  const contenedorControlesIdentidad = elemento('controles-identidad');
+  const contenedorControlesRapidos = elemento('controles-rapidos');
+  const contenedorTotem = elemento('totem');
+  const contenedorLista = elemento('lista');
+  const contenedorMapa = elemento('mapa');
+  const contenedorAvisos = elemento('avisos');
+  const insigniaMock = elemento('insignia-mock');
+  const hoja = elemento('hoja');
+  const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
+
+  // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006) y
+  // necesita saber su alto real.
+  const actualizarAlturaCabecera = (): void => {
+    document.documentElement.style.setProperty('--cabecera-alto', `${contenedorCabecera.offsetHeight}px`);
+  };
+  new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
+  actualizarAlturaCabecera();
+
+  montarHoja(hoja, asaHoja, contenedorMapa);
+
+  // RF-43: dato derivado local a la página, fuera del estado global.
+  let actualizadoZona: string | null = null;
+
+  // Zona que promete esta página, tal y como la fijó el build. Si el
+  // selector de zona la cambia, no recargamos en sitio: navegamos a la URL
+  // de la otra zona, para que el <title> y la <meta description> sigan
+  // correspondiendo a lo que se ve.
+  const zonaDeLaPagina = contenedorApp.dataset.zonaId;
+  const nombreDeLaPagina = contenedorApp.dataset.zonaNombre;
+  if (!zonaDeLaPagina || !nombreDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
+
+  function crearAviso(
+    texto: string,
+    tipo: 'error' | 'parcial' | 'desactualizado',
+    conReintentar: boolean
+  ): HTMLDivElement {
+    const div = document.createElement('div');
+    div.className = `aviso aviso--${tipo}`;
+    div.append(document.createTextNode(texto));
+    if (conReintentar) {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.textContent = 'Reintentar';
+      boton.addEventListener('click', () => cargarZonaPorFetch());
+      div.append(boton);
+    }
+    return div;
+  }
+
+  // RF-36 (fallo parcial de provincia) y el aviso de error con
+  // "Reintentar" solo son alcanzables en la ruta de fetch: con los datos
+  // embebidos no hay red de por medio que pueda fallar. En la ruta embebida
+  // estas dos ramas simplemente nunca se disparan.
+  function renderAvisos(estado: EstadoApp): void {
+    contenedorAvisos.innerHTML = '';
+    insigniaMock.hidden = !estado.mock;
+
+    if (estado.error) {
+      contenedorAvisos.append(crearAviso(estado.error, 'error', true));
+      return;
+    }
+    if (estado.provinciasFallidas.length > 0) {
+      const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
+      contenedorAvisos.append(
+        crearAviso(
+          `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
+          'parcial',
+          true
+        )
+      );
+    }
+    if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
+      contenedorAvisos.append(
+        crearAviso(`Datos de las ${formatearFechaHora(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
+      );
+    }
+  }
+
+  let indice: Indice | null = null;
+  let controlesMontados = false;
+
+  // Índice compartido por dos consumidores: el selector de zona (RF-32,
+  // siempre por red, el catálogo de las 71 zonas nunca va embebido) y,
+  // cuando no hay hidratación embebida, la ruta de fetch de más abajo
+  // (necesita `zona.provincias` para saber qué ficheros pedir). Se pide una
+  // sola vez y se reutiliza.
+  async function obtenerIndiceYControles(): Promise<Indice> {
+    if (!indice) {
+      indice = await cargarIndice();
+    }
+    if (!controlesMontados) {
+      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
+      controlesMontados = true;
+      actualizarAlturaCabecera();
+    }
+    return indice;
+  }
+
+  // Monta solo el selector de zona, sin tocar los datos de la zona activa
+  // (que ya están en pantalla, vía el bloque embebido). Un fallo aquí no
+  // toca precios ni lista (regla dura 2 de CLAUDE.md extendida al
+  // selector): solo deja el selector sin montar, con su propio botón de
+  // reintentar.
+  async function montarSelectorZona(): Promise<void> {
+    try {
+      await obtenerIndiceYControles();
+    } catch {
+      contenedorControlesIdentidad.innerHTML = '';
+      const aviso = document.createElement('span');
+      aviso.textContent = 'Selector de zona no disponible. ';
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.textContent = 'Reintentar';
+      boton.addEventListener('click', () => montarSelectorZona());
+      aviso.append(boton);
+      contenedorControlesIdentidad.append(aviso);
+    }
+  }
+
+  // Ruta de fetch: para las zonas sin hidratación embebida (zonas grandes,
+  // o cualquier página de municipio, ver el comentario del frontmatter) y
+  // para el botón de "Reintentar" de los avisos. RF-36: un fallo de
+  // provincia no tumba las demás.
+  async function cargarZonaPorFetch(): Promise<void> {
+    actualizarEstado({ cargando: true, error: null });
+    try {
+      const indiceActual = await obtenerIndiceYControles();
+
+      // Red de seguridad: si la zona de esta página ya no existe en el
+      // índice (los datos se regeneran cada dos horas), cae a la zona de
+      // reserva (src/logica/zona.ts, no una elección editorial).
+      const zona = indiceActual.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? zonaDeReserva(indiceActual);
+      if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
+
+      const resultado = await cargarZona(zona, indiceActual.provincias);
+      actualizadoZona = resultado.actualizado;
+
+      actualizarEstado({
+        zonaNombre: zona.nombre,
+        estaciones: resultado.estaciones,
+        provinciasFallidas: resultado.provinciasFallidas,
+        mock: resultado.mock,
+        cargando: false,
+        error:
+          resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
+            ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+            : null,
+      });
+    } catch (error) {
+      actualizadoZona = null;
+      actualizarEstado({
+        cargando: false,
+        error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
+      });
+    }
+  }
+
+  const datosZonaEl = document.getElementById('datos-zona');
+
+  if (datosZonaEl) {
+    // Hidratación embebida: el HTML ya trae la zona fusionada, así que el
+    // estado se rellena con esto en vez de pedirlo por red.
+    const datosZona = JSON.parse(datosZonaEl.textContent ?? 'null') as {
+      estaciones: EstacionZona[];
+      mock: boolean;
+      actualizado: string | null;
+    } | null;
+    if (!datosZona) throw new Error('El bloque de datos de la zona embebido en el HTML está vacío.');
+
+    actualizadoZona = datosZona.actualizado;
+    actualizarEstado({
+      zonaId: zonaDeLaPagina,
+      zonaNombre: nombreDeLaPagina,
+      estaciones: datosZona.estaciones,
+      provinciasFallidas: [],
+      mock: datosZona.mock,
+      cargando: false,
+      error: null,
+    });
+    montarSelectorZona();
+  } else {
+    // Sin hidratación embebida: hay que pedirla por red, con el mismo
+    // temporizador de rescate que cualquier estado de carga (regla dura 1
+    // de CLAUDE.md).
+    actualizarEstado({ zonaId: zonaDeLaPagina, zonaNombre: nombreDeLaPagina });
+    cargarZonaPorFetch();
+    setTimeout(() => {
+      if (obtenerEstado().cargando) {
+        actualizarEstado({
+          cargando: false,
+          error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+        });
+      }
+    }, 12000);
+  }
+
+  suscribir((estado) => {
+    renderAvisos(estado);
+    // El selector de controles cambia zonaId en memoria (está pensado para
+    // src/pages/index.astro, que sí recarga en sitio). Aquí cada página es
+    // de una sola zona: si zonaId se aparta de la de esta URL, navegamos a
+    // la página estática de la zona nueva —también desde una página de
+    // municipio, que "asciende" a la zona/provincia recién elegida— en vez
+    // de mostrar datos que no corresponden al <title> ni a la <meta
+    // description> ya servidos.
+    if (estado.zonaId !== zonaDeLaPagina) {
+      location.href = `/${estado.zonaId}/`;
+    }
+  });
+  renderAvisos(obtenerEstado());
+
+  montarLista(contenedorLista);
+  montarTotem(contenedorTotem);
+
+  // RF-37: al encontrar la ubicación se cambia zonaId a la provincia más
+  // cercana. Aquí eso dispara la navegación de arriba, a la página estática
+  // de esa provincia.
+  function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
+    if (!indice) return;
+    const provincia = provinciaMasCercana(indice, posicion);
+    actualizarEstado({ zonaId: `p-${provincia.id}` });
+  }
+
+  // import() dinámico para que MapLibre entre en su propio chunk, aparte
+  // del bundle inicial (RNF-11), y para que un fallo de red al pedir ese
+  // chunk no rompa el resto de la página (regla dura 2 de CLAUDE.md).
+  import('./Mapa.ts')
+    .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
+    .catch(() => {
+      contenedorMapa.innerHTML = '';
+      contenedorMapa.removeAttribute('style');
+      const aviso = document.createElement('p');
+      aviso.textContent = 'El mapa no se ha podido cargar. La lista y la ficha funcionan igual.';
+      contenedorMapa.append(aviso);
+    });
+</script>

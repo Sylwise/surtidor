@@ -11,3 +11,4 @@ dist/
 # cambia cada dos horas. Ejecuta uno de los dos comandos antes de `npm run dev`.
 public/data/indice.json
 public/data/provincias/*.json
+public/_redirects

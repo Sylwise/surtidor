@@ -109,16 +109,22 @@ surtidor/
 │   └── lib/
 │       ├── miteco.ts          # cliente de la API y esquemas zod
 │       ├── normalizar.ts      # String con coma → number | null
-│       └── horario.ts         # intérprete del campo Horario
+│       ├── horario.ts         # intérprete del campo Horario
+│       ├── municipios.ts      # cruza estaciones reales con Listados/Municipios
+│       ├── slug.ts            # nombre del catálogo → tramo de URL, sin colisiones
+│       └── redirecciones.ts   # public/_redirects: municipio sin página → su provincia
 ├── src/
 │   ├── pages/
-│   │   ├── index.astro                # redirige a la última zona o la elige
-│   │   └── [zona]/index.astro         # una página por zona, para SEO
+│   │   ├── index.astro                        # redirige a la última zona o la elige
+│   │   ├── [zona]/index.astro                 # una página por zona, para SEO
+│   │   ├── [provincia]/[municipio]/index.astro # una página por municipio (H10)
+│   │   └── sitemap.xml.ts                     # RF-64, regenerado en cada build
 │   ├── componentes/
-│   │   ├── Mapa.ts            # isla: MapLibre y marcadores
-│   │   ├── Totem.ts           # ficha de la estación seleccionada
-│   │   ├── Lista.ts           # lista ordenada
-│   │   └── Controles.ts       # combustible, filtro, provincia, depósito
+│   │   ├── AppInteractiva.astro # cascarón interactivo, compartido por zona y municipio
+│   │   ├── Mapa.ts             # isla: MapLibre y marcadores
+│   │   ├── Totem.ts            # ficha de la estación seleccionada
+│   │   ├── Lista.ts            # lista ordenada
+│   │   └── Controles.ts        # combustible, filtro, provincia, depósito
 │   ├── logica/
 │   │   ├── estado.ts          # estado de la aplicación, sin librería
 │   │   ├── zona.ts            # carga en paralelo y fusión de provincias
@@ -127,8 +133,9 @@ surtidor/
 │   └── estilos/
 │       └── tokens.css         # única fuente de verdad del diseño
 └── public/
+    ├── _redirects              # generado en cada npm run data:fetch (H10)
     └── data/
-        ├── indice.json        # provincias, nº de estaciones, marca de tiempo
+        ├── indice.json         # provincias, zonas, municipios, marca de tiempo
         └── provincias/
             └── 01.json … 52.json
 ```
@@ -171,9 +178,10 @@ Reglas del contrato, y son estrictas:
   ministerio. El acoplamiento a la API se queda encerrado en `scripts/lib/`.
 - Si una estación no tiene coordenadas válidas, se descarta y se cuenta en el log.
 
-`public/data/indice.json` lleva dos catálogos: el de provincias (identificador,
-nombre, número de estaciones, precio mínimo por combustible) y el de **zonas**,
-para poder pintar el selector sin descargar nada más.
+`public/data/indice.json` lleva tres catálogos: el de provincias (identificador,
+nombre, número de estaciones, precio mínimo por combustible), el de **zonas**,
+para poder pintar el selector sin descargar nada más, y el de **municipios**
+(H10, para las páginas de `src/pages/[provincia]/[municipio]/`).
 
 ```json
 {
@@ -189,12 +197,15 @@ para poder pintar el selector sin descargar nada más.
       "tipo": "ccaa", "provincias": ["01","48","20"] },
     { "id": "ccaa-01", "nombre": "ANDALUCIA",
       "tipo": "ccaa", "provincias": ["04","11","14","18","21","23","29","41"] }
+  ],
+  "municipios": [
+    { "nombre": "Vitoria-Gasteiz", "provinciaId": "01", "estaciones": 39 }
   ]
 }
 ```
 
-**Los dos tipos se generan solos**, desde los catálogos del ministerio: 52
-provincias y 19 comunidades, 71 zonas en total.
+**Los dos primeros catálogos se generan solos**, desde los catálogos del
+ministerio: 52 provincias y 19 comunidades, 71 zonas en total.
 
 No hay zonas definidas a mano ni agrupaciones calculadas, y no las va a haber: cualquier lista de
 agrupaciones escogidas es una sucesión de juicios editoriales que hay que
@@ -207,6 +218,45 @@ denominaciones.
 
 Ver [ADR-0005](adr/0005-provincia-unidad-y-zonas.md) para el porqué de separar
 almacenamiento y consulta.
+
+### Municipios (H10) y el precio de llevarlos en `indice.json`
+
+El catálogo de `municipios` sale de cruzar `Listados/Municipios` del
+ministerio con las estaciones reales de cada provincia
+(`scripts/lib/municipios.ts`): lleva **todos** los municipios con al menos
+una estación visible, no solo los que tienen página propia. Quien decide si
+un municipio se genera es cada consumidor —`getStaticPaths` de
+`src/pages/[provincia]/[municipio]/index.astro`, `src/pages/sitemap.xml.ts`—
+comparando `estaciones` contra `MINIMO_ESTACIONES_MUNICIPIO` (RF-60,
+`scripts/lib/tipos.ts`), no el propio catálogo.
+
+Los slugs de URL (`/{provincia}/{municipio}/`) no se guardan aquí: se
+calculan siempre con `scripts/lib/slug.ts` a partir de `nombre`, en el mismo
+sitio donde hacen falta. `scripts/descargar-datos.ts` comprueba antes de
+escribir nada que dos provincias, o dos municipios de la misma provincia, no
+generen el mismo slug (`comprobarSlugsUnicos`): una colisión aborta la
+generación entera, igual que un fallo de red (RF-05).
+
+**Coste a vigilar:** los ~3.000 municipios con al menos una estación añaden
+del orden de 25-30 KB comprimidos a `indice.json`, que el navegador descarga
+en **todas** las páginas para pintar el selector de zona (RF-32), aunque el
+selector no use el catálogo de municipios para nada. Es una lectura
+deliberada de la instrucción que pidió este catálogo "en indice.json": si
+esa cifra se convierte en un problema real (medir con datos de producción,
+no aquí), la salida es partirlo a un fichero aparte que solo lean los
+`getStaticPaths` en el build, nunca el navegador.
+
+### `public/_redirects` (RF-60)
+
+Un municipio por debajo de `MINIMO_ESTACIONES_MUNICIPIO` no tiene página
+propia. `scripts/lib/redirecciones.ts` escribe una línea comodín por
+provincia —no una por municipio, que serían miles y superarían el límite de
+reglas de Cloudflare Pages—: `/{provincia}/*  /p-{id}/  301`. Funciona
+porque Cloudflare Pages sirve un fichero estático real antes de mirar
+`_redirects` cuando los dos coinciden en la misma ruta: las páginas de
+municipio que sí existen nunca llegan a esta regla. **Sin verificar contra
+un despliegue real** — es lo primero que comprobar después del primer
+`wrangler pages deploy`.
 
 ## Despliegue
 

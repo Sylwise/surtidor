@@ -1,0 +1,270 @@
+---
+// H10 (segunda mitad) · Una página estática por municipio, el activo de
+// captación real del proyecto (ADR-0007): "gasolineras baratas en
+// Vitoria-Gasteiz", no "gasolina barata" a nivel nacional.
+//
+// URL anidada /{provincia}/{municipio}/, nunca plana: hay nombres de
+// municipio repetidos en varias provincias (RF-76, docs/adr/0007) y un slug
+// plano colisionaría en silencio. Solo se genera para los municipios con al
+// menos MINIMO_ESTACIONES_MUNICIPIO estaciones visibles (RF-60); por debajo,
+// public/_redirects (scripts/lib/redirecciones.ts) manda a la página de la
+// provincia.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+// `process.cwd()`, no `import.meta.dirname`: en `astro dev` este fichero se
+// ejecuta desde su ruta real en src/pages/, pero `astro build` empaqueta el
+// getStaticPaths de cada ruta dinámica en dist/.prerender/chunks/ antes de
+// ejecutarlo, así que import.meta.dirname deja de apuntar a src/pages/ y
+// cualquier ../../../../ contado a mano se rompe (y de forma silenciosa:
+// funciona en dev, revienta solo en build). npm run build/dev siempre se
+// invoca desde la raíz del repo, así que process.cwd() sí es estable en los
+// dos modos.
+import '../../../estilos/tokens.css';
+import '../../../estilos/interfaz.css';
+import AppInteractiva from '../../../componentes/AppInteractiva.astro';
+import { fusionarProvincias, type EstacionZona } from '../../../logica/zona.ts';
+import { estacionesVisibles } from '../../../logica/visibilidad.ts';
+import { crearEscala } from '../../../logica/escala.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../../logica/combustibles.ts';
+import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../../logica/formato.ts';
+import { generarSlug } from '../../../../scripts/lib/slug.ts';
+import {
+  MINIMO_ESTACIONES_MUNICIPIO,
+  type ClavePrecio,
+  type DatosProvincia,
+  type Indice,
+  type ResumenMunicipio,
+  type ResumenProvincia,
+} from '../../../../scripts/lib/tipos.ts';
+
+const DIRECTORIO_DATOS = join(process.cwd(), 'public', 'data');
+
+export async function getStaticPaths() {
+  // Ruta calculada de nuevo aquí dentro, sin usar la constante de arriba:
+  // Astro extrae `getStaticPaths` a su propio módulo para el build y no
+  // arrastra con él las constantes del resto del frontmatter.
+  const rutaIndice = join(process.cwd(), 'public', 'data', 'indice.json');
+  const indice = JSON.parse(readFileSync(rutaIndice, 'utf-8')) as Indice;
+
+  const provinciasPorId = new Map(indice.provincias.map((p) => [p.id, p]));
+  const municipiosConPagina = indice.municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO);
+
+  return municipiosConPagina.map((municipio) => {
+    const provincia = provinciasPorId.get(municipio.provinciaId);
+    if (!provincia) {
+      throw new Error(`El municipio "${municipio.nombre}" declara la provincia ${municipio.provinciaId}, que no está en indice.provincias.`);
+    }
+
+    const vecinos = municipiosConPagina
+      .filter((m) => m.provinciaId === municipio.provinciaId && m.nombre !== municipio.nombre)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+    return {
+      params: { provincia: generarSlug(provincia.nombre), municipio: generarSlug(municipio.nombre) },
+      props: { municipio, provincia, vecinos },
+    };
+  });
+}
+
+interface Props {
+  municipio: ResumenMunicipio;
+  provincia: ResumenProvincia;
+  vecinos: ResumenMunicipio[];
+}
+
+const { municipio, provincia, vecinos } = Astro.props;
+
+const nombreMunicipio = cajaDeTitulo(municipio.nombre);
+const provinciaSlug = generarSlug(provincia.nombre);
+const municipioSlug = generarSlug(municipio.nombre);
+const hrefProvincia = `/p-${provincia.id}/`;
+const canonical = new URL(`/${provinciaSlug}/${municipioSlug}/`, Astro.site);
+
+// RF-61: los precios en el HTML servido. Se lee del disco, en el build, el
+// JSON de la provincia entera —no hay un JSON por municipio— y se filtra
+// aquí a las estaciones de este municipio. La misma lectura alimenta
+// también la escala de color (más abajo) con TODA la provincia, no solo con
+// las pocas estaciones del municipio: RF-12 pide el percentil "dentro de la
+// zona mostrada", y la zona que muestra el widget interactivo de esta
+// página es la provincia (ver el comentario de AppInteractiva.astro).
+const rutaProvincia = join(DIRECTORIO_DATOS, 'provincias', `${provincia.id}.json`);
+const datosProvincia = JSON.parse(readFileSync(rutaProvincia, 'utf-8')) as DatosProvincia;
+const { estaciones: estacionesProvincia, actualizado } = fusionarProvincias([datosProvincia]);
+const visiblesProvincia = estacionesVisibles(estacionesProvincia);
+
+// Tabla COMPLETA (a diferencia de la de zona, acotada a 30): en un municipio
+// son pocas y son el contenido entero de la página (docs/06-roadmap.md#H10).
+const filasMunicipio: EstacionZona[] = visiblesProvincia
+  .filter((e) => e.municipio.trim() === municipio.nombre.trim())
+  .sort((a, b) => {
+    const pa = a.precios.gasolina95e5;
+    const pb = b.precios.gasolina95e5;
+    if (pa === null && pb === null) return 0;
+    if (pa === null) return 1;
+    if (pb === null) return -1;
+    return pa - pb;
+  });
+
+const escalasPorCombustible = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((clave) => [
+    clave,
+    crearEscala(visiblesProvincia.map((e) => e.precios[clave]).filter((p): p is number => p !== null)),
+  ])
+) as Record<ClavePrecio, ReturnType<typeof crearEscala>>;
+
+function bandaPrecio(clave: ClavePrecio, precio: number): string {
+  const escala = escalasPorCombustible[clave];
+  return escala.esMasBarata(precio) ? 'barata' : escala.banda(precio);
+}
+
+function precioMinimo(clave: ClavePrecio): number | null {
+  let minimo: number | null = null;
+  for (const estacion of filasMunicipio) {
+    const precio = estacion.precios[clave];
+    if (precio !== null && (minimo === null || precio < minimo)) minimo = precio;
+  }
+  return minimo;
+}
+
+// RF-62: título y descripción con el precio mínimo REAL, no un texto fijo.
+// Gasolina 95 es el combustible por defecto de toda la aplicación (ver
+// COMBUSTIBLE_POR_DEFECTO en src/logica/estado.ts) y el que usan también los
+// títulos de ejemplo de docs/06-roadmap.md; si ninguna estación del
+// municipio la vende (raro, pero RF-23 obliga a contemplarlo), se cae al
+// primer combustible de ORDEN_COMBUSTIBLES que sí tenga precio.
+const claveTitulo = ORDEN_COMBUSTIBLES.find((clave) => precioMinimo(clave) !== null) ?? null;
+const precioTitulo = claveTitulo ? precioMinimo(claveTitulo) : null;
+
+const titulo =
+  precioTitulo !== null && claveTitulo
+    ? `${ETIQUETA[claveTitulo]} desde ${formatearPrecio(precioTitulo)} €/L en ${nombreMunicipio} · Surtidor`
+    : `Precios de gasolina y diésel en ${nombreMunicipio} · Surtidor`;
+
+const fraseActualizado = actualizado ? `, actualizados el ${formatearFechaHora(actualizado)}` : '';
+const fraseMinimo =
+  precioTitulo !== null && claveTitulo
+    ? ` ${ETIQUETA[claveTitulo]} desde ${formatearPrecio(precioTitulo)} €/L.`
+    : '';
+const descripcion =
+  `Precios de gasolina y diésel en ${nombreMunicipio} (${provincia.nombre})${fraseActualizado}, ` +
+  `con ${filasMunicipio.length} gasolinera${filasMunicipio.length === 1 ? '' : 's'}.${fraseMinimo} ` +
+  'Sin anuncios ni registro.';
+
+// RF-63: ItemList de GasStation con su Offer. Solo se declara lo que
+// también está visible en la tabla de abajo (rótulo, dirección, municipio,
+// los precios que sí vende): nada de coordenadas, código postal u horario,
+// que no aparecen como texto en esta página.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `Precios de gasolineras en ${nombreMunicipio}`,
+  numberOfItems: filasMunicipio.length,
+  itemListElement: filasMunicipio.map((estacion, indice) => ({
+    '@type': 'ListItem',
+    position: indice + 1,
+    item: {
+      '@type': 'GasStation',
+      name: estacion.rotulo,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: cajaDeTitulo(estacion.direccion),
+        addressLocality: cajaDeTitulo(estacion.municipio),
+        addressCountry: 'ES',
+      },
+      makesOffer: ORDEN_COMBUSTIBLES.filter((clave) => estacion.precios[clave] !== null).map((clave) => ({
+        '@type': 'Offer',
+        name: ETIQUETA[clave],
+        price: String(estacion.precios[clave]),
+        priceCurrency: 'EUR',
+      })),
+    },
+  })),
+};
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#16323B" />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <AppInteractiva
+      zonaId={`p-${provincia.id}`}
+      zonaNombre={provincia.nombre}
+      hidratacionEmbebida={false}
+    />
+
+    <section class="tabla-zona" aria-label={`Gasolineras de ${nombreMunicipio}`}>
+      <nav class="migas" aria-label="Ruta">
+        <a href="/">Surtidor</a> › <a href={hrefProvincia}>{provincia.nombre}</a> › <span aria-current="page">{nombreMunicipio}</span>
+      </nav>
+
+      <h1 class="tabla-zona__titulo">Gasolineras en {nombreMunicipio}</h1>
+      {actualizado && (
+        <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
+      )}
+      <div class="tabla-zona__scroll">
+        <table class="tabla-zona__tabla">
+          <thead>
+            <tr>
+              <th scope="col">Gasolinera</th>
+              <th scope="col">Dirección</th>
+              <th scope="col">Municipio</th>
+              {ORDEN_COMBUSTIBLES.map((clave) => <th scope="col">{ETIQUETA[clave]}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {filasMunicipio.map((estacion) => (
+              <tr>
+                <th scope="row">{estacion.rotulo}</th>
+                <td>{cajaDeTitulo(estacion.direccion)}</td>
+                <td>{cajaDeTitulo(estacion.municipio)}</td>
+                {ORDEN_COMBUSTIBLES.map((clave) => {
+                  const precio = estacion.precios[clave];
+                  return (
+                    <td>
+                      {precio === null ? (
+                        <span class="tabla-zona__ausente">no vende</span>
+                      ) : (
+                        <span class={`precio precio--${bandaPrecio(clave, precio)}`}>
+                          {formatearPrecio(precio)}
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="tabla-zona__enlace-provincia">
+        Ver todas las gasolineras de <a href={hrefProvincia}>{provincia.nombre}</a>.
+      </p>
+
+      {vecinos.length > 0 && (
+        <>
+          <h2 class="tabla-zona__titulo tabla-zona__titulo--municipios">
+            Otros municipios de {provincia.nombre}
+          </h2>
+          <ul class="lista-vecinos">
+            {vecinos.map((vecino) => (
+              <li>
+                <a href={`/${provinciaSlug}/${generarSlug(vecino.nombre)}/`}>{cajaDeTitulo(vecino.nombre)}</a>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  </body>
+</html>

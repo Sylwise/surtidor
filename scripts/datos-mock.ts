@@ -6,8 +6,11 @@
 // (docs/04-fuente-datos.md), precisamente para no depender de red.
 
 import { join } from 'node:path';
-import { escribirJsonAtomico } from './lib/escritura.ts';
-import type { ClavePrecio, DatosProvincia, Estacion, Indice, Precios, ResumenProvincia, Zona } from './lib/tipos.ts';
+import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
+import { construirMunicipios } from './lib/municipios.ts';
+import { generarRedirecciones } from './lib/redirecciones.ts';
+import type { MunicipioCatalogo } from './lib/miteco.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type Precios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 interface ProvinciaEstatica {
   id: string;
@@ -19,7 +22,8 @@ interface ProvinciaEstatica {
   lon: number;
 }
 
-const DIRECTORIO_DATOS = join(import.meta.dirname, '..', 'public', 'data');
+const DIRECTORIO_PUBLIC = join(import.meta.dirname, '..', 'public');
+const DIRECTORIO_DATOS = join(DIRECTORIO_PUBLIC, 'data');
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
@@ -110,10 +114,34 @@ function precioOAusente(base: number, probabilidadAusente: number): number | nul
   return aleatorio() < probabilidadAusente ? null : precioAleatorio(base);
 }
 
+/** Tres municipios de mentira por provincia, para poder probar en local las
+ *  páginas de municipio (H10, segunda mitad) sin red: uno que casi siempre
+ *  llega al mínimo de RF-60 (peso 0,6) y dos que casi nunca llegan, para
+ *  ejercitar también la redirección de public/_redirects. Nombres
+ *  deliberadamente genéricos —no imitan ningún topónimo real— porque son
+ *  datos de prueba, igual que "Calle de prueba" más abajo.
+ */
+const MUNICIPIOS_MOCK_POR_PROVINCIA = 3;
+const PESOS_MUNICIPIO_MOCK = [0.6, 0.85, 1] as const; // acumulados: 60 %, 25 %, 15 %
+
+function municipiosMock(provincia: ProvinciaEstatica): string[] {
+  return Array.from(
+    { length: MUNICIPIOS_MOCK_POR_PROVINCIA },
+    (_, i) => `Localidad de prueba ${provincia.id}-${i + 1}`,
+  );
+}
+
+function elegirMunicipioMock(nombres: string[]): string {
+  const r = aleatorio();
+  const indice = PESOS_MUNICIPIO_MOCK.findIndex((acumulado) => r < acumulado);
+  return nombres[indice === -1 ? nombres.length - 1 : indice] as string;
+}
+
 function generarEstaciones(provincia: ProvinciaEstatica): Estacion[] {
   // Canarias parte de precios más bajos, régimen fiscal distinto (ADR-0003).
   const base = provincia.idCcaa === '05' ? 1.28 : 1.45;
-  const numero = 3 + Math.floor(aleatorio() * 6); // entre 3 y 8 estaciones
+  const numero = 6 + Math.floor(aleatorio() * 9); // entre 6 y 14 estaciones
+  const municipios = municipiosMock(provincia);
 
   return Array.from({ length: numero }, (_, i) => {
     const precios: Precios = {
@@ -126,7 +154,7 @@ function generarEstaciones(provincia: ProvinciaEstatica): Estacion[] {
       id: `mock-${provincia.id}-${i}`,
       rotulo: elegir(ROTULOS),
       direccion: `Calle de prueba ${i + 1}`,
-      municipio: provincia.nombre,
+      municipio: elegirMunicipioMock(municipios),
       cp: `${provincia.id}000`,
       lat: provincia.lat + (aleatorio() - 0.5) * 0.3,
       lon: provincia.lon + (aleatorio() - 0.5) * 0.3,
@@ -188,11 +216,26 @@ async function main(): Promise<void> {
     provincias: provincias.sort(),
   }));
 
+  // Mismo catálogo (nombre + provincia) que Listados/Municipios aportaría en
+  // real, para que construirMunicipios cruce igual que en descargar-datos.ts.
+  const catalogoMunicipiosMock: MunicipioCatalogo[] = PROVINCIAS.flatMap((provincia) =>
+    municipiosMock(provincia).map((nombre, i) => ({
+      IDMunicipio: `${provincia.id}-${i + 1}`,
+      IDProvincia: provincia.id,
+      IDCCAA: provincia.idCcaa,
+      Municipio: nombre,
+      Provincia: provincia.nombre,
+      CCAA: provincia.ccaa,
+    })),
+  );
+  const { municipios } = construirMunicipios(datosPorProvincia, catalogoMunicipiosMock);
+
   const indice: Indice = {
     actualizado,
     mock: true,
     provincias: resumenProvincias,
     zonas: [...zonasProvincia, ...zonasCcaa],
+    municipios,
   };
 
   await Promise.all(
@@ -201,8 +244,13 @@ async function main(): Promise<void> {
     ),
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
+  await escribirTextoAtomico(join(DIRECTORIO_PUBLIC, '_redirects'), generarRedirecciones(resumenProvincias));
 
-  console.log(`Datos de prueba generados: ${datosPorProvincia.length} provincias.`);
+  const municipiosConPagina = municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO).length;
+  console.log(
+    `Datos de prueba generados: ${datosPorProvincia.length} provincias, ${municipios.length} municipios ` +
+      `de mentira (${municipiosConPagina} con página propia).`,
+  );
 }
 
 main().catch((error: unknown) => {
