@@ -275,6 +275,28 @@ export function construirTarjetas(): Tarjeta[] {
 
   const tarjetas: Tarjeta[] = [];
 
+  // Portada (/): una tarjeta nacional, agregando TODAS las provincias. No es
+  // una agrupación territorial nueva que decidir (RF-77 prohíbe eso): es el
+  // agregado trivial de "todas", igual de mecánico que una comunidad
+  // autónoma. Hace falta porque la portada es la página que más se comparte
+  // y es la única sin zona fija en el build — src/pages/index.astro resuelve
+  // su zona en el cliente (RF-49), así que no hay ninguna de las tarjetas de
+  // abajo que le sirva.
+  {
+    const datosNacional = indice.provincias.map((p) => leerProvincia(p.id));
+    const { estaciones, actualizado } = fusionarProvincias(datosNacional);
+    const visibles = estacionesVisibles(estaciones);
+    const barata = estacionMasBarata(visibles);
+    tarjetas.push({
+      rutaSalida: join(DIR_SALIDA, 'espana.png'),
+      antetitulo: 'España',
+      precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
+      precioDiesel: precioMinimo(visibles, 'gasoleoA'),
+      estacionMasBarata: barata?.rotulo ?? null,
+      actualizado,
+    });
+  }
+
   // Una por zona (provincia o comunidad autónoma): RF-66 ampliado, ver
   // docs/06-roadmap.md#H11 y el encargo del hito. Misma fusión que usa
   // src/pages/[zona]/index.astro para no divergir sobre qué es "la zona".
