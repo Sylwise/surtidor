@@ -44,6 +44,17 @@ el criterio de ADR-0003.
 Lo que se guarda en `localStorage` para la siguiente visita (ADR-0008) es
 siempre una provincia, la dominante. Nunca el estado personalizado.
 
+**3 bis. El encuadre automático solo lo dispara una elección explícita.** El
+`fitBounds` de RF-19 se ejecuta al elegir zona en el selector, en la carga
+inicial y al llegar con `?zonas=`. Un cambio del conjunto cargado provocado
+por mover o alejar el mapa **no toca la cámara jamás**.
+
+Encuadrar sobre el conjunto cargado cierra un bucle: la vista decide qué se
+carga, y si lo cargado reencuadra la vista, cada carga provoca la siguiente.
+Con provincias pequeñas y rodeadas —Álava es el caso peor— el mapa se aleja
+solo hasta que la guarda de zoom lo apaga todo en silencio. Verificado en la
+rama del H12 antes de corregirlo.
+
 **4. En las páginas de municipio no actúa.** Su identidad es estrecha a
 propósito (ADR-0007) y son el activo de captación. El mapa manda solo en las
 páginas de zona y en la raíz.

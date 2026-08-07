@@ -48,10 +48,12 @@ const ZONA_EUSKADI: Zona = {
   provincias: ['01', '48', '20'],
 };
 
+const RECTANGULO_VACIO = { minLat: 0, maxLat: 0, minLon: 0, maxLon: 0 };
+
 const CATALOGO_PROVINCIAS: ResumenProvincia[] = [
-  { id: '01', nombre: 'ARABA/ALAVA', estaciones: 1, minimos: {}, centro: { lat: 42.85, lon: -2.67 } },
-  { id: '48', nombre: 'BIZKAIA', estaciones: 1, minimos: {}, centro: { lat: 43.263, lon: -2.935 } },
-  { id: '20', nombre: 'GIPUZKOA', estaciones: 1, minimos: {}, centro: { lat: 43.3183, lon: -1.9812 } },
+  { id: '01', nombre: 'ARABA/ALAVA', estaciones: 1, minimos: {}, centro: { lat: 42.85, lon: -2.67 }, rectangulo: RECTANGULO_VACIO, pesoComprimido: 0 },
+  { id: '48', nombre: 'BIZKAIA', estaciones: 1, minimos: {}, centro: { lat: 43.263, lon: -2.935 }, rectangulo: RECTANGULO_VACIO, pesoComprimido: 0 },
+  { id: '20', nombre: 'GIPUZKOA', estaciones: 1, minimos: {}, centro: { lat: 43.3183, lon: -1.9812 }, rectangulo: RECTANGULO_VACIO, pesoComprimido: 0 },
 ];
 
 const fetchOriginal = globalThis.fetch;

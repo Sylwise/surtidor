@@ -34,6 +34,11 @@ interface Props {
   estaciones?: EstacionZona[];
   mock?: boolean;
   actualizado?: string | null;
+  /** ADR-0014 (H12), "el mapa manda": arrastrar o alejar el mapa carga y
+   *  suelta provincias solo. `true` desde src/pages/[zona]/index.astro;
+   *  ausente (`false`) desde la página de municipio — ADR-0014 punto 4, ahí
+   *  el mapa no manda nunca. */
+  mapaManda?: boolean;
 }
 
 const {
@@ -43,6 +48,7 @@ const {
   estaciones = [],
   mock = false,
   actualizado = null,
+  mapaManda = false,
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
@@ -50,7 +56,7 @@ const datosHidratacion = hidratacionEmbebida
   : '';
 ---
 
-<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre}>
+<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-mapa-manda={mapaManda ? '1' : ''}>
   <header class="cabecera">
     <span class="marca">
       <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
@@ -103,6 +109,7 @@ const datosHidratacion = hidratacionEmbebida
   import { montarHoja } from './Hoja.ts';
   import { datosDesactualizados } from '../logica/frescura.ts';
   import { formatearFechaHora } from '../logica/formato.ts';
+  import { crearControladorMapaManda } from '../logica/controladorMapaManda.ts';
   import type { Indice } from '../../scripts/lib/tipos.ts';
 
   function elemento(id: string): HTMLElement {
@@ -143,6 +150,20 @@ const datosHidratacion = hidratacionEmbebida
   const zonaDeLaPagina = contenedorApp.dataset.zonaId;
   const nombreDeLaPagina = contenedorApp.dataset.zonaNombre;
   if (!zonaDeLaPagina || !nombreDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
+  // ADR-0014 (H12): solo activo en páginas de zona, nunca en municipio (ver
+  // el comentario de `mapaManda` en el frontmatter de este componente).
+  const mapaManda = contenedorApp.dataset.mapaManda === '1';
+
+  // true mientras el último cambio de zonaId vino de arrastrar el mapa, no
+  // de un click en el selector ni de "mi ubicación". El suscriptor de más
+  // abajo lo consume para no navegar: la dirección la cambia el controlador
+  // de "el mapa manda" con `history.replaceState`, sin recargar (ADR-0014).
+  let cambioPorMapa = false;
+  // Igual que arriba, pero para saber a qué función delegar el botón
+  // "Reintentar" de los avisos: al último origen de carga, no siempre a
+  // cargarZonaPorFetch (que recargaría la zona ESTÁTICA de esta página,
+  // abandonando lo que el mapa hubiera cargado).
+  let ultimaCargaFueMapa = false;
 
   function crearAviso(
     texto: string,
@@ -156,7 +177,7 @@ const datosHidratacion = hidratacionEmbebida
       const boton = document.createElement('button');
       boton.type = 'button';
       boton.textContent = 'Reintentar';
-      boton.addEventListener('click', () => cargarZonaPorFetch());
+      boton.addEventListener('click', () => reintentar());
       div.append(boton);
     }
     return div;
@@ -192,7 +213,7 @@ const datosHidratacion = hidratacionEmbebida
   }
 
   let indice: Indice | null = null;
-  let controlesMontados = false;
+  let controles: { abrirSelector: () => void; mostrarPersonalizado: (activo: boolean) => void } | null = null;
 
   // Índice compartido por dos consumidores: el selector de zona (RF-32,
   // siempre por red, el catálogo de las 71 zonas nunca va embebido) y,
@@ -203,12 +224,34 @@ const datosHidratacion = hidratacionEmbebida
     if (!indice) {
       indice = await cargarIndice();
     }
-    if (!controlesMontados) {
-      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
-      controlesMontados = true;
+    if (!controles) {
+      controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
       actualizarAlturaCabecera();
     }
     return indice;
+  }
+
+  // ADR-0014 (H12): "el mapa manda". Se crea siempre (es barato, solo
+  // cierres) pero su `alMoverVista` solo se conecta al mapa más abajo cuando
+  // `mapaManda` es `true` — en municipio, nada de este objeto llega a
+  // invocarse nunca.
+  const controladorMapaManda = crearControladorMapaManda({
+    obtenerIndice: () => indice,
+    establecerPersonalizado: (activo) => controles?.mostrarPersonalizado(activo),
+    aplicarEstadoDesdeMapa: (cambios, origen) => {
+      cambioPorMapa = true;
+      ultimaCargaFueMapa = true;
+      actualizarEstado(cambios, origen);
+    },
+    reemplazarDireccion: (href) => history.replaceState(null, '', href),
+  });
+
+  function reintentar(): void {
+    if (ultimaCargaFueMapa) {
+      controladorMapaManda.reintentar();
+    } else {
+      cargarZonaPorFetch();
+    }
   }
 
   // Monta solo el selector de zona, sin tocar los datos de la zona activa
@@ -237,7 +280,8 @@ const datosHidratacion = hidratacionEmbebida
   // para el botón de "Reintentar" de los avisos. RF-36: un fallo de
   // provincia no tumba las demás.
   async function cargarZonaPorFetch(): Promise<void> {
-    actualizarEstado({ cargando: true, error: null });
+    ultimaCargaFueMapa = false;
+    actualizarEstado({ cargando: true, error: null }, 'eleccion');
     try {
       const indiceActual = await obtenerIndiceYControles();
 
@@ -245,28 +289,37 @@ const datosHidratacion = hidratacionEmbebida
       // índice (los datos se regeneran cada dos horas), cae a la zona de
       // reserva (src/logica/zona.ts, no una elección editorial).
       const zona = indiceActual.zonas.find((z) => z.id === obtenerEstado().zonaId) ?? zonaDeReserva(indiceActual);
-      if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id });
+      if (zona.id !== obtenerEstado().zonaId) actualizarEstado({ zonaId: zona.id }, 'eleccion');
 
       const resultado = await cargarZona(zona, indiceActual.provincias);
       actualizadoZona = resultado.actualizado;
 
-      actualizarEstado({
-        zonaNombre: zona.nombre,
-        estaciones: resultado.estaciones,
-        provinciasFallidas: resultado.provinciasFallidas,
-        mock: resultado.mock,
-        cargando: false,
-        error:
-          resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
-            ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
-            : null,
-      });
+      // 'eleccion': esta es la propia zona declarada por la página (o su
+      // reserva), no un cambio provocado por mover el mapa — el fitBounds
+      // inicial (RF-19) tiene que dispararse aquí.
+      actualizarEstado(
+        {
+          zonaNombre: zona.nombre,
+          estaciones: resultado.estaciones,
+          provinciasFallidas: resultado.provinciasFallidas,
+          mock: resultado.mock,
+          cargando: false,
+          error:
+            resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
+              ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+              : null,
+        },
+        'eleccion',
+      );
     } catch (error) {
       actualizadoZona = null;
-      actualizarEstado({
-        cargando: false,
-        error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
-      });
+      actualizarEstado(
+        {
+          cargando: false,
+          error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
+        },
+        'eleccion',
+      );
     }
   }
 
@@ -283,28 +336,35 @@ const datosHidratacion = hidratacionEmbebida
     if (!datosZona) throw new Error('El bloque de datos de la zona embebido en el HTML está vacío.');
 
     actualizadoZona = datosZona.actualizado;
-    actualizarEstado({
-      zonaId: zonaDeLaPagina,
-      zonaNombre: nombreDeLaPagina,
-      estaciones: datosZona.estaciones,
-      provinciasFallidas: [],
-      mock: datosZona.mock,
-      cargando: false,
-      error: null,
-    });
+    // 'eleccion': la carga inicial de la página, dispara el fitBounds (RF-19).
+    actualizarEstado(
+      {
+        zonaId: zonaDeLaPagina,
+        zonaNombre: nombreDeLaPagina,
+        estaciones: datosZona.estaciones,
+        provinciasFallidas: [],
+        mock: datosZona.mock,
+        cargando: false,
+        error: null,
+      },
+      'eleccion',
+    );
     montarSelectorZona();
   } else {
     // Sin hidratación embebida: hay que pedirla por red, con el mismo
     // temporizador de rescate que cualquier estado de carga (regla dura 1
     // de CLAUDE.md).
-    actualizarEstado({ zonaId: zonaDeLaPagina, zonaNombre: nombreDeLaPagina });
+    actualizarEstado({ zonaId: zonaDeLaPagina, zonaNombre: nombreDeLaPagina }, 'eleccion');
     cargarZonaPorFetch();
     setTimeout(() => {
       if (obtenerEstado().cargando) {
-        actualizarEstado({
-          cargando: false,
-          error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
-        });
+        actualizarEstado(
+          {
+            cargando: false,
+            error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+          },
+          'eleccion',
+        );
       }
     }, 12000);
   }
@@ -318,7 +378,14 @@ const datosHidratacion = hidratacionEmbebida
     // municipio, que "asciende" a la zona/provincia recién elegida— en vez
     // de mostrar datos que no corresponden al <title> ni a la <meta
     // description> ya servidos.
-    if (estado.zonaId !== zonaDeLaPagina) {
+    //
+    // Excepción, ADR-0014 (H12): si el cambio de zonaId vino de arrastrar el
+    // mapa, no se navega — el controlador ya ha cambiado la dirección con
+    // `history.replaceState`, sin recargar, y el HTML servido se queda como
+    // está a propósito.
+    if (cambioPorMapa) {
+      cambioPorMapa = false;
+    } else if (estado.zonaId !== zonaDeLaPagina) {
       location.href = `/${estado.zonaId}/`;
     }
   });
@@ -333,14 +400,24 @@ const datosHidratacion = hidratacionEmbebida
   function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
     if (!indice) return;
     const provincia = provinciaMasCercana(indice, posicion);
-    actualizarEstado({ zonaId: `p-${provincia.id}` });
+    actualizarEstado({ zonaId: `p-${provincia.id}` }, 'eleccion');
   }
 
   // import() dinámico para que MapLibre entre en su propio chunk, aparte
   // del bundle inicial (RNF-11), y para que un fallo de red al pedir ese
   // chunk no rompa el resto de la página (regla dura 2 de CLAUDE.md).
+  //
+  // El tercer argumento (ADR-0014, H12) solo se pasa cuando `mapaManda` es
+  // `true`: en municipio, Mapa.ts nunca recibe la función y por tanto nunca
+  // calcula ni avisa nada de esto (ADR-0014 punto 4).
   import('./Mapa.ts')
-    .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
+    .then(({ montarMapa }) =>
+      montarMapa(
+        contenedorMapa,
+        alEncontrarUbicacion,
+        mapaManda ? (vista, zoom) => controladorMapaManda.alMoverVista(vista, zoom) : undefined,
+      )
+    )
     .catch(() => {
       contenedorMapa.innerHTML = '';
       contenedorMapa.removeAttribute('style');

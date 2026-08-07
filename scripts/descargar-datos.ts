@@ -7,6 +7,7 @@
 // error. Así el despliegue anterior se mantiene intacto ante cualquier fallo.
 
 import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import {
   obtenerEstacionesPorProvincia,
   obtenerProvincias,
@@ -18,7 +19,8 @@ import { normalizarEstaciones, type EstacionCruda } from './lib/normalizar.ts';
 import { escribirJsonAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
 import { comprobarSlugsUnicos } from './lib/slug.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
+import { calcularCentro, calcularRectangulo } from './lib/geo.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type Rectangulo, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
@@ -65,17 +67,21 @@ function calcularMinimos(datos: DatosProvincia): Partial<Record<ClavePrecio, num
   return minimos;
 }
 
-/** Centro de la provincia (RF-37): media de las coordenadas de sus
- *  estaciones, descartando (0, 0) — "Null Island", nunca un punto real de
- *  España — con el mismo criterio que Mapa.ts usa para no pintar marcadores
- *  ahí. No es un límite administrativo, solo una forma de encontrar la
- *  provincia más cercana a una posición. */
-function calcularCentro(datos: DatosProvincia): { lat: number; lon: number } {
-  const conCoordenadas = datos.estaciones.filter((e) => !(e.lat === 0 && e.lon === 0));
-  if (conCoordenadas.length === 0) return { lat: 0, lon: 0 };
-  const lat = conCoordenadas.reduce((suma, e) => suma + e.lat, 0) / conCoordenadas.length;
-  const lon = conCoordenadas.reduce((suma, e) => suma + e.lon, 0) / conCoordenadas.length;
-  return { lat, lon };
+/** Rectángulo envolvente vacío (área cero): caso imposible en la práctica
+ *  (provincia sin ninguna estación geolocalizada) pero `Rectangulo` no es
+ *  nulable en el contrato — un área cero simplemente nunca supera el umbral
+ *  de pantalla de ADR-0014, así que esa provincia no se carga nunca sola por
+ *  arrastrar el mapa (sigue siendo alcanzable por selector o por `?zonas=`). */
+function rectanguloVacio(centro: { lat: number; lon: number }): Rectangulo {
+  return { minLat: centro.lat, maxLat: centro.lat, minLon: centro.lon, maxLon: centro.lon };
+}
+
+/** Peso comprimido del fichero de la provincia, medido de verdad sobre el
+ *  JSON exacto que escribe escribirJsonAtomico (mismo `JSON.stringify(...,
+ *  null, 2) + '\n'`), no estimado. Vigila el listón de 300 KB de ADR-0005
+ *  cuando "el mapa manda" (ADR-0014) va sumando provincias. */
+function calcularPesoComprimido(datos: DatosProvincia): number {
+  return gzipSync(JSON.stringify(datos, null, 2) + '\n').length;
 }
 
 function construirZonasCcaa(
@@ -156,13 +162,18 @@ async function main(): Promise<void> {
   });
 
   // Todo ha ido bien: a partir de aquí se escribe. Ni una escritura antes.
-  const resumenProvincias: ResumenProvincia[] = datosPorProvincia.map((datos) => ({
-    id: datos.provincia.id,
-    nombre: datos.provincia.nombre,
-    estaciones: datos.estaciones.length,
-    minimos: calcularMinimos(datos),
-    centro: calcularCentro(datos),
-  }));
+  const resumenProvincias: ResumenProvincia[] = datosPorProvincia.map((datos) => {
+    const centro = calcularCentro(datos.estaciones);
+    return {
+      id: datos.provincia.id,
+      nombre: datos.provincia.nombre,
+      estaciones: datos.estaciones.length,
+      minimos: calcularMinimos(datos),
+      centro,
+      rectangulo: calcularRectangulo(datos.estaciones) ?? rectanguloVacio(centro),
+      pesoComprimido: calcularPesoComprimido(datos),
+    };
+  });
 
   const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({
     id: `p-${datos.provincia.id}`,

@@ -157,6 +157,46 @@ export function fusionarProvincias(datosPorProvincia: DatosProvincia[]): {
   return { estaciones, mock, actualizado };
 }
 
+export interface ResultadoCargaProvincias {
+  /** Datos de las provincias que sí han llegado, por id. */
+  cargadas: Map<string, DatosProvincia>;
+  provinciasFallidas: FalloProvincia[];
+}
+
+/**
+ * Carga en paralelo los ficheros de una lista de provincias sueltas.
+ *
+ * Fallo parcial (RF-36): si un fichero falla, el resto se carga igual y se
+ * informa de qué provincia falta. La usa `cargarZona` de aquí abajo, y
+ * también src/logica/controladorMapaManda.ts (H12, ADR-0014): "el mapa
+ * manda" no siempre pide provincias agrupadas en una `Zona` declarada, pide
+ * la lista suelta que le dice `calcularVista`, y necesita el resultado por
+ * id (no ya fusionado) para poder mantener en memoria las que no han
+ * cambiado entre un movimiento del mapa y el siguiente.
+ */
+export async function cargarProvincias(
+  ids: string[],
+  catalogoProvincias: ResumenProvincia[],
+): Promise<ResultadoCargaProvincias> {
+  const resultados = await Promise.allSettled(ids.map((id) => obtenerJson<DatosProvincia>(`/data/provincias/${id}.json`)));
+
+  const provinciasFallidas: FalloProvincia[] = [];
+  const cargadas = new Map<string, DatosProvincia>();
+
+  resultados.forEach((resultado, indice) => {
+    const id = ids[indice] as string;
+    if (resultado.status === 'fulfilled') {
+      cargadas.set(id, resultado.value);
+    } else {
+      const nombreCatalogo = catalogoProvincias.find((p) => p.id === id)?.nombre ?? id;
+      const motivo = resultado.reason instanceof Error ? resultado.reason.message : 'error desconocido';
+      provinciasFallidas.push({ id, nombre: nombreCatalogo, motivo });
+    }
+  });
+
+  return { cargadas, provinciasFallidas };
+}
+
 /**
  * Carga en paralelo los ficheros de provincia de una zona y los fusiona.
  *
@@ -165,23 +205,10 @@ export function fusionarProvincias(datosPorProvincia: DatosProvincia[]): {
  * sola provincia.
  */
 export async function cargarZona(zona: Zona, catalogoProvincias: ResumenProvincia[]): Promise<ResultadoZona> {
-  const resultados = await Promise.allSettled(
-    zona.provincias.map((id) => obtenerJson<DatosProvincia>(`/data/provincias/${id}.json`))
-  );
-
-  const provinciasFallidas: FalloProvincia[] = [];
-  const datosCargados: DatosProvincia[] = [];
-
-  resultados.forEach((resultado, indice) => {
-    const id = zona.provincias[indice];
-    if (resultado.status === 'fulfilled') {
-      datosCargados.push(resultado.value);
-    } else {
-      const nombreCatalogo = catalogoProvincias.find((p) => p.id === id)?.nombre ?? id;
-      const motivo = resultado.reason instanceof Error ? resultado.reason.message : 'error desconocido';
-      provinciasFallidas.push({ id, nombre: nombreCatalogo, motivo });
-    }
-  });
+  const { cargadas, provinciasFallidas } = await cargarProvincias(zona.provincias, catalogoProvincias);
+  const datosCargados = zona.provincias
+    .map((id) => cargadas.get(id))
+    .filter((datos): datos is DatosProvincia => datos !== undefined);
 
   const { estaciones, mock, actualizado } = fusionarProvincias(datosCargados);
   return { estaciones, provinciasFallidas, mock, actualizado };

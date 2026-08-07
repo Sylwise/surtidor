@@ -78,8 +78,17 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
       import { montarTotem } from '../componentes/Totem.ts';
       import { montarHoja } from '../componentes/Hoja.ts';
       import { datosDesactualizados } from '../logica/frescura.ts';
+      import { parsearZonasUrl, validarCodigosProvincia } from '../logica/zonasUrl.ts';
+      import { crearControladorMapaManda } from '../logica/controladorMapaManda.ts';
       import type { FalloProvincia } from '../logica/zona.ts';
       import type { Indice } from '../../scripts/lib/tipos.ts';
+
+      // ADR-0014 (H12): `?zonas=NN,NN` es la dirección del estado
+      // personalizado de "el mapa manda" — sin página propia (ver el ADR),
+      // así que solo puede reconstruirse aquí, en la raíz. Si la URL la
+      // trae, gana a la zona guardada en localStorage: se comprueba antes de
+      // decidir si esto sigue siendo la portada o hay que redirigir.
+      const zonasEnUrl = parsearZonasUrl(location.search);
 
       // RF-35: si ya hay una zona guardada de una visita anterior, esto ya
       // no es la portada: es la página de esa zona, con su HTML, su
@@ -93,7 +102,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
       // municipio ya fijan su zona desde la URL y no miran localStorage
       // para decidir dónde quedarse.
       const zonaInicial = obtenerEstado().zonaId;
-      if (zonaInicial !== null) {
+      if (zonasEnUrl.length === 0 && zonaInicial !== null) {
         location.replace(`/${zonaInicial}/`);
       } else {
         function elemento(id: string): HTMLElement {
@@ -126,13 +135,43 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         montarHoja(hoja, asaHoja, contenedorMapa);
 
         let indice: Indice | null = null;
-        let controlesMontados = false;
-        let controles: { abrirSelector: () => void } | null = null;
+        let controles: { abrirSelector: () => void; mostrarPersonalizado: (activo: boolean) => void } | null = null;
 
         // RF-43: aviso de frescura de los datos. Vive fuera del estado global
         // (src/logica/estado.ts) a propósito: es un dato derivado que solo usa
         // esta página, y el hito del mapa (H8) también toca ese fichero.
         let actualizadoZona: string | null = null;
+
+        // ADR-0014 (H12), "el mapa manda": en la raíz siempre está activo
+        // (a diferencia de las páginas de zona, que lo activan con la prop
+        // `mapaManda` de AppInteractiva.astro — aquí no hace falta esa
+        // condición, la raíz es zona+mapa por definición).
+        //
+        // `cambioPorMapa` evita que el suscriptor de más abajo navegue
+        // cuando el cambio de zonaId viene de arrastrar el mapa: la
+        // dirección la cambia el controlador con `history.replaceState`,
+        // sin recargar. `ultimaCargaFueMapa` decide a qué función delega el
+        // botón "Reintentar" de los avisos.
+        let cambioPorMapa = false;
+        let ultimaCargaFueMapa = false;
+        const controladorMapaManda = crearControladorMapaManda({
+          obtenerIndice: () => indice,
+          establecerPersonalizado: (activo) => controles?.mostrarPersonalizado(activo),
+          aplicarEstadoDesdeMapa: (cambios, origen) => {
+            cambioPorMapa = true;
+            ultimaCargaFueMapa = true;
+            actualizarEstado(cambios, origen);
+          },
+          reemplazarDireccion: (href) => history.replaceState(null, '', href),
+        });
+
+        function reintentar(): void {
+          if (ultimaCargaFueMapa) {
+            controladorMapaManda.reintentar();
+          } else {
+            cargarTodo();
+          }
+        }
 
         function horaDelDato(iso: string): string {
           const fecha = new Date(iso);
@@ -157,9 +196,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
             const boton = document.createElement('button');
             boton.type = 'button';
             boton.textContent = 'Reintentar';
-            boton.addEventListener('click', () => {
-              cargarTodo();
-            });
+            boton.addEventListener('click', () => reintentar());
             div.append(boton);
           }
           return div;
@@ -196,22 +233,33 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         // (RF-36): un fallo de provincia no tumba las demás. Sirve también como
         // función de reintento completa desde el botón de los avisos.
         async function cargarTodo(): Promise<void> {
-          actualizarEstado({ cargando: true, error: null });
+          ultimaCargaFueMapa = false;
+          actualizarEstado({ cargando: true, error: null }, 'eleccion');
           try {
             if (!indice) {
               indice = await cargarIndice();
             }
-            if (!controlesMontados) {
+            if (!controles) {
               controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
-              controlesMontados = true;
               actualizarAlturaCabecera();
+            }
+
+            // ADR-0014 (H12): `?zonas=` gana a la zona guardada. Códigos
+            // desconocidos se ignoran; si no queda ninguno válido, se sigue
+            // la cascada normal de ADR-0008 de aquí abajo.
+            if (zonasEnUrl.length > 0) {
+              const idsValidos = validarCodigosProvincia(zonasEnUrl, indice.provincias);
+              if (idsValidos.length > 0) {
+                await controladorMapaManda.cargarDesdeUrl(idsValidos);
+                return;
+              }
             }
 
             // RF-49: sin zona guardada y sin página de aterrizaje, el siguiente
             // paso es el selector, no una zona elegida por nosotros.
             const zonaGuardada = obtenerEstado().zonaId;
             if (zonaGuardada === null) {
-              actualizarEstado({ cargando: false });
+              actualizarEstado({ cargando: false }, 'eleccion');
               controles?.abrirSelector();
               return;
             }
@@ -220,7 +268,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
             // guardada ya no existe en el índice porque los datos se
             // regeneraron entre medias.
             const zona = indice.zonas.find((z) => z.id === zonaGuardada) ?? zonaDeReserva(indice);
-            if (zona.id !== zonaGuardada) actualizarEstado({ zonaId: zona.id });
+            if (zona.id !== zonaGuardada) actualizarEstado({ zonaId: zona.id }, 'eleccion');
 
             const resultado = await cargarZona(zona, indice.provincias);
             actualizadoZona = resultado.actualizado;
@@ -229,24 +277,33 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
               ? estacionSeleccionada
               : null;
 
-            actualizarEstado({
-              zonaNombre: zona.nombre,
-              estaciones: resultado.estaciones,
-              provinciasFallidas: resultado.provinciasFallidas,
-              mock: resultado.mock,
-              cargando: false,
-              error:
-                resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
-                  ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
-                  : null,
-              estacionId: siguienteSeleccion,
-            });
+            // 'eleccion': la zona guardada, "mi ubicación" o el selector, no
+            // un cambio provocado por mover el mapa. Dispara el fitBounds
+            // inicial (RF-19).
+            actualizarEstado(
+              {
+                zonaNombre: zona.nombre,
+                estaciones: resultado.estaciones,
+                provinciasFallidas: resultado.provinciasFallidas,
+                mock: resultado.mock,
+                cargando: false,
+                error:
+                  resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
+                    ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+                    : null,
+                estacionId: siguienteSeleccion,
+              },
+              'eleccion',
+            );
           } catch (error) {
             actualizadoZona = null;
-            actualizarEstado({
-              cargando: false,
-              error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
-            });
+            actualizarEstado(
+              {
+                cargando: false,
+                error: error instanceof Error ? error.message : 'No se han podido cargar los datos.',
+              },
+              'eleccion',
+            );
           }
         }
 
@@ -255,10 +312,13 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         // allá de los timeouts propios de cada petición.
         setTimeout(() => {
           if (obtenerEstado().cargando) {
-            actualizarEstado({
-              cargando: false,
-              error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
-            });
+            actualizarEstado(
+              {
+                cargando: false,
+                error: obtenerEstado().error ?? 'La carga está tardando más de lo normal. Comprueba tu conexión.',
+              },
+              'eleccion',
+            );
           }
         }, 12000);
 
@@ -273,6 +333,14 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         let zonaAnterior = obtenerEstado().zonaId;
         suscribir((estado) => {
           renderAvisos(estado);
+          // ADR-0014 (H12): si el cambio de zonaId vino de arrastrar el
+          // mapa, no se navega — el controlador ya ha cambiado la dirección
+          // con `history.replaceState`, sin recargar.
+          if (cambioPorMapa) {
+            cambioPorMapa = false;
+            zonaAnterior = estado.zonaId;
+            return;
+          }
           if (estado.zonaId !== zonaAnterior && estado.zonaId !== null) {
             zonaAnterior = estado.zonaId;
             location.href = `/${estado.zonaId}/`;
@@ -290,7 +358,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
           if (!indice) return;
           const provincia = provinciaMasCercana(indice, posicion);
-          actualizarEstado({ zonaId: `p-${provincia.id}` });
+          actualizarEstado({ zonaId: `p-${provincia.id}` }, 'eleccion');
         }
 
         // El mapa se importa dinámicamente: MapLibre pesa bastante más que el
@@ -301,8 +369,15 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         // puede descargar ese chunk (red caída de verdad), el hueco del mapa
         // explica el fallo y el resto de la aplicación sigue intacta; Mapa.ts
         // ya gestiona por su cuenta cualquier fallo de MapLibre o de los tiles.
+        // ADR-0014 (H12): en la raíz "el mapa manda" siempre está activo
+        // (a diferencia de las páginas de zona, donde depende de la prop
+        // `mapaManda` de AppInteractiva.astro).
         import('../componentes/Mapa.ts')
-          .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
+          .then(({ montarMapa }) =>
+            montarMapa(contenedorMapa, alEncontrarUbicacion, (vista, zoom) =>
+              controladorMapaManda.alMoverVista(vista, zoom)
+            )
+          )
           .catch(() => {
             contenedorMapa.innerHTML = '';
             contenedorMapa.removeAttribute('style');

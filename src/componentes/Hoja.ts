@@ -79,7 +79,7 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     // asomada es una de las tres formas de cerrar la ficha, igual que tocar
     // el mapa (Mapa.ts) o la X (Totem.ts).
     if (nuevo === 'colapsada' && obtenerEstado().estacionId) {
-      actualizarEstado({ estacionId: null });
+      actualizarEstado({ estacionId: null }, 'eleccion');
     }
   }
 

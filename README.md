@@ -13,6 +13,11 @@ municipio sin página propia —
 compartición `og:image` generada en el build —
 [ADR-0011](docs/adr/0011-imagen-og-generada-en-build-con-resvg.md).
 
+v2, en marcha: H12, "el mapa manda" — arrastrar o alejar el mapa carga y
+suelta provincias solas, sin tabla de adyacencia —
+[ADR-0014](docs/adr/0014-el-mapa-manda.md). Queda V2-18, la vista nacional
+por zoom con pastillas de precio medio.
+
 Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
 El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna
 estación `R` en toda España. Entra con el gasóleo B. El detalle, en

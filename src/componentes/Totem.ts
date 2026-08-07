@@ -47,7 +47,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   botonCerrar.className = 'totem__cerrar';
   botonCerrar.setAttribute('aria-label', 'Cerrar ficha de la estación');
   botonCerrar.textContent = '✕';
-  botonCerrar.addEventListener('click', () => actualizarEstado({ estacionId: null }));
+  botonCerrar.addEventListener('click', () => actualizarEstado({ estacionId: null }, 'eleccion'));
 
   const cabeceraFicha = document.createElement('div');
   cabeceraFicha.className = 'totem__cabecera';
@@ -121,7 +121,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     valor.className = 'totem__precio';
 
     boton.append(etiqueta, valor);
-    boton.addEventListener('click', () => actualizarEstado({ combustible: clave }));
+    boton.addEventListener('click', () => actualizarEstado({ combustible: clave }, 'eleccion'));
     fila.append(boton);
     combustibles.append(fila);
     filasCombustible.set(clave, { fila, boton, valor });
@@ -164,7 +164,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   function emitirCambioLitros(): void {
     const litros = Number(inputLitros.value);
     if (Number.isFinite(litros) && litros > 0) {
-      actualizarEstado({ litros });
+      actualizarEstado({ litros }, 'eleccion');
     }
   }
   inputLitros.addEventListener('input', emitirCambioLitros);

@@ -6,10 +6,12 @@
 // (docs/04-fuente-datos.md), precisamente para no depender de red.
 
 import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import { escribirJsonAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
+import { calcularRectangulo } from './lib/geo.ts';
 import type { MunicipioCatalogo } from './lib/miteco.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type Rectangulo, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 interface ProvinciaEstatica {
   id: string;
@@ -188,15 +190,28 @@ async function main(): Promise<void> {
     estaciones: generarEstaciones(provincia),
   }));
 
-  const resumenProvincias: ResumenProvincia[] = datosPorProvincia.map((datos, i) => ({
-    id: datos.provincia.id,
-    nombre: datos.provincia.nombre,
-    estaciones: datos.estaciones.length,
-    minimos: calcularMinimos(datos.estaciones),
-    // Mismo centroide que usó generarEstaciones para dispersar las
-    // estaciones de mentira: no hace falta recalcular la media.
-    centro: { lat: PROVINCIAS[i]!.lat, lon: PROVINCIAS[i]!.lon },
-  }));
+  const resumenProvincias: ResumenProvincia[] = datosPorProvincia.map((datos, i) => {
+    // Rectángulo real de las estaciones de mentira (ADR-0014), no un cuadro
+    // fijo alrededor del centroide: así el mock también sirve para probar
+    // arrastrar el mapa entre provincias vecinas.
+    const rectangulo: Rectangulo = calcularRectangulo(datos.estaciones) ?? {
+      minLat: PROVINCIAS[i]!.lat,
+      maxLat: PROVINCIAS[i]!.lat,
+      minLon: PROVINCIAS[i]!.lon,
+      maxLon: PROVINCIAS[i]!.lon,
+    };
+    return {
+      id: datos.provincia.id,
+      nombre: datos.provincia.nombre,
+      estaciones: datos.estaciones.length,
+      minimos: calcularMinimos(datos.estaciones),
+      // Mismo centroide que usó generarEstaciones para dispersar las
+      // estaciones de mentira: no hace falta recalcular la media.
+      centro: { lat: PROVINCIAS[i]!.lat, lon: PROVINCIAS[i]!.lon },
+      rectangulo,
+      pesoComprimido: gzipSync(JSON.stringify(datos, null, 2) + '\n').length,
+    };
+  });
 
   const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({
     id: `p-${datos.provincia.id}`,

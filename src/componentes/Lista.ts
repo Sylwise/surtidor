@@ -40,7 +40,7 @@ function crearCabecera(soloAbiertas: boolean, contador: number): HTMLDivElement 
   filtro.setAttribute('aria-pressed', String(soloAbiertas));
   filtro.setAttribute('aria-label', 'Filtrar solo estaciones abiertas ahora');
   filtro.textContent = 'Abiertas';
-  filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !soloAbiertas }));
+  filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !soloAbiertas }, 'eleccion'));
 
   cabecera.append(titulo, document.createTextNode(' · '), contadorEl, document.createTextNode(' · '), filtro);
   return cabecera;
@@ -103,7 +103,7 @@ export function montarLista(contenedor: HTMLElement): () => void {
       boton.type = 'button';
       boton.className = 'lista__quitar-filtro';
       boton.textContent = 'Quitar filtro';
-      boton.addEventListener('click', () => actualizarEstado({ soloAbiertas: false }));
+      boton.addEventListener('click', () => actualizarEstado({ soloAbiertas: false }, 'eleccion'));
       aviso.append(document.createTextNode(' '), boton);
       contenedor.append(aviso);
       return;
@@ -148,7 +148,7 @@ export function montarLista(contenedor: HTMLElement): () => void {
       precioEl.textContent = formatearPrecio(precio);
 
       fila.append(orden, info, precioEl);
-      fila.addEventListener('click', () => actualizarEstado({ estacionId: estacion.id }));
+      fila.addEventListener('click', () => actualizarEstado({ estacionId: estacion.id }, 'eleccion'));
       item.append(fila);
       filas.append(item);
     }

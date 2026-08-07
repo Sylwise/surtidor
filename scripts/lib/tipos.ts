@@ -35,6 +35,16 @@ export interface DatosProvincia {
   estaciones: Estacion[];
 }
 
+/** Rectángulo envolvente en WGS84. Aproximación grosera a propósito
+ *  (ADR-0014): se solapa con el de provincias vecinas, y eso es barato y
+ *  correcto — que sobre es inofensivo, que falte es el fallo a evitar. */
+export interface Rectangulo {
+  minLat: number;
+  maxLat: number;
+  minLon: number;
+  maxLon: number;
+}
+
 export interface ResumenProvincia {
   id: string;
   nombre: string;
@@ -44,6 +54,13 @@ export interface ResumenProvincia {
    *  un límite administrativo. Solo sirve para encontrar la provincia más
    *  cercana a una posición (RF-37); no es una forma de dibujar fronteras. */
   centro: { lat: number; lon: number };
+  /** Rectángulo envolvente de las estaciones de la provincia (ADR-0014,
+   *  H12): decide qué se carga al mover el mapa. */
+  rectangulo: Rectangulo;
+  /** Peso en bytes del fichero de la provincia comprimido con gzip, medido
+   *  en el build sobre el JSON real que se escribe. Vigila el listón de 300
+   *  KB de ADR-0005 cuando "el mapa manda" (ADR-0014) suma provincias. */
+  pesoComprimido: number;
 }
 
 export type TipoZona = 'provincia' | 'ccaa';

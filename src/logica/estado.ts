@@ -101,7 +101,25 @@ let estado: EstadoApp = {
   mock: false,
 };
 
-type Suscriptor = (estado: EstadoApp) => void;
+/**
+ * De dónde viene un cambio de estado (ADR-0014, punto 3 bis, corrección de
+ * H12): `'eleccion'` es una decisión explícita de quien usa la app —click en
+ * el selector, carga inicial de una zona, llegada con `?zonas=`— y es la
+ * única que puede disparar el `fitBounds` de RF-19 en src/componentes/
+ * Mapa.ts. `'movimiento'` es un cambio del conjunto cargado provocado por
+ * `moveend`/`zoomend` (src/logica/controladorMapaManda.ts): la cámara ya
+ * está donde el usuario la ha puesto, así que jamás debe volver a moverla —
+ * hacerlo cierra un bucle (mover → cargar → reencuadrar → mover…) que solo
+ * se paraba solo cuando la guarda de zoom apagaba la carga dinámica.
+ *
+ * Obligatorio en `actualizarEstado` a propósito: no es una bandera que se
+ * pone y se limpia sola (frágil, y su alcance es implícito), es un dato que
+ * viaja con el cambio y que cada suscriptor puede mirar o ignorar. No se
+ * puede llamar a `actualizarEstado` sin declarar de dónde viene.
+ */
+export type OrigenCambio = 'eleccion' | 'movimiento';
+
+type Suscriptor = (estado: EstadoApp, origen: OrigenCambio) => void;
 const suscriptores = new Set<Suscriptor>();
 
 /** Estado actual. Siempre el mismo objeto hasta la próxima actualización, para
@@ -120,11 +138,12 @@ export function suscribir(fn: Suscriptor): () => void {
 const CLAVES_PERSISTIDAS = new Set<keyof EstadoApp>(['zonaId', 'combustible', 'litros']);
 
 /** Aplica un parche al estado y avisa a quien esté suscrito. Si el parche
- *  toca zona, combustible o litros, se persiste (RF-34). */
-export function actualizarEstado(cambios: Partial<EstadoApp>): void {
+ *  toca zona, combustible o litros, se persiste (RF-34). `origen` es
+ *  obligatorio: ver `OrigenCambio`. */
+export function actualizarEstado(cambios: Partial<EstadoApp>, origen: OrigenCambio): void {
   estado = { ...estado, ...cambios };
   if (Object.keys(cambios).some((clave) => CLAVES_PERSISTIDAS.has(clave as keyof EstadoApp))) {
     guardarPreferencias(estado);
   }
-  for (const fn of suscriptores) fn(estado);
+  for (const fn of suscriptores) fn(estado, origen);
 }

@@ -16,7 +16,7 @@
 import { Map as MapaLibre, Marker, type IControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '../estilos/mapa.css';
-import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
+import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp, type OrigenCambio } from '../logica/estado.ts';
 import { crearEscala, preciosDeCombustible, type Escala } from '../logica/escala.ts';
 import {
   agruparEnRacimos,
@@ -30,6 +30,7 @@ import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
 import type { EstacionZona } from '../logica/zona.ts';
+import type { Rectangulo } from '../../scripts/lib/tipos.ts';
 
 const ESTILO_TILES = 'https://tiles.openfreemap.org/styles/positron';
 // Centro y zoom antes de que lleguen las estaciones: España peninsular vista
@@ -57,6 +58,13 @@ const CAJA_DESTACADA = { ancho: 72, alto: 30 }; // más barata y racimos: un pun
 // Alto garantizado de la hoja inferior en su estado "asomada" (mismo número
 // que --hoja-colapsada en interfaz.css y el caso 'colapsada' en Hoja.ts).
 const ALTURA_MINIMA_HOJA_PX = 110;
+
+// ADR-0014 ("el mapa manda", H12): agrupa los movimientos del mapa antes de
+// avisar a quien montó el mapa, para no disparar una petición por píxel
+// arrastrado. `moveend`/`zoomend` ya solo saltan al terminar un gesto, no en
+// cada fotograma; este retardo absorbe además varios gestos rápidos
+// seguidos (arrastrar, soltar, arrastrar otra vez) en un solo cálculo.
+const RETARDO_AGRUPACION_VISTA_MS = 400;
 
 interface EntradaMarcador {
   marker: Marker;
@@ -240,10 +248,15 @@ class ControlUbicacion implements IControl {
  *  `alEncontrarUbicacion` (RF-37) se invoca con las coordenadas cuando el
  *  botón "mi ubicación" las consigue; quien monte el mapa decide qué zona
  *  corresponde y la aplica, este módulo no conoce zonas.
+ *  `alMoverVista` (ADR-0014, H12) se invoca, agrupado, con el rectángulo
+ *  visible y el zoom al terminar un movimiento del mapa; quien monte el mapa
+ *  decide qué provincias cargar. Se omite en las páginas de municipio (ADR-
+ *  0014 punto 4): sin este parámetro, este módulo no calcula ni avisa nada.
  *  Devuelve una función para desuscribirse y liberar el mapa. */
 export function montarMapa(
   contenedor: HTMLElement,
   alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void,
+  alMoverVista?: (vista: Rectangulo, zoom: number) => void,
 ): () => void {
   let mapa: MapaLibre | null = null;
   let cargado = false;
@@ -251,6 +264,7 @@ export function montarMapa(
   let vigilante: ReturnType<typeof setTimeout> | null = null;
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
+  let temporizadorVista: ReturnType<typeof setTimeout> | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
   const racimoMarkers: EntradaRacimo[] = [];
   let estacionAnterior: string | null = obtenerEstado().estacionId;
@@ -261,10 +275,32 @@ export function montarMapa(
   let ultimoEstado: EstadoApp = obtenerEstado();
   let ultimaEscala: Escala = crearEscala([]);
 
+  /** Rectángulo visible actual, en el mismo formato que ResumenProvincia.rectangulo
+   *  (ADR-0014): aproximación grosera con los límites del mapa, sin corregir
+   *  por proyección. */
+  function notificarVista(): void {
+    if (!mapa || !alMoverVista) return;
+    const limites = mapa.getBounds();
+    const vista: Rectangulo = {
+      minLat: limites.getSouth(),
+      maxLat: limites.getNorth(),
+      minLon: limites.getWest(),
+      maxLon: limites.getEast(),
+    };
+    alMoverVista(vista, mapa.getZoom());
+  }
+
+  function agruparNotificacionVista(): void {
+    if (!alMoverVista) return;
+    if (temporizadorVista) clearTimeout(temporizadorVista);
+    temporizadorVista = setTimeout(notificarVista, RETARDO_AGRUPACION_VISTA_MS);
+  }
+
   function fallar(motivo: string): void {
     if (fallido) return;
     fallido = true;
     if (vigilante) clearTimeout(vigilante);
+    if (temporizadorVista) clearTimeout(temporizadorVista);
     observador?.disconnect();
     cancelarSuscripcion();
     for (const entrada of marcadores.values()) entrada.marker.remove();
@@ -393,7 +429,7 @@ export function montarMapa(
     // hacía nada.
     boton.addEventListener('click', (evento) => {
       evento.stopPropagation();
-      actualizarEstado({ estacionId: estacion.id });
+      actualizarEstado({ estacionId: estacion.id }, 'eleccion');
     });
 
     // anchor: 'bottom' ancla el poste al punto exacto de la estación
@@ -580,7 +616,7 @@ export function montarMapa(
     }
   }
 
-  function render(estado: EstadoApp): void {
+  function render(estado: EstadoApp, origen: OrigenCambio): void {
     if (!mapa || fallido || !cargado) return;
 
     // RF-48: las estaciones sin venta al público se excluyen, igual que en
@@ -618,13 +654,21 @@ export function montarMapa(
     ultimoEstado = estado;
     ultimaEscala = escala;
 
+    // ADR-0014, punto 3 bis: el encuadre automático (RF-19) solo lo dispara
+    // una elección explícita (selector, carga inicial, llegada con
+    // `?zonas=`), nunca un cambio del conjunto provocado por moveend/
+    // zoomend. La firma se actualiza SIEMPRE que cambia, sea cual sea el
+    // origen — si no, un origen 'eleccion' posterior que no toque
+    // `estaciones` (cambiar de combustible, por ejemplo) compararía contra
+    // una firma ya obsoleta y dispararía un encuadre que no le corresponde.
+    // Solo la LLAMADA a encuadrarTodas está condicionada al origen.
     const firma = visibles
       .map((e) => e.id)
       .sort()
       .join(',');
     if (firma !== firmaEstacionesAnterior) {
       firmaEstacionesAnterior = firma;
-      encuadrarTodas(visibles);
+      if (origen === 'eleccion') encuadrarTodas(visibles);
     }
 
     // RF-14 / RF-21: centrado en la estación seleccionada, sea cual sea el
@@ -687,7 +731,10 @@ export function montarMapa(
     mapa.on('load', () => {
       cargado = true;
       if (vigilante) clearTimeout(vigilante);
-      render(obtenerEstado());
+      // RF-19: el encuadre inicial SÍ es una elección explícita (la de haber
+      // llegado a esta zona), a diferencia de cualquier re-render posterior
+      // provocado por moveend/zoomend.
+      render(obtenerEstado(), 'eleccion');
     });
 
     // ADR-0006: la disposición (racimos + colisiones) se recalcula al
@@ -697,13 +744,20 @@ export function montarMapa(
     mapa.on('moveend', recalcularDisposicion);
     mapa.on('zoomend', recalcularDisposicion);
 
+    // ADR-0014 (H12): "el mapa manda". Eventos aparte de los de arriba (no
+    // sustituyen recalcularDisposicion, que sigue resolviendo racimos y
+    // colisiones): agrupados con su propio retardo, para no acoplar la
+    // cadencia de la carga dinámica a la de los racimos.
+    mapa.on('moveend', agruparNotificacionVista);
+    mapa.on('zoomend', agruparNotificacionVista);
+
     // Tocar el mapa fuera de un marcador deselecciona la estación activa
     // (mismo patrón que Google Maps). Un marcador es un elemento aparte
     // superpuesto al lienzo, no un descendiente del canvas: un clic sobre
     // él nunca llega a este evento, así que no hace falta comprobar el
     // objetivo del clic a mano.
     mapa.on('click', () => {
-      if (obtenerEstado().estacionId) actualizarEstado({ estacionId: null });
+      if (obtenerEstado().estacionId) actualizarEstado({ estacionId: null }, 'eleccion');
     });
 
     // Un error antes de terminar de cargar el estilo (tiles.openfreemap.org
@@ -727,6 +781,7 @@ export function montarMapa(
   return () => {
     cancelarSuscripcion();
     if (vigilante) clearTimeout(vigilante);
+    if (temporizadorVista) clearTimeout(temporizadorVista);
     observador?.disconnect();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();

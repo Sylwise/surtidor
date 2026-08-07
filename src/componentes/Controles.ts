@@ -45,14 +45,20 @@ function normalizar(texto: string): string {
  * estado de ficha (RF-80).
  *
  * Devuelve `abrirSelector`, para que la página pueda abrir el panel de zona
- * directamente cuando no hay ninguna zona resuelta todavía (RF-49).
+ * directamente cuando no hay ninguna zona resuelta todavía (RF-49), y
+ * `mostrarPersonalizado`, que usa "el mapa manda" (ADR-0014, H12) para forzar
+ * el texto "Personalizado" cuando hay más de una provincia cargada por
+ * arrastrar el mapa. `Personalizado` no es una `Zona` real y no se añade a
+ * `zonasOrdenadas`: no figura en la lista desplegable, solo sustituye el
+ * texto del botón mientras está activo.
  */
 export function montarControles(
   contenedorIdentidad: HTMLElement,
   contenedorRapidos: HTMLElement,
   zonas: Zona[],
-): { abrirSelector: () => void } {
+): { abrirSelector: () => void; mostrarPersonalizado: (activo: boolean) => void } {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  let personalizadoActivo = false;
 
   contenedorIdentidad.innerHTML = '';
   contenedorRapidos.innerHTML = '';
@@ -108,7 +114,7 @@ export function montarControles(
       boton.className = 'panel-zona__opcion';
       boton.textContent = zona.nombre;
       boton.addEventListener('click', () => {
-        actualizarEstado({ zonaId: zona.id });
+        actualizarEstado({ zonaId: zona.id }, 'eleccion');
         cerrarPanel();
         botonZona.focus();
       });
@@ -182,7 +188,7 @@ export function montarControles(
     boton.type = 'button';
     boton.className = 'controles__pestana';
     boton.textContent = ETIQUETA_CORTA[clave];
-    boton.addEventListener('click', () => actualizarEstado({ combustible: clave }));
+    boton.addEventListener('click', () => actualizarEstado({ combustible: clave }, 'eleccion'));
     tabsCombustible.append(boton);
     botonesCombustible.set(clave, boton);
   }
@@ -191,8 +197,12 @@ export function montarControles(
   contenedorRapidos.append(tabsCombustible);
 
   function render(estado: EstadoApp): void {
-    const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
-    nombreZonaSpan.textContent = zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona';
+    if (personalizadoActivo) {
+      nombreZonaSpan.textContent = 'Personalizado';
+    } else {
+      const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
+      nombreZonaSpan.textContent = zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona';
+    }
 
     for (const [clave, boton] of botonesCombustible) {
       const activo = clave === estado.combustible;
@@ -208,5 +218,11 @@ export function montarControles(
 
   render(obtenerEstado());
   suscribir(render);
-  return { abrirSelector: abrirPanel };
+  return {
+    abrirSelector: abrirPanel,
+    mostrarPersonalizado: (activo: boolean) => {
+      personalizadoActivo = activo;
+      render(obtenerEstado());
+    },
+  };
 }
