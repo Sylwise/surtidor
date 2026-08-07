@@ -28,6 +28,13 @@
      docs/adr/0003-escala-color-relativa.md). */
   --mejor: #046a38;
   --mejor-aro: #ffffff;
+  /* --mejor RELLENA, --mejor-texto ESCRIBE. Nunca al revés: --mejor es un
+     color de relleno pensado para llevar texto blanco encima (7:1), y sobre
+     --petrol (otro oscuro) da ~2:1 — ilegible. Cuando el verde de "más
+     barata" tiene que ser el color del propio texto sobre un fondo oscuro
+     (la imagen de compartición, RF-66), se usa este verde más claro en su
+     lugar. 7,3:1 sobre --petrol. */
+  --mejor-texto: #3fd69a;
 
   /* Acento de chrome: selección y foco. NUNCA marca un precio (ni en el mapa
      ni en la lista): comparte familia de tono con --p4/--p5, el extremo

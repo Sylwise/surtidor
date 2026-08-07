@@ -45,6 +45,7 @@ ahí.
   /* La más barata: verde profundo, extremo del lado barato */
   --mejor:      #046A38;
   --mejor-aro:  #FFFFFF;
+  --mejor-texto: #3FD69A;
 
   /* Acento de chrome: selección y foco. NUNCA en el mapa ni en la lista. */
   --signal: #F5B921;
@@ -63,6 +64,17 @@ La más barata va en `--mejor`, un verde profundo, que es el extremo natural del
 lado barato. `--signal` se queda solo para el chrome: borde del tótem, fila de
 combustible seleccionado, foco de los campos. Ahí el fondo es `--petrol` oscuro,
 el contexto es otro y no compite con ninguna escala.
+
+**`--mejor` rellena, `--mejor-texto` escribe. Nunca al revés.** `--mejor` es un
+color de relleno: está pensado para llevar texto blanco encima, a más de 7:1 de
+contraste (píldora del marcador, fila de la ficha). Usado directamente como
+color de *texto* sobre `--petrol` —otro tono oscuro— el contraste cae a ~2:1,
+muy por debajo del 4,5:1 de RNF-22: fue el error de la primera versión de la
+imagen de compartición (RF-66), que además "solucionaba" el problema con un
+verde inventado sobre la marcha en vez de un token. `--mejor-texto` es ese
+segundo verde, ya resuelto: más claro, pensado para escribir directamente sobre
+fondos oscuros (7,3:1 sobre `--petrol`). Se usa donde el precio tiene que ser el
+color del propio texto, no el relleno de una píldora.
 
 **Distinguir la más barata no puede depender del tono.** El tono ya lo ocupa la
 escala, y `--mejor` es vecino de `--p1` y `--p2`. El destaque viene de tres
