@@ -5,12 +5,15 @@ import marcaSvg from '../assets/marca.svg?raw';
 
 const titulo = 'Surtidor · Precios de carburantes de España';
 const descripcion = 'Precios de gasolina y diésel por zona, sin anuncios ni registro.';
-// La portada es la página que más se comparte y la única sin zona fija en
-// el build (RF-49: la zona se resuelve en el cliente), así que su og:image
-// es la tarjeta "España" que agrega todas las provincias — ver el
-// comentario en scripts/generar-imagenes-compartir.ts. URL ABSOLUTA: igual
-// que en las páginas de zona y municipio, WhatsApp no resuelve relativas.
-const imagenCompartir = new URL('/og/espana.png', Astro.site);
+// La portada no tiene zona fija en el build (RF-49: se resuelve en el
+// cliente) y, sobre todo, un precio de una gasolinera a 500 km sería
+// engañoso en una página que no habla de ningún sitio concreto. Usa la
+// tarjeta genérica —marca y promesa, sin datos que puedan caducar— que
+// también usa el 404 y cualquier página que no sea de zona ni de municipio:
+// es la imagen por defecto, no un caso especial de la raíz (ver
+// scripts/generar-imagenes-compartir.ts#renderizarSvgPredeterminada). URL
+// ABSOLUTA: WhatsApp no resuelve relativas.
+const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
 ---
 
 <html lang="es">

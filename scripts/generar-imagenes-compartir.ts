@@ -249,6 +249,76 @@ export function renderizarPng(tarjeta: Tarjeta): Buffer {
   return resvg.render().asPng();
 }
 
+/** Ruta de la tarjeta genérica: la usa cualquier página que no sea de zona
+ *  ni de municipio (la portada, el 404, cualquier otra que exista o llegue a
+ *  existir — imagen por defecto, no un caso especial de la raíz). */
+export const RUTA_PREDETERMINADA = join(DIR_SALIDA, 'predeterminada.png');
+
+/**
+ * La tarjeta genérica (encargo aparte del rediseño de la portada): sin
+ * precio, sin gasolinera, sin fecha. Un precio de una estación a 500 km es
+ * inútil y engañoso en una imagen que no habla de ningún sitio concreto —y
+ * esta tarjeta tiene que seguir siendo cierta dentro de seis meses, porque
+ * una previsualización cacheada vive mucho más que un dato—, así que aquí no
+ * hay nada que se pueda quedar desactualizado: solo la marca y la promesa.
+ *
+ * Composición deliberadamente distinta de las tarjetas con precio: centrada,
+ * con aire. Esas compiten por meter datos legibles; esta no tiene datos que
+ * meter, así que el aire es lo que distingue "esto es un producto" de
+ * "esto es una captura de pantalla".
+ */
+export function renderizarSvgPredeterminada(): string {
+  const centroX = ANCHO / 2;
+
+  // Tótem COMPLETO (cartel + poste + peana), no el reducido de
+  // docs/07-marca.md#Marca-reducida: aquí el icono es grande —a más de
+  // 32 px de sobra— así que las tres piezas se leen como lo que son, un
+  // cartel anclado a un punto, no como el pie de una copa.
+  const escalaTotem = 2.6; // 42×2.6 ≈ 109 px de ancho, sobre un lienzo de 1200
+  const anchoTotem = 42 * escalaTotem;
+  const altoTotem = 41 * escalaTotem; // de y=11 a y=52 en el viewBox de 64
+  const totemX = centroX - anchoTotem / 2;
+  const totemY = 122;
+  const totemSvg = `
+    <g transform="translate(${totemX - 11 * escalaTotem}, ${totemY - 11 * escalaTotem}) scale(${escalaTotem})" fill="${COLOR_SIGNAL}">
+      <rect x="11" y="11" width="42" height="23" rx="6" />
+      <rect x="28" y="34" width="8" height="12" />
+      <rect x="19" y="46" width="26" height="6" rx="3" />
+    </g>`;
+
+  const marcaTextoY = totemY + altoTotem + 62;
+  const marcaTextoSvg = `<text x="${centroX}" y="${marcaTextoY}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="52" letter-spacing="0.5" fill="${COLOR_SIGNAL}">Surtidor</text>`;
+
+  // Titular: el nombre ya lo dice la marca de arriba, así que aquí solo va
+  // la promesa. Partido a mano en dos líneas (el texto es fijo, autoría
+  // propia, no hace falta envolver en tiempo de build como los nombres de
+  // municipio) y calibrado contra el render real.
+  const tituloY1 = marcaTextoY + 92;
+  const tituloY2 = tituloY1 + 66;
+  const tituloSvg = `
+    <text x="${centroX}" y="${tituloY1}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="56" fill="${COLOR_PAPEL}">Precios de carburante</text>
+    <text x="${centroX}" y="${tituloY2}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="56" fill="${COLOR_PAPEL}">de toda España</text>`;
+
+  // La promesa: lo que diferencia, no lo que es. --mejor-texto para
+  // destacarla del titular (RF/encargo), sin ser un precio.
+  const prometeY = tituloY2 + 74;
+  const prometeSvg = `<text x="${centroX}" y="${prometeY}" text-anchor="middle" font-family="Inter" font-weight="600" font-size="29" fill="${COLOR_MEJOR_TEXTO}">Sin anuncios. Sin registro. Actualizado cada dos horas.</text>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${ANCHO}" height="${ALTO}" viewBox="0 0 ${ANCHO} ${ALTO}">
+    <rect width="${ANCHO}" height="${ALTO}" fill="${COLOR_FONDO}" />
+    ${totemSvg}
+    ${marcaTextoSvg}
+    ${tituloSvg}
+    ${prometeSvg}
+  </svg>`;
+}
+
+export function renderizarPngPredeterminada(): Buffer {
+  const svg = renderizarSvgPredeterminada();
+  const resvg = new Resvg(svg, { font: opcionesFuente(), background: COLOR_FONDO });
+  return resvg.render().asPng();
+}
+
 function escribir(tarjeta: Tarjeta): number {
   const png = renderizarPng(tarjeta);
   mkdirSync(dirname(tarjeta.rutaSalida), { recursive: true });
@@ -274,28 +344,6 @@ export function construirTarjetas(): Tarjeta[] {
   };
 
   const tarjetas: Tarjeta[] = [];
-
-  // Portada (/): una tarjeta nacional, agregando TODAS las provincias. No es
-  // una agrupación territorial nueva que decidir (RF-77 prohíbe eso): es el
-  // agregado trivial de "todas", igual de mecánico que una comunidad
-  // autónoma. Hace falta porque la portada es la página que más se comparte
-  // y es la única sin zona fija en el build — src/pages/index.astro resuelve
-  // su zona en el cliente (RF-49), así que no hay ninguna de las tarjetas de
-  // abajo que le sirva.
-  {
-    const datosNacional = indice.provincias.map((p) => leerProvincia(p.id));
-    const { estaciones, actualizado } = fusionarProvincias(datosNacional);
-    const visibles = estacionesVisibles(estaciones);
-    const barata = estacionMasBarata(visibles);
-    tarjetas.push({
-      rutaSalida: join(DIR_SALIDA, 'espana.png'),
-      antetitulo: 'España',
-      precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
-      precioDiesel: precioMinimo(visibles, 'gasoleoA'),
-      estacionMasBarata: barata?.rotulo ?? null,
-      actualizado,
-    });
-  }
 
   // Una por zona (provincia o comunidad autónoma): RF-66 ampliado, ver
   // docs/06-roadmap.md#H11 y el encargo del hito. Misma fusión que usa
@@ -352,12 +400,20 @@ function main(): void {
   for (const tarjeta of tarjetas) {
     totalBytes += escribir(tarjeta);
   }
+
+  // La tarjeta genérica (portada, 404 y cualquier página que no sea de zona
+  // ni de municipio): sin datos, así que no hace falta recalcularla por
+  // zona/municipio, pero sí escribirla en cada build para que exista en
+  // dist/ igual que el resto de public/og/.
+  mkdirSync(dirname(RUTA_PREDETERMINADA), { recursive: true });
+  writeFileSync(RUTA_PREDETERMINADA, renderizarPngPredeterminada());
+
   const ms = Date.now() - inicio;
 
   const mediaBytes = Math.round(totalBytes / tarjetas.length);
   console.log(
-    `Imágenes de compartición: ${tarjetas.length} de ${todas.length} totales, ` +
-      `${ms} ms (${(ms / tarjetas.length).toFixed(1)} ms/imagen), ` +
+    `Imágenes de compartición: ${tarjetas.length} de ${todas.length} totales ` +
+      `+ 1 genérica (portada/404/por defecto), ${ms} ms (${(ms / tarjetas.length).toFixed(1)} ms/imagen), ` +
       `${mediaBytes} bytes de media, ${(totalBytes / 1024).toFixed(0)} KB en total.`,
   );
   if (Number.isFinite(limite) && limite < todas.length) {
