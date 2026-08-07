@@ -105,7 +105,7 @@ test('normalizarEstaciones cuenta las descartadas sin perder las válidas', () =
   const resultado = normalizarEstaciones([valida, sinCoordenadas, valida]);
 
   assert.equal(resultado.estaciones.length, 2);
-  assert.equal(resultado.descartadas, 1);
+  assert.equal(resultado.sinCoordenadas, 1);
 });
 
 test('traduce las cuatro claves de precio que nos interesan a sus nombres internos', () => {
@@ -224,6 +224,70 @@ test('Margen con un valor inesperado cae a null y se cuenta', () => {
   assert.equal(margenInesperados, 1);
 });
 
+test('una estación con latitud y longitud intercambiadas (caso Tui, id 16268) cae en "fuera de España", no en "sin coordenadas"', () => {
+  // Coordenadas reales de la estación 16268 "GUAY" en Tui (Pontevedra), con
+  // lat/lon intercambiadas en origen: la sitúan en el océano Índico
+  // (docs/04-fuente-datos.md, trampa 11).
+  const cruda = estacionBase({
+    IDEESS: '16268',
+    Rótulo: 'GUAY',
+    Municipio: 'TUI',
+    Latitud: '-8,664200',
+    'Longitud (WGS84)': '42,051700',
+  });
+
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado, null);
+
+  const { sinCoordenadas, fueraDeEspana } = normalizarEstaciones([cruda]);
+  assert.equal(fueraDeEspana, 1);
+  assert.equal(sinCoordenadas, 0);
+});
+
+test('un par de coordenadas (0, 0) exacto cae en "sin coordenadas", no en "fuera de España"', () => {
+  // Casos reales: 11988 "PETROZAL" en Barcelona y 12883 "SUPER GASOIL" en
+  // Valdemoro (docs/04-fuente-datos.md, trampa 12). (0, 0) es el valor por
+  // defecto del ministerio cuando no tiene la posición, no una posición real
+  // en el golfo de Guinea.
+  const cruda = estacionBase({
+    IDEESS: '11988',
+    Rótulo: 'PETROZAL',
+    Municipio: 'BARCELONA',
+    Latitud: '0,000000',
+    'Longitud (WGS84)': '0,000000',
+  });
+
+  const resultado = normalizarEstacion(cruda);
+  assert.equal(resultado, null);
+
+  const { sinCoordenadas, fueraDeEspana } = normalizarEstaciones([cruda]);
+  assert.equal(sinCoordenadas, 1);
+  assert.equal(fueraDeEspana, 0);
+});
+
+test('una estación de Canarias y otra de Melilla no se descartan por ninguno de los dos filtros', () => {
+  const canaria = estacionBase({
+    IDEESS: '9001',
+    Municipio: 'LAS PALMAS DE GRAN CANARIA',
+    Latitud: '28,123500',
+    'Longitud (WGS84)': '-15,436800',
+  });
+  const melillense = estacionBase({
+    IDEESS: '9002',
+    Municipio: 'MELILLA',
+    Latitud: '35,292700',
+    'Longitud (WGS84)': '-2,938100',
+  });
+
+  assert.ok(normalizarEstacion(canaria));
+  assert.ok(normalizarEstacion(melillense));
+
+  const { estaciones, sinCoordenadas, fueraDeEspana } = normalizarEstaciones([canaria, melillense]);
+  assert.equal(estaciones.length, 2);
+  assert.equal(sinCoordenadas, 0);
+  assert.equal(fueraDeEspana, 0);
+});
+
 test('normalizarEstaciones no cuenta Tipo Venta ni Margen de una estación descartada', () => {
   const sinCoordenadas = estacionBase({
     Latitud: '',
@@ -234,7 +298,7 @@ test('normalizarEstaciones no cuenta Tipo Venta ni Margen de una estación desca
 
   const resultado = normalizarEstaciones([sinCoordenadas]);
 
-  assert.equal(resultado.descartadas, 1);
+  assert.equal(resultado.sinCoordenadas, 1);
   assert.equal(resultado.tipoVentaInesperados, 0);
   assert.equal(resultado.margenInesperados, 0);
 });

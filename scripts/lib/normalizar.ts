@@ -31,6 +31,37 @@ const CAMPO_LONGITUD: [string, string] = [
 const CAMPO_TIPO_VENTA: [string, string] = ['Tipo Venta', 'Tipo_x0020_Venta'];
 const CAMPO_MARGEN: [string, string] = ['Margen', 'Margen'];
 
+// Rectángulo que cubre península, Baleares, Canarias, Ceuta y Melilla, con
+// margen holgado (docs/04-fuente-datos.md, trampa 11). Deja pasar mar abierto
+// y trozos de Portugal, Francia y Marruecos a propósito: el objetivo es cazar
+// coordenadas absurdas (como las de la estación 16268, con latitud y
+// longitud intercambiadas), no validar fronteras. Que sobre es inofensivo;
+// que falte borraría estaciones reales.
+const LATITUD_MINIMA_ESPANA = 27.4;
+const LATITUD_MAXIMA_ESPANA = 43.9;
+const LONGITUD_MINIMA_ESPANA = -18.3;
+const LONGITUD_MAXIMA_ESPANA = 4.4;
+
+/** ¿Cae `lat`/`lon` dentro del rectángulo que cubre España? */
+function dentroDeEspana(lat: number, lon: number): boolean {
+  return (
+    lat >= LATITUD_MINIMA_ESPANA &&
+    lat <= LATITUD_MAXIMA_ESPANA &&
+    lon >= LONGITUD_MINIMA_ESPANA &&
+    lon <= LONGITUD_MAXIMA_ESPANA
+  );
+}
+
+/**
+ * (0, 0) exacto es el valor por defecto del ministerio cuando no tiene la
+ * posición real de la estación (docs/04-fuente-datos.md, trampa 12): es
+ * ausencia disfrazada de dato, no una posición equivocada. Se trata igual
+ * que lat/lon ausentes, no como coordenadas fuera de España.
+ */
+function esIslaNula(lat: number, lon: number): boolean {
+  return lat === 0 && lon === 0;
+}
+
 const VALORES_TIPO_VENTA = new Set<string>(['P', 'R', 'A']);
 const VALORES_MARGEN = new Set<string>(['D', 'I', 'N']);
 
@@ -92,8 +123,23 @@ function normalizarPrecios(estacion: EstacionCruda): Precios {
   return precios;
 }
 
+/**
+ * Por qué se descarta una estación sin `Estacion` resultante. `null` cuando
+ * no se descarta. Los dos casos son fallos distintos del origen (RF-06 y
+ * trampas 11-12 de docs/04-fuente-datos.md) y llevan contador propio:
+ *
+ * - `sinCoordenadas`: lat/lon ausentes, vacías, que no parsean, o el par
+ *   (0, 0) exacto — el valor por defecto del ministerio cuando no tiene la
+ *   posición real. Es ausencia disfrazada de dato.
+ * - `fueraDeEspana`: lat/lon presentes y utilizables, pero caen fuera del
+ *   rectángulo que cubre España. Se comprueba DESPUÉS de descartar (0, 0),
+ *   para que la isla nula nunca llegue aquí.
+ */
+type RazonDescarte = 'sinCoordenadas' | 'fueraDeEspana' | null;
+
 interface DiagnosticoNormalizacion {
   estacion: Estacion | null;
+  razonDescarte: RazonDescarte;
   tipoVentaInesperado: boolean;
   margenInesperado: boolean;
 }
@@ -101,13 +147,18 @@ interface DiagnosticoNormalizacion {
 /**
  * Normaliza una única estación cruda junto con los avisos de campos con
  * valores inesperados, para que `normalizarEstaciones` pueda acumularlos.
- * `estacion` es `null` si no tiene coordenadas válidas (se descarta, RF-06).
+ * `estacion` es `null` si se descarta; ver `RazonDescarte` para los dos
+ * motivos posibles. No se corrige ninguna coordenada: se descarta y se
+ * cuenta.
  */
 function normalizarEstacionConDiagnostico(estacion: EstacionCruda): DiagnosticoNormalizacion {
   const lat = aCoordenada(leerCampo(estacion, CAMPO_LATITUD));
   const lon = aCoordenada(leerCampo(estacion, CAMPO_LONGITUD));
-  if (lat === null || lon === null) {
-    return { estacion: null, tipoVentaInesperado: false, margenInesperado: false };
+  if (lat === null || lon === null || esIslaNula(lat, lon)) {
+    return { estacion: null, razonDescarte: 'sinCoordenadas', tipoVentaInesperado: false, margenInesperado: false };
+  }
+  if (!dentroDeEspana(lat, lon)) {
+    return { estacion: null, razonDescarte: 'fueraDeEspana', tipoVentaInesperado: false, margenInesperado: false };
   }
 
   const tipoVenta = aTipoVenta(leerCampo(estacion, CAMPO_TIPO_VENTA));
@@ -127,14 +178,16 @@ function normalizarEstacionConDiagnostico(estacion: EstacionCruda): DiagnosticoN
       margen: margen.valor,
       precios: normalizarPrecios(estacion),
     },
+    razonDescarte: null,
     tipoVentaInesperado: tipoVenta.inesperado,
     margenInesperado: margen.inesperado,
   };
 }
 
 /**
- * Normaliza una única estación cruda. Devuelve `null` si no tiene
- * coordenadas válidas (se descarta, RF-06).
+ * Normaliza una única estación cruda. Devuelve `null` si se descarta (sin
+ * coordenadas utilizables, o coordenadas fuera de España; ver
+ * `RazonDescarte`).
  */
 export function normalizarEstacion(estacion: EstacionCruda): Estacion | null {
   return normalizarEstacionConDiagnostico(estacion).estacion;
@@ -142,27 +195,33 @@ export function normalizarEstacion(estacion: EstacionCruda): Estacion | null {
 
 export interface ResultadoNormalizacion {
   estaciones: Estacion[];
-  descartadas: number;
+  /** Sin coordenadas utilizables: ausentes, vacías, ilegibles, o (0, 0). */
+  sinCoordenadas: number;
+  /** Coordenadas presentes pero fuera del rectángulo de España (trampa 11). */
+  fueraDeEspana: number;
   tipoVentaInesperados: number;
   margenInesperados: number;
 }
 
 /**
- * Normaliza una lista de estaciones crudas. Las que no tienen coordenadas
- * válidas se descartan y se cuentan, para que H5 pueda loguearlo (RF-06). Las
- * que tienen `Tipo Venta` o `Margen` con un valor que no encaja también se
- * cuentan, aunque la estación se conserve con el valor de reserva.
+ * Normaliza una lista de estaciones crudas. Las que se descartan se cuentan
+ * por separado según el motivo (ver `RazonDescarte`), para que H5 pueda
+ * loguearlo (RF-06). Las que tienen `Tipo Venta` o `Margen` con un valor que
+ * no encaja también se cuentan, aunque la estación se conserve con el valor
+ * de reserva.
  */
 export function normalizarEstaciones(estacionesCrudas: EstacionCruda[]): ResultadoNormalizacion {
   const estaciones: Estacion[] = [];
-  let descartadas = 0;
+  let sinCoordenadas = 0;
+  let fueraDeEspana = 0;
   let tipoVentaInesperados = 0;
   let margenInesperados = 0;
 
   for (const cruda of estacionesCrudas) {
     const diagnostico = normalizarEstacionConDiagnostico(cruda);
     if (diagnostico.estacion === null) {
-      descartadas += 1;
+      if (diagnostico.razonDescarte === 'sinCoordenadas') sinCoordenadas += 1;
+      else if (diagnostico.razonDescarte === 'fueraDeEspana') fueraDeEspana += 1;
       continue;
     }
     estaciones.push(diagnostico.estacion);
@@ -170,5 +229,5 @@ export function normalizarEstaciones(estacionesCrudas: EstacionCruda[]): Resulta
     if (diagnostico.margenInesperado) margenInesperados += 1;
   }
 
-  return { estaciones, descartadas, tipoVentaInesperados, margenInesperados };
+  return { estaciones, sinCoordenadas, fueraDeEspana, tipoVentaInesperados, margenInesperados };
 }

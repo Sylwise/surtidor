@@ -114,7 +114,8 @@ async function main(): Promise<void> {
   );
 
   let totalEstaciones = 0;
-  let totalDescartadas = 0;
+  let totalSinCoordenadas = 0;
+  let totalFueraDeEspana = 0;
   let totalTipoVentaInesperados = 0;
   let totalMargenInesperados = 0;
 
@@ -127,16 +128,18 @@ async function main(): Promise<void> {
     // (hito H3, en paralelo con H2). En tiempo de ejecución son cadenas de
     // verdad: zod ya validó los campos que sí usamos.
     const estacionesCrudas = respuesta.ListaEESSPrecio as unknown as EstacionCruda[];
-    const { estaciones, descartadas, tipoVentaInesperados, margenInesperados } =
+    const { estaciones, sinCoordenadas, fueraDeEspana, tipoVentaInesperados, margenInesperados } =
       normalizarEstaciones(estacionesCrudas);
 
     totalEstaciones += estaciones.length;
-    totalDescartadas += descartadas;
+    totalSinCoordenadas += sinCoordenadas;
+    totalFueraDeEspana += fueraDeEspana;
     totalTipoVentaInesperados += tipoVentaInesperados;
     totalMargenInesperados += margenInesperados;
 
     const avisos = [
-      descartadas > 0 ? `${descartadas} descartadas sin coordenadas` : null,
+      sinCoordenadas > 0 ? `${sinCoordenadas} sin coordenadas utilizables` : null,
+      fueraDeEspana > 0 ? `${fueraDeEspana} con coordenadas fuera de España` : null,
       tipoVentaInesperados > 0 ? `${tipoVentaInesperados} con Tipo Venta inesperado` : null,
       margenInesperados > 0 ? `${margenInesperados} con Margen inesperado` : null,
     ].filter((aviso): aviso is string => aviso !== null);
@@ -204,7 +207,8 @@ async function main(): Promise<void> {
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
 
   const avisosFinales = [
-    totalDescartadas > 0 ? `${totalDescartadas} descartadas en total` : null,
+    totalSinCoordenadas > 0 ? `${totalSinCoordenadas} sin coordenadas utilizables en total` : null,
+    totalFueraDeEspana > 0 ? `${totalFueraDeEspana} con coordenadas fuera de España en total` : null,
     totalTipoVentaInesperados > 0 ? `${totalTipoVentaInesperados} con Tipo Venta inesperado` : null,
     totalMargenInesperados > 0 ? `${totalMargenInesperados} con Margen inesperado` : null,
   ].filter((aviso): aviso is string => aviso !== null);

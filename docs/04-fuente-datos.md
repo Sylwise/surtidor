@@ -141,6 +141,39 @@ que devuelve el servicio REST. No hay nada que hacer al respecto: usamos el REST
 y mostramos la marca de tiempo que él mismo declara, para que el usuario sepa a
 qué momento corresponde el dato.
 
+### 11. Hay estaciones con latitud y longitud intercambiadas en origen
+
+Caso confirmado: id `16268`, rótulo "GUAY", en Tui (Pontevedra). Sus
+coordenadas la sitúan en el océano Índico. No es un error de análisis ni de
+normalización: llega así del ministerio.
+
+Consecuencia: cualquier cálculo geométrico sobre el conjunto de
+estaciones —encuadres, centroides, agrupaciones— sale corrompido por una sola
+fila, y en el mapa aparece un marcador en mitad del mar. Se descubrió en la
+rama `hito-h12-el-mapa-manda` calculando envolventes por provincia; el
+detalle está en [ADR-0015](adr/0015-el-mapa-manda-abandonado.md).
+
+Tratamiento: `scripts/lib/normalizar.ts` descarta la estación y la cuenta,
+por separado de las que vienen sin coordenadas (ver trampa 12). El filtro es
+geográfico, y tiene que incluir Canarias, Ceuta y Melilla: un rectángulo
+peninsular borraría las islas enteras.
+
+### 12. Hay estaciones cuyas coordenadas llegan como (0, 0) exacto
+
+Casos confirmados: id `11988`, rótulo "PETROZAL", en Barcelona; e id `12883`,
+rótulo "SUPER GASOIL", en Valdemoro (Madrid). Sus coordenadas son
+`(0, 0)`, el punto del golfo de Guinea donde se cruzan el ecuador y el
+meridiano de Greenwich.
+
+`(0, 0)` es el valor por defecto del ministerio cuando no tiene la posición
+real de la estación: es ausencia disfrazada de dato, no una posición
+equivocada. No es un error de análisis ni de normalización: llega así.
+
+Tratamiento: distinto del de la trampa 11. `scripts/lib/normalizar.ts` trata
+`(0, 0)` como si lat/lon vinieran vacías: cae por el mismo camino que las
+estaciones sin coordenadas, no por el del rectángulo de España, y se cuenta
+junto a ellas.
+
 ## Forma de la respuesta
 
 ```json
