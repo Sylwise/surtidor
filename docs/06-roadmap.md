@@ -187,13 +187,14 @@ euros por 100 km, que es la unidad real de lo que cuesta conducir.
 
 **Ordenar por distancia** con geolocalización concedida (RF-26).
 
-**El mapa manda.** Desde Vitoria-Gasteiz se reposta en Miranda de Ebro, y la
-frontera provincial no significa nada para quien conduce. Al desplazar o alejar
-el mapa se carga lo que ocupa pantalla y se suelta lo que sale de ella: la
-lista, los colores, el selector y la dirección siguen a la vista. Al alejar del
-todo, las estaciones dan paso a una pastilla por provincia con su precio medio.
-Sin páginas nuevas y sin tabla de adyacencia que mantener. Ver
-[ADR-0014](adr/0014-el-mapa-manda.md).
+**Vista nacional por provincias.** Al alejar el zoom, las estaciones dan paso a
+una pastilla por provincia con su precio medio, en el centro de sus
+gasolineras. Es la vista que responde a "dónde está barato", que es lo único
+que se puede preguntar cuando cabe España entera en la pantalla. Ver
+[ADR-0015](adr/0015-el-mapa-manda-abandonado.md).
+
+Se intentó además que la vista del mapa decidiera la zona cargada, y se
+abandonó tras implementarlo. El porqué, en el mismo ADR.
 
 **Precio congelado.** Algunas dejan de actualizar para parecer baratas. Con el
 histórico se detecta si lleva días sin moverse y se marca. Genera confianza

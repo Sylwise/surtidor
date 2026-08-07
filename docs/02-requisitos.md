@@ -210,9 +210,9 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-13 | Ordenar por distancia con geolocalización concedida. |
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
 | V2-15 | Puntos de recarga eléctrica. |
-| V2-16 | El mapa decide la zona mostrada: se cargan las provincias cuyo rectángulo envolvente ocupa más del umbral de la vista, y lista, escala de color, selector y dirección siguen a lo cargado. Sustituye a "cargar la provincia vecina". Ver [ADR-0014](adr/0014-el-mapa-manda.md). |
-| V2-17 | Estado personalizado: con más de una provincia cargada el selector muestra `Personalizado`, ausente de la lista desplegable, y la dirección pasa a `/?zonas=NN,NN`, que al abrirse reconstruye el conjunto. Ver [ADR-0014](adr/0014-el-mapa-manda.md). |
-| V2-18 | Vista nacional: por debajo de un nivel de zoom las estaciones se sustituyen por una pastilla por provincia con su nombre y el precio medio del combustible elegido, en el centroide de sus estaciones. Ver [ADR-0014](adr/0014-el-mapa-manda.md). |
+| V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
+| V2-17 | ~~Estado personalizado con `?zonas=NN,NN`.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
+| V2-18 | Vista nacional: por debajo de un nivel de zoom las estaciones se sustituyen por una pastilla por provincia con su nombre y el precio medio del combustible elegido, en el centroide de sus estaciones. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 
 ## Fuera de alcance permanente
 
