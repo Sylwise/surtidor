@@ -15,16 +15,20 @@ import {
   type ProvinciaCatalogo,
 } from './lib/miteco.ts';
 import { normalizarEstaciones, type EstacionCruda } from './lib/normalizar.ts';
-import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
+import { escribirJsonAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
-import { generarRedirecciones } from './lib/redirecciones.ts';
-import { comprobarSlugsUnicos } from './lib/slug.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type ResumenProvincia, type Zona } from './lib/tipos.ts';
+import { generarSlug, comprobarSlugsUnicos } from './lib/slug.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ProvinciaSlug, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
 const DIRECTORIO_PUBLIC = join(import.meta.dirname, '..', 'public');
 const DIRECTORIO_DATOS = join(DIRECTORIO_PUBLIC, 'data');
+// Deliberadamente fuera de public/: nada de aquí se despliega ni lo pide
+// nunca el navegador, solo lo lee el propio build (getStaticPaths de las
+// páginas de municipio y sitemap.xml.ts). Ver el comentario de
+// IndiceMunicipios en scripts/lib/tipos.ts.
+const DIRECTORIO_BUILD = join(import.meta.dirname, '..', 'datos-build');
 
 /** Ejecuta `tarea` sobre `items` con un máximo de `limite` en vuelo a la vez. */
 async function mapConLimite<T, R>(
@@ -187,8 +191,8 @@ async function main(): Promise<void> {
     actualizado,
     provincias: resumenProvincias,
     zonas: [...zonasProvincia, ...zonasCcaa],
-    municipios,
   };
+  const indiceMunicipios: IndiceMunicipios = { actualizado, municipios };
 
   console.log('Escribiendo ficheros…');
   await Promise.all(
@@ -197,7 +201,15 @@ async function main(): Promise<void> {
     ),
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
-  await escribirTextoAtomico(join(DIRECTORIO_PUBLIC, '_redirects'), generarRedirecciones(resumenProvincias));
+  await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
+  // ADR-0010: functions/[provincia]/[municipio].js necesita el id de dos
+  // dígitos de cada provincia para construir el destino de la redirección
+  // de RF-60, y solo tiene el slug (viene de la URL).
+  const provinciasSlugs: ProvinciaSlug[] = resumenProvincias.map((p) => ({
+    slug: generarSlug(p.nombre),
+    id: p.id,
+  }));
+  await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'provincias-slugs.json'), provinciasSlugs);
 
   const avisosFinales = [
     totalDescartadas > 0 ? `${totalDescartadas} descartadas en total` : null,

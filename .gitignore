@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .astro/
+.wrangler/
 .env
 .DS_Store
 .claude/worktrees/
@@ -11,4 +12,10 @@ dist/
 # cambia cada dos horas. Ejecuta uno de los dos comandos antes de `npm run dev`.
 public/data/indice.json
 public/data/provincias/*.json
-public/_redirects
+
+# Catálogos de municipio y de slugs de provincia (H10, segunda mitad, ver
+# ADR-0010): solo los lee el build (getStaticPaths, sitemap.xml.ts, la
+# Pages Function de functions/), nunca el navegador. Deliberadamente fuera
+# de public/ para que no se despliegue ni se pueda pedir por fetch — ver
+# IndiceMunicipios y ProvinciaSlug en scripts/lib/tipos.ts.
+datos-build/

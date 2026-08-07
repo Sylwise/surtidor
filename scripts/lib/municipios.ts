@@ -1,5 +1,5 @@
 // Cruce entre el catálogo oficial de municipios (`Listados/Municipios`) y las
-// estaciones reales de cada provincia, para construir `indice.municipios`
+// estaciones reales de cada provincia, para construir `datos-build/municipios.json`
 // (docs/06-roadmap.md#H10, segunda mitad). El catálogo aporta el nombre
 // canónico y la provincia; el número de estaciones sale de contar, no del
 // catálogo (que no lo trae).

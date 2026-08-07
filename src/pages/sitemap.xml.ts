@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { APIRoute } from 'astro';
 import { generarSlug } from '../../scripts/lib/slug.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type Indice } from '../../scripts/lib/tipos.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type Indice, type IndiceMunicipios } from '../../scripts/lib/tipos.ts';
 
 function escaparXml(texto: string): string {
   return texto
@@ -20,8 +20,14 @@ function escaparXml(texto: string): string {
 }
 
 export const GET: APIRoute = ({ site }) => {
-  const rutaIndice = join(process.cwd(), 'public', 'data', 'indice.json');
-  const indice = JSON.parse(readFileSync(rutaIndice, 'utf-8')) as Indice;
+  const indice = JSON.parse(readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8')) as Indice;
+  // Catálogo de municipios en datos-build/, no en public/data/: ver
+  // IndiceMunicipios en scripts/lib/tipos.ts. El sitemap es build-time puro
+  // (endpoint prerenderizado), así que leerlo de ahí no es distinto a
+  // leerlo de public/.
+  const indiceMunicipios = JSON.parse(
+    readFileSync(join(process.cwd(), 'datos-build', 'municipios.json'), 'utf-8'),
+  ) as IndiceMunicipios;
 
   const base = site ?? new URL('https://surtidor.pages.dev');
   const provinciasPorId = new Map(indice.provincias.map((p) => [p.id, p]));
@@ -34,7 +40,7 @@ export const GET: APIRoute = ({ site }) => {
 
   const rutas: string[] = ['/', ...indice.zonas.map((zona) => `/${zona.id}/`)];
 
-  for (const municipio of indice.municipios) {
+  for (const municipio of indiceMunicipios.municipios) {
     if (municipio.estaciones < MINIMO_ESTACIONES_MUNICIPIO) continue;
     const provincia = provinciasPorId.get(municipio.provinciaId);
     if (!provincia) continue; // mismo caso imposible que getStaticPaths; el sitemap no es el sitio para reventar el build por esto.

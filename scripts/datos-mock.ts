@@ -6,11 +6,11 @@
 // (docs/04-fuente-datos.md), precisamente para no depender de red.
 
 import { join } from 'node:path';
-import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
+import { escribirJsonAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
-import { generarRedirecciones } from './lib/redirecciones.ts';
+import { generarSlug } from './lib/slug.ts';
 import type { MunicipioCatalogo } from './lib/miteco.ts';
-import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type Precios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type ProvinciaSlug, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 interface ProvinciaEstatica {
   id: string;
@@ -24,6 +24,9 @@ interface ProvinciaEstatica {
 
 const DIRECTORIO_PUBLIC = join(import.meta.dirname, '..', 'public');
 const DIRECTORIO_DATOS = join(DIRECTORIO_PUBLIC, 'data');
+// Ver el comentario equivalente en scripts/descargar-datos.ts: fuera de
+// public/, no lo despliega nadie, solo lo lee el build.
+const DIRECTORIO_BUILD = join(import.meta.dirname, '..', 'datos-build');
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
@@ -235,8 +238,8 @@ async function main(): Promise<void> {
     mock: true,
     provincias: resumenProvincias,
     zonas: [...zonasProvincia, ...zonasCcaa],
-    municipios,
   };
+  const indiceMunicipios: IndiceMunicipios = { actualizado, municipios };
 
   await Promise.all(
     datosPorProvincia.map((datos) =>
@@ -244,7 +247,12 @@ async function main(): Promise<void> {
     ),
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
-  await escribirTextoAtomico(join(DIRECTORIO_PUBLIC, '_redirects'), generarRedirecciones(resumenProvincias));
+  await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
+  const provinciasSlugs: ProvinciaSlug[] = resumenProvincias.map((p) => ({
+    slug: generarSlug(p.nombre),
+    id: p.id,
+  }));
+  await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'provincias-slugs.json'), provinciasSlugs);
 
   const municipiosConPagina = municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO).length;
   console.log(

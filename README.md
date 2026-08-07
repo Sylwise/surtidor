@@ -7,8 +7,10 @@ Los datos vienen de la API pública del Ministerio para la Transición Ecológic
 diferencia es que aquí no hay nada entre el precio y tú.
 
 **Estado:** v1 en curso. Completos H1 a H7, H9 y H10 (páginas de zona y de
-municipio, JSON-LD, sitemap.xml, `public/_redirects`). Parcial H8, a falta del
-botón de ubicación (RF-17). Sin empezar H11 (RF-66, imagen de compartición).
+municipio, JSON-LD, sitemap.xml, redirección de municipio sin página vía Pages
+Function — [ADR-0010](docs/adr/0010-redireccion-municipio-con-pages-function.md)).
+Parcial H8, a falta del botón de ubicación (RF-17). Sin empezar H11 (RF-66,
+imagen de compartición).
 
 Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
 El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna

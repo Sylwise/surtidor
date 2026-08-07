@@ -33,6 +33,7 @@ import {
   type ClavePrecio,
   type DatosProvincia,
   type Indice,
+  type IndiceMunicipios,
   type ResumenMunicipio,
   type ResumenProvincia,
 } from '../../../../scripts/lib/tipos.ts';
@@ -40,14 +41,21 @@ import {
 const DIRECTORIO_DATOS = join(process.cwd(), 'public', 'data');
 
 export async function getStaticPaths() {
-  // Ruta calculada de nuevo aquí dentro, sin usar la constante de arriba:
+  // Rutas calculadas de nuevo aquí dentro, sin usar la constante de arriba:
   // Astro extrae `getStaticPaths` a su propio módulo para el build y no
   // arrastra con él las constantes del resto del frontmatter.
-  const rutaIndice = join(process.cwd(), 'public', 'data', 'indice.json');
-  const indice = JSON.parse(readFileSync(rutaIndice, 'utf-8')) as Indice;
+  //
+  // El catálogo de municipios vive en datos-build/, no en public/data/: es
+  // el único fichero de datos de todo H10 que jamás pide el navegador, así
+  // que no tiene sentido desplegarlo (ver IndiceMunicipios en
+  // scripts/lib/tipos.ts).
+  const indice = JSON.parse(readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8')) as Indice;
+  const indiceMunicipios = JSON.parse(
+    readFileSync(join(process.cwd(), 'datos-build', 'municipios.json'), 'utf-8'),
+  ) as IndiceMunicipios;
 
   const provinciasPorId = new Map(indice.provincias.map((p) => [p.id, p]));
-  const municipiosConPagina = indice.municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO);
+  const municipiosConPagina = indiceMunicipios.municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO);
 
   return municipiosConPagina.map((municipio) => {
     const provincia = provinciasPorId.get(municipio.provinciaId);

@@ -81,6 +81,7 @@ y dejar Pages solo para el código. No antes.
 | Datos | Node script + `zod` para validar | Validar en el borde para que un cambio en la API falle ruidosamente. |
 | Alojamiento | Cloudflare Pages | Gratis, CDN global, despliegue desde Actions. |
 | Programación | GitHub Actions con `schedule` | Gratis en repos públicos. |
+| Redirección de municipio | Cloudflare Pages Function (`functions/`) | Por petición, en el borde — no un proceso continuo (RNF-02). Ver [ADR-0010](adr/0010-redireccion-municipio-con-pages-function.md). |
 
 Dependencias permitidas: `astro`, `maplibre-gl`, `zod`, `typescript`. Cualquier
 otra cosa necesita justificación en el pull request.
@@ -111,13 +112,16 @@ surtidor/
 │       ├── normalizar.ts      # String con coma → number | null
 │       ├── horario.ts         # intérprete del campo Horario
 │       ├── municipios.ts      # cruza estaciones reales con Listados/Municipios
-│       ├── slug.ts            # nombre del catálogo → tramo de URL, sin colisiones
-│       └── redirecciones.ts   # public/_redirects: municipio sin página → su provincia
+│       └── slug.ts            # nombre del catálogo → tramo de URL, sin colisiones
+├── functions/
+│   └── [provincia]/
+│       └── [municipio].js     # RF-60: redirige a la provincia si no hay página (ADR-0010)
 ├── src/
 │   ├── pages/
 │   │   ├── index.astro                        # redirige a la última zona o la elige
 │   │   ├── [zona]/index.astro                 # una página por zona, para SEO
 │   │   ├── [provincia]/[municipio]/index.astro # una página por municipio (H10)
+│   │   ├── 404.astro                          # 404 real, también lo usa ADR-0010
 │   │   └── sitemap.xml.ts                     # RF-64, regenerado en cada build
 │   ├── componentes/
 │   │   ├── AppInteractiva.astro # cascarón interactivo, compartido por zona y municipio
@@ -132,10 +136,12 @@ surtidor/
 │   │   └── ahorro.ts          # cálculo en euros
 │   └── estilos/
 │       └── tokens.css         # única fuente de verdad del diseño
+├── datos-build/
+│   ├── municipios.json         # catálogo de municipios (H10). NO se despliega, ver más abajo
+│   └── provincias-slugs.json   # slug → id de provincia, lo lee functions/ (ADR-0010)
 └── public/
-    ├── _redirects              # generado en cada npm run data:fetch (H10)
     └── data/
-        ├── indice.json         # provincias, zonas, municipios, marca de tiempo
+        ├── indice.json         # provincias, zonas, marca de tiempo — lo pide el navegador
         └── provincias/
             └── 01.json … 52.json
 ```
@@ -178,10 +184,12 @@ Reglas del contrato, y son estrictas:
   ministerio. El acoplamiento a la API se queda encerrado en `scripts/lib/`.
 - Si una estación no tiene coordenadas válidas, se descarta y se cuenta en el log.
 
-`public/data/indice.json` lleva tres catálogos: el de provincias (identificador,
-nombre, número de estaciones, precio mínimo por combustible), el de **zonas**,
-para poder pintar el selector sin descargar nada más, y el de **municipios**
-(H10, para las páginas de `src/pages/[provincia]/[municipio]/`).
+`public/data/indice.json` lleva dos catálogos: el de provincias (identificador,
+nombre, número de estaciones, precio mínimo por combustible) y el de **zonas**,
+para poder pintar el selector sin descargar nada más. Es el único fichero de
+`public/data/` que pide el navegador en **todas** las páginas, así que no
+lleva nada que el selector no use — ver el catálogo de municipios más abajo,
+que deliberadamente no está aquí.
 
 ```json
 {
@@ -197,14 +205,11 @@ para poder pintar el selector sin descargar nada más, y el de **municipios**
       "tipo": "ccaa", "provincias": ["01","48","20"] },
     { "id": "ccaa-01", "nombre": "ANDALUCIA",
       "tipo": "ccaa", "provincias": ["04","11","14","18","21","23","29","41"] }
-  ],
-  "municipios": [
-    { "nombre": "Vitoria-Gasteiz", "provinciaId": "01", "estaciones": 39 }
   ]
 }
 ```
 
-**Los dos primeros catálogos se generan solos**, desde los catálogos del
+**Los dos catálogos se generan solos**, desde los catálogos del
 ministerio: 52 provincias y 19 comunidades, 71 zonas en total.
 
 No hay zonas definidas a mano ni agrupaciones calculadas, y no las va a haber: cualquier lista de
@@ -219,44 +224,75 @@ denominaciones.
 Ver [ADR-0005](adr/0005-provincia-unidad-y-zonas.md) para el porqué de separar
 almacenamiento y consulta.
 
-### Municipios (H10) y el precio de llevarlos en `indice.json`
+### Municipios (H10): `datos-build/municipios.json`, fuera de `public/`
 
-El catálogo de `municipios` sale de cruzar `Listados/Municipios` del
-ministerio con las estaciones reales de cada provincia
-(`scripts/lib/municipios.ts`): lleva **todos** los municipios con al menos
-una estación visible, no solo los que tienen página propia. Quien decide si
-un municipio se genera es cada consumidor —`getStaticPaths` de
-`src/pages/[provincia]/[municipio]/index.astro`, `src/pages/sitemap.xml.ts`—
-comparando `estaciones` contra `MINIMO_ESTACIONES_MUNICIPIO` (RF-60,
-`scripts/lib/tipos.ts`), no el propio catálogo.
+El catálogo de municipios sale de cruzar `Listados/Municipios` del ministerio
+con las estaciones reales de cada provincia (`scripts/lib/municipios.ts`):
+lleva **todos** los municipios con al menos una estación visible, no solo los
+que tienen página propia. Quien decide si un municipio se genera es cada
+consumidor —`getStaticPaths` de `src/pages/[provincia]/[municipio]/index.astro`,
+`src/pages/sitemap.xml.ts`— comparando `estaciones` contra
+`MINIMO_ESTACIONES_MUNICIPIO` (RF-60, `scripts/lib/tipos.ts`), no el propio
+catálogo.
 
-Los slugs de URL (`/{provincia}/{municipio}/`) no se guardan aquí: se
-calculan siempre con `scripts/lib/slug.ts` a partir de `nombre`, en el mismo
-sitio donde hacen falta. `scripts/descargar-datos.ts` comprueba antes de
-escribir nada que dos provincias, o dos municipios de la misma provincia, no
-generen el mismo slug (`comprobarSlugsUnicos`): una colisión aborta la
-generación entera, igual que un fallo de red (RF-05).
+```json
+{
+  "actualizado": "2026-08-06T22:24:29.513Z",
+  "municipios": [
+    { "nombre": "Vitoria-Gasteiz", "provinciaId": "01", "estaciones": 39 }
+  ]
+}
+```
 
-**Coste a vigilar:** los ~3.000 municipios con al menos una estación añaden
-del orden de 25-30 KB comprimidos a `indice.json`, que el navegador descarga
-en **todas** las páginas para pintar el selector de zona (RF-32), aunque el
-selector no use el catálogo de municipios para nada. Es una lectura
-deliberada de la instrucción que pidió este catálogo "en indice.json": si
-esa cifra se convierte en un problema real (medir con datos de producción,
-no aquí), la salida es partirlo a un fichero aparte que solo lean los
-`getStaticPaths` en el build, nunca el navegador.
+Vive en `datos-build/municipios.json`, **no** en `public/data/`: es el único
+catálogo de todo H10 que ningún código de navegador pide jamás, solo lo leen
+`getStaticPaths` y `sitemap.xml.ts` en el build (los dos vía `process.cwd()`,
+no `import.meta.dirname` — ver el comentario en esos ficheros). Estar fuera de
+`public/` no es un detalle: significa que Astro nunca lo copia a `dist/`, así
+que no hay manera de que un `fetch` desde el cliente llegue a pedirlo, ni por
+error ni por URL adivinada.
 
-### `public/_redirects` (RF-60)
+La primera versión de H10 lo guardaba dentro de `indice.json`, siguiendo al
+pie de la letra un encargo que decía "guarda en indice.json el municipio, su
+provincia y su número de estaciones". Medido con datos reales: añadía **28 KB
+comprimidos** a un fichero que antes pesaba 3,4 KB comprimidos — casi 10
+veces más — y que el navegador descarga en las 1161 páginas del sitio para
+pintar un selector de zona que no usa el catálogo de municipios para nada.
+Se corrigió sacándolo de `indice.json` en cuanto se midió el coste real; no
+es una salida pendiente, es lo que hay hoy.
+
+Los slugs de URL (`/{provincia}/{municipio}/`) no se guardan en ningún
+fichero: se calculan siempre con `scripts/lib/slug.ts` a partir de `nombre`,
+en el mismo sitio donde hacen falta. `scripts/descargar-datos.ts` comprueba
+antes de escribir nada que dos provincias, o dos municipios de la misma
+provincia, no generen el mismo slug (`comprobarSlugsUnicos`): una colisión
+aborta la generación entera, igual que un fallo de red (RF-05).
+
+### Redirección de municipio sin página (RF-60): una Pages Function, no `_redirects`
 
 Un municipio por debajo de `MINIMO_ESTACIONES_MUNICIPIO` no tiene página
-propia. `scripts/lib/redirecciones.ts` escribe una línea comodín por
-provincia —no una por municipio, que serían miles y superarían el límite de
-reglas de Cloudflare Pages—: `/{provincia}/*  /p-{id}/  301`. Funciona
-porque Cloudflare Pages sirve un fichero estático real antes de mirar
-`_redirects` cuando los dos coinciden en la misma ruta: las páginas de
-municipio que sí existen nunca llegan a esta regla. **Sin verificar contra
-un despliegue real** — es lo primero que comprobar después del primer
-`wrangler pages deploy`.
+propia y redirige a la de su provincia. La primera versión de esto era un
+comodín en `public/_redirects` (`/{provincia}/*  /p-{id}/  301`); se retiró
+**verificado y roto**: Cloudflare Pages aplica los redirects antes de mirar
+si existe un asset estático en esa misma ruta, así que el comodín también
+redirigía las páginas de municipio reales. El número real de municipios sin
+página (2.178) tampoco cabía como líneas literales: `_redirects` limita a
+2.000 reglas estáticas. Los dos caminos obvios fallan; el detalle completo y
+las alternativas descartadas están en [ADR-0010](adr/0010-redireccion-municipio-con-pages-function.md).
+
+La solución: `functions/[provincia]/[municipio].js`, una Pages Function con
+la misma forma de ruta que las páginas de municipio. Por petición: intenta
+servir el asset estático real con `env.ASSETS.fetch()`; si existe, lo
+devuelve tal cual; si no (404 de verdad, que exige tener un `404.html` en la
+raíz — `src/pages/404.astro`, nuevo en H10 — o Cloudflare asume una SPA y
+sirve `index.html` con 200 para todo), busca la provincia en
+`datos-build/provincias-slugs.json` y redirige con 301.
+
+No es un servidor ni un proceso continuo (RNF-02 intacto): corre por
+petición, en el borde, igual que el resto de Cloudflare Pages ya hace para
+servir cualquier página. Verificado con `wrangler pages dev` contra un build
+real, con 10 URLs al azar (5 páginas reales, 5 municipios por debajo del
+mínimo, provincias distintas): todas se resuelven como toca.
 
 ## Despliegue
 

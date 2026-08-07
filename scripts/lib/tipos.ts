@@ -69,15 +69,36 @@ export interface ResumenMunicipio {
 }
 
 /** RF-60: mínimo de estaciones visibles para que un municipio tenga página
- *  propia. Por debajo no se genera: `public/_redirects` (generado en el
- *  mismo paso que `indice.json`) manda esas URLs a la página de su
- *  provincia. */
+ *  propia. Por debajo no se genera: `functions/[provincia]/[municipio].js`
+ *  (ver ADR-0010) manda esas URLs a la página de su provincia. */
 export const MINIMO_ESTACIONES_MUNICIPIO = 3;
+
+/** Slug de provincia → id de dos dígitos, en `datos-build/provincias-slugs.json`.
+ *  Lo lee `functions/[provincia]/[municipio].js` (JavaScript plano, fuera del
+ *  proyecto TypeScript) para construir el destino `/p-{id}/` de la
+ *  redirección de RF-60 sin tener que repetir la lista de provincias a mano
+ *  ahí. Igual que `IndiceMunicipios`, fuera de `public/`: el navegador nunca
+ *  lo pide, solo el Function en el edge. */
+export interface ProvinciaSlug {
+  slug: string;
+  id: string;
+}
+
+/** Índice del catálogo de municipios, en `datos-build/municipios.json`.
+ *  Deliberadamente FUERA de `public/`: no lo lee nunca el navegador, solo
+ *  `getStaticPaths` de `src/pages/[provincia]/[municipio]/index.astro` y
+ *  `src/pages/sitemap.xml.ts`, en el build. Separado de `Indice` porque
+ *  `Indice` sí viaja al navegador en cada página (el selector de zona lo
+ *  pide siempre) y el catálogo de municipios no le sirve para nada: llevarlo
+ *  ahí añadía ~28 KB comprimidos a cada una de las 1161 páginas. */
+export interface IndiceMunicipios {
+  actualizado: string;
+  municipios: ResumenMunicipio[];
+}
 
 export interface Indice {
   actualizado: string;
   mock?: true;
   provincias: ResumenProvincia[];
   zonas: Zona[];
-  municipios: ResumenMunicipio[];
 }

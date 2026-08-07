@@ -1,0 +1,63 @@
+---
+// Página de error 404. Doble motivo para que exista:
+//
+// 1. Sin esto, cualquier URL que no exista en dist/ (typo, enlace roto,
+//    marcador viejo) la sirve Cloudflare Pages con su comportamiento de SPA
+//    por defecto: 200 con index.html, un "soft 404" que Search Console
+//    penaliza y que además engaña a quien llega con un enlace muerto.
+// 2. Es la pieza que hace posible el arreglo de RF-60 (H10): la función de
+//    functions/[provincia]/[municipio].js solo puede distinguir "esto no
+//    existe" de "esto sí existe" si Cloudflare devuelve un 404 de verdad al
+//    pedir el asset estático — y solo lo hace si hay un 404.html en la raíz
+//    del despliegue. Ver el comentario de esa función para el porqué
+//    completo.
+import '../estilos/tokens.css';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Página no encontrada · Surtidor</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#16323B" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--sans);
+        background: var(--paper);
+        color: var(--petrol);
+        text-align: center;
+        padding: 24px;
+      }
+      main {
+        max-width: 420px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 8px;
+      }
+      p {
+        line-height: 1.5;
+        margin: 0 0 20px;
+      }
+      a {
+        color: var(--petrol);
+        font-weight: 650;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Página no encontrada</h1>
+      <p>Esa dirección no corresponde a ninguna zona ni municipio de Surtidor.</p>
+      <a href="/">Volver al inicio</a>
+    </main>
+  </body>
+</html>
