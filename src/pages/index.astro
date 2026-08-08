@@ -14,7 +14,7 @@ const descripcion = 'Precios de gasolina y diésel por zona, sin anuncios ni reg
 // 52 provincias y las 19 comunidades autónomas — si no, las 1.162 páginas
 // del sitio solo se descubren por el sitemap y no reciben autoridad de
 // enlace. Se lee del disco en el build, como ya hace getStaticPaths de
-// src/pages/[zona]/index.astro; no hay red aquí. Sin precio (RF-91, punto
+// src/pages/[...zona]/index.astro; no hay red aquí. Sin precio (RF-91, punto
 // 4): la portada no carga datos de ninguna provincia, y un precio de una
 // gasolinera a 500 km sería engañoso (ver el comentario de imagenCompartir,
 // más abajo).
@@ -113,7 +113,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
       // Orquestación de la página: carga el índice, monta los componentes y
       // mantiene la zona activa al día.
       import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-      import { cargarIndice, cargarZona, zonaDeReserva, provinciaMasCercana } from '../logica/zona.ts';
+      import { cargarIndice, cargarZona, zonaDeReserva, zonaDeProvincia, provinciaMasCercana } from '../logica/zona.ts';
       import { montarControles } from '../componentes/Controles.ts';
       import { montarLista } from '../componentes/Lista.ts';
       import { montarTotem } from '../componentes/Totem.ts';
@@ -124,7 +124,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
 
       // RF-35: si ya hay una zona guardada de una visita anterior, esto ya
       // no es la portada: es la página de esa zona, con su HTML, su
-      // JSON-LD y su og:image propios (src/pages/[zona]/index.astro). Antes
+      // JSON-LD y su og:image propios (src/pages/[...zona]/index.astro). Antes
       // esto se resolvía en sitio (el resto de este script cargaba la zona
       // sobre la marcha) y la URL se quedaba en "/" para siempre: compartir
       // ese enlace mandaba a quien lo abriera a SU zona guardada, no a la
@@ -331,7 +331,11 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
           if (!indice) return;
           const provincia = provinciaMasCercana(indice, posicion);
-          actualizarEstado({ zonaId: `p-${provincia.id}` });
+          // ADR-0018: el id de zona de una provincia ya no se puede
+          // reconstruir como `p-${id}`, hay que buscarlo en el índice.
+          const zona = zonaDeProvincia(indice, provincia.id);
+          if (!zona) return; // caso imposible (ver src/logica/zona.ts), no interrumpe la interfaz
+          actualizarEstado({ zonaId: zona.id });
         }
 
         // El mapa se importa dinámicamente: MapLibre pesa bastante más que el

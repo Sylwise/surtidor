@@ -13,6 +13,11 @@ dist/
 public/data/indice.json
 public/data/provincias/*.json
 
+# 71 reglas de redirección 301 (RF-96, ADR-0018), generadas por el mismo
+# npm run data:fetch / data:mock a partir del catálogo de zonas: se genera,
+# nunca se escribe a mano, así que tampoco se lleva en el historial.
+public/_redirects
+
 # Catálogo de municipios (H10, segunda mitad): solo lo lee el build
 # (getStaticPaths, sitemap.xml.ts), nunca el navegador. Deliberadamente
 # fuera de public/ para que no se despliegue ni se pueda pedir por fetch —

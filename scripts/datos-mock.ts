@@ -6,8 +6,10 @@
 // (docs/04-fuente-datos.md), precisamente para no depender de red.
 
 import { join } from 'node:path';
-import { escribirJsonAtomico } from './lib/escritura.ts';
+import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
+import { generarSlug, idZonaComunidad } from './lib/slug.ts';
+import { generarRedirects, type ParRedirect } from './lib/redirecciones.ts';
 import type { MunicipioCatalogo } from './lib/miteco.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
@@ -198,11 +200,22 @@ async function main(): Promise<void> {
     centro: { lat: PROVINCIAS[i]!.lat, lon: PROVINCIAS[i]!.lon },
   }));
 
+  // ADR-0018, mismo cálculo que scripts/descargar-datos.ts: las 52 slugs de
+  // provincia se comparan contra las 19 de comunidad, nunca una lista de
+  // colisiones a mano. El catálogo de mentira reproduce las mismas ocho
+  // colisiones reales (Asturias, Cantabria, Ceuta, Madrid, Melilla, Murcia,
+  // Navarra, Rioja (La)) porque PROVINCIAS/NOMBRE_CCAA son una captura real.
+  const slugsProvincia = new Set(PROVINCIAS.map((p) => generarSlug(p.nombre)));
+
   const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({
-    id: `p-${datos.provincia.id}`,
+    id: generarSlug(datos.provincia.nombre),
     nombre: datos.provincia.nombre,
     tipo: 'provincia' as const,
     provincias: [datos.provincia.id],
+  }));
+  const redirectsProvincia: ParRedirect[] = datosPorProvincia.map((datos, i) => ({
+    idAntiguo: `p-${datos.provincia.id}`,
+    idNuevo: zonasProvincia[i]!.id,
   }));
 
   const provinciasPorCcaa = new Map<string, string[]>();
@@ -211,12 +224,14 @@ async function main(): Promise<void> {
     lista.push(provincia.id);
     provinciasPorCcaa.set(provincia.idCcaa, lista);
   }
-  const zonasCcaa: Zona[] = Array.from(provinciasPorCcaa.entries()).map(([idCcaa, provincias]) => ({
-    id: `ccaa-${idCcaa}`,
-    nombre: NOMBRE_CCAA[idCcaa] ?? `CCAA ${idCcaa}`,
-    tipo: 'ccaa' as const,
-    provincias: provincias.sort(),
-  }));
+  const zonasCcaa: Zona[] = [];
+  const redirectsCcaa: ParRedirect[] = [];
+  for (const [idCcaa, provincias] of provinciasPorCcaa.entries()) {
+    const nombre = NOMBRE_CCAA[idCcaa] ?? `CCAA ${idCcaa}`;
+    const id = idZonaComunidad(nombre, slugsProvincia);
+    zonasCcaa.push({ id, nombre, tipo: 'ccaa' as const, provincias: provincias.sort() });
+    redirectsCcaa.push({ idAntiguo: `ccaa-${idCcaa}`, idNuevo: id });
+  }
 
   // Mismo catálogo (nombre + provincia) que Listados/Municipios aportaría en
   // real, para que construirMunicipios cruce igual que en descargar-datos.ts.
@@ -247,6 +262,10 @@ async function main(): Promise<void> {
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
+  await escribirTextoAtomico(
+    join(DIRECTORIO_PUBLIC, '_redirects'),
+    generarRedirects([...redirectsProvincia, ...redirectsCcaa]),
+  );
 
   const municipiosConPagina = municipios.filter((m) => m.estaciones >= MINIMO_ESTACIONES_MUNICIPIO).length;
   console.log(

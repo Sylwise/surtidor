@@ -7,8 +7,9 @@
 // municipio repetidos en varias provincias (RF-76, docs/adr/0007) y un slug
 // plano colisionaría en silencio. Solo se genera para los municipios con al
 // menos MINIMO_ESTACIONES_MUNICIPIO estaciones visibles (RF-60); por debajo,
-// public/_redirects (scripts/lib/redirecciones.ts) manda a la página de la
-// provincia.
+// ninguna página del sitio los enlaza y la URL da el 404 de src/pages/404.astro
+// (ADR-0012 — no hay redirección para municipio, a diferencia de las zonas
+// de scripts/lib/redirecciones.ts, que es otro mecanismo para otras URLs).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 // `process.cwd()`, no `import.meta.dirname`: en `astro dev` este fichero se
@@ -86,10 +87,15 @@ const { municipio, provincia, vecinos } = Astro.props;
 const nombreMunicipio = cajaDeTitulo(municipio.nombre);
 const provinciaSlug = generarSlug(provincia.nombre);
 const municipioSlug = generarSlug(municipio.nombre);
-const hrefProvincia = `/p-${provincia.id}/`;
+// ADR-0018: la zona de una provincia es siempre el slug de su nombre, el
+// mismo `provinciaSlug` de arriba — nunca `p-${id}` a mano. Una provincia no
+// entra nunca bajo el prefijo `comunidad/` (eso es solo para comunidades
+// autónomas que colisionan con una provincia), así que no hace falta mirar
+// el índice para saberlo.
+const hrefProvincia = `/${provinciaSlug}/`;
 const canonical = new URL(`/${provinciaSlug}/${municipioSlug}/`, Astro.site);
 // H11 (RF-66): misma ruta que escribe scripts/generar-imagenes-compartir.ts.
-// URL ABSOLUTA (ver el comentario igual en src/pages/[zona]/index.astro):
+// URL ABSOLUTA (ver el comentario igual en src/pages/[...zona]/index.astro):
 // WhatsApp no resuelve relativas y el fallo no da ningún error visible.
 const imagenCompartir = new URL(`/og/${provinciaSlug}/${municipioSlug}.png`, Astro.site);
 
@@ -244,7 +250,7 @@ const jsonLd = {
          título grande sin quitarle presupuesto a la lista. -->
     <h1 class="sr-only">Gasolineras en {nombreMunicipio}</h1>
     <AppInteractiva
-      zonaId={`p-${provincia.id}`}
+      zonaId={provinciaSlug}
       zonaNombre={provincia.nombre}
       hidratacionEmbebida={true}
       estaciones={filasMunicipio}

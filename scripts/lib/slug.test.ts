@@ -7,7 +7,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { generarSlug, comprobarSlugsUnicos } from './slug.ts';
+import { generarSlug, comprobarSlugsUnicos, idZonaComunidad, PREFIJO_COMUNIDAD } from './slug.ts';
 
 describe('generarSlug', () => {
   it('ARABA/ALAVA es araba-alava (el ejemplo literal del encargo)', () => {
@@ -90,5 +90,31 @@ describe('comprobarSlugsUnicos', () => {
     assert.doesNotThrow(() =>
       comprobarSlugsUnicos(municipios, (m) => m.nombre, (m) => m.provinciaId, 'Municipios'),
     );
+  });
+});
+
+describe('idZonaComunidad (ADR-0018)', () => {
+  it('sin colisión con ninguna provincia, el id es el slug a secas', () => {
+    const slugsProvincia = new Set(['barcelona', 'girona']);
+    assert.equal(idZonaComunidad('Cataluña', slugsProvincia), 'cataluna');
+  });
+
+  it('con el mismo slug que una provincia, va bajo el prefijo de comunidad', () => {
+    const slugsProvincia = new Set(['madrid', 'barcelona']);
+    assert.equal(idZonaComunidad('Madrid', slugsProvincia), `${PREFIJO_COMUNIDAD}/madrid`);
+  });
+
+  it('las ocho colisiones reales de ADR-0018', () => {
+    const slugsProvincia = new Set([
+      'asturias', 'cantabria', 'ceuta', 'madrid', 'melilla', 'murcia', 'navarra', 'rioja-la',
+    ]);
+    for (const nombre of ['Asturias', 'Cantabria', 'Ceuta', 'Madrid', 'Melilla', 'Murcia', 'Navarra', 'Rioja (La)']) {
+      assert.equal(idZonaComunidad(nombre, slugsProvincia), `${PREFIJO_COMUNIDAD}/${generarSlug(nombre)}`);
+    }
+  });
+
+  it('Baleares no colisiona: la provincia es BALEARS (ILLES), la comunidad Baleares', () => {
+    const slugsProvincia = new Set([generarSlug('BALEARS (ILLES)')]);
+    assert.equal(idZonaComunidad('Baleares', slugsProvincia), 'baleares');
   });
 });

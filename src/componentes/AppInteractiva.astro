@@ -1,12 +1,12 @@
 ---
 // H10 · El cascarón interactivo (cabecera, hoja, mapa, lista, tótem) que
-// comparten src/pages/[zona]/index.astro y
+// comparten src/pages/[...zona]/index.astro y
 // src/pages/[provincia]/[municipio]/index.astro (segunda mitad de H10): la
 // misma aplicación de siempre, con la zona activa fijada desde un prop en
 // vez de localStorage, para que cada página estática enseñe siempre la zona
 // que prometen su <title> y su URL.
 //
-// Extraído de [zona]/index.astro para no duplicar ~400 líneas de
+// Extraído de [...zona]/index.astro para no duplicar ~400 líneas de
 // orquestación entre las dos páginas: cualquier cambio de comportamiento se
 // hace aquí una vez. El <html>/<head>/<body>, el <title> y la tabla estática
 // de SEO son cosa de cada página, no de este componente.
@@ -266,6 +266,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
     cargarIndice,
     cargarZona,
     zonaDeReserva,
+    zonaDeProvincia,
     provinciaMasCercana,
     type EstacionZona,
     type FalloProvincia,
@@ -277,6 +278,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   import { datosDesactualizados } from '../logica/frescura.ts';
   import { formatearFechaHora } from '../logica/formato.ts';
   import { tituloZona, descripcionZona } from '../logica/metaZona.ts';
+  import { PREFIJO_COMUNIDAD } from '../../scripts/lib/slug.ts';
   import type { Indice } from '../../scripts/lib/tipos.ts';
 
   function elemento(id: string): HTMLElement {
@@ -587,8 +589,19 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
 
   // Deduce la zona a mostrar de la dirección actual, no de `zonaMostrada`
   // ni de `estado.zonaId`: es la regla de fondo de esta parte de RF-88.
+  //
+  // ADR-0018: el primer tramo de una URL de zona ya no identifica la zona
+  // por sí solo. `/barcelona/` es un tramo; `/comunidad/madrid/` son dos, y
+  // el id de esa zona ES la ruta entera ("comunidad/madrid"), no "comunidad"
+  // a secas — de ahí que haga falta mirar el segundo tramo cuando el primero
+  // es el prefijo de comunidad.
   function zonaIdDeDireccion(): string | null {
-    return location.pathname.split('/').filter(Boolean)[0] ?? null;
+    const segmentos = location.pathname.split('/').filter(Boolean);
+    if (segmentos.length === 0) return null;
+    if (segmentos[0] === PREFIJO_COMUNIDAD && segmentos.length >= 2) {
+      return `${PREFIJO_COMUNIDAD}/${segmentos[1]}`;
+    }
+    return segmentos[0] ?? null;
   }
 
   if (esPaginaDeZona) {
@@ -684,7 +697,11 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
     if (!indice) return;
     const provincia = provinciaMasCercana(indice, posicion);
-    actualizarEstado({ zonaId: `p-${provincia.id}` });
+    // ADR-0018: el id de zona de una provincia ya no se puede reconstruir
+    // como `p-${id}`, hay que buscarlo en el índice.
+    const zona = zonaDeProvincia(indice, provincia.id);
+    if (!zona) return; // caso imposible (ver src/logica/zona.ts)
+    actualizarEstado({ zonaId: zona.id });
   }
 
   // import() dinámico para que MapLibre entre en su propio chunk, aparte

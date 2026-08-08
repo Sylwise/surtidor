@@ -33,7 +33,7 @@ export interface ResultadoZona {
 
 /**
  * Umbral de estaciones a partir del cual una página de zona
- * (src/pages/[zona]/index.astro) deja de llevar el bloque JSON de
+ * (src/pages/[...zona]/index.astro) deja de llevar el bloque JSON de
  * hidratación embebido, y el cliente vuelve a pedir los JSON de provincia
  * por fetch, como antes de H10.
  *
@@ -75,6 +75,17 @@ export function cargarIndice(): Promise<Indice> {
 }
 
 /**
+ * La zona de tipo "provincia" de un id de provincia dado — nunca se
+ * construye el id a mano (ADR-0018: desde RF-95 ya no tiene una forma
+ * predecible como `p-{id}`). Se filtra también por `tipo`: una comunidad de
+ * una sola provincia (Madrid, Murcia, Navarra…) comparte el mismo
+ * `provincias[0]` que su provincia y se pisarían sin esa guarda.
+ */
+export function zonaDeProvincia(indice: Indice, provinciaId: string): Zona | undefined {
+  return indice.zonas.find((z) => z.tipo === 'provincia' && z.provincias[0] === provinciaId);
+}
+
+/**
  * Zona de reserva para el caso imposible de que un `zonaId` (guardado en
  * localStorage o fijado por la URL) ya no exista en el índice — los datos se
  * regeneran cada dos horas y una zona puede desaparecer entre medias. No es
@@ -89,7 +100,7 @@ export function zonaDeReserva(indice: Indice): Zona {
   const provinciaConMasEstaciones = indice.provincias.reduce((mayor, actual) =>
     actual.estaciones > mayor.estaciones ? actual : mayor
   );
-  const zona = indice.zonas.find((z) => z.id === `p-${provinciaConMasEstaciones.id}`);
+  const zona = zonaDeProvincia(indice, provinciaConMasEstaciones.id);
   if (!zona) throw new Error('No hay ninguna zona disponible en el índice.');
   return zona;
 }
@@ -127,7 +138,7 @@ export function provinciaMasCercana(indice: Indice, posicion: { lat: number; lon
  * estaciones, con la provincia de origen adjunta a cada una (RF-24). No hace
  * ninguna carga por sí misma: recibe los `DatosProvincia` ya en memoria, sea
  * cual sea su procedencia. La usan tanto `cargarZona` de aquí abajo (fetch, en
- * el navegador) como `src/pages/[zona]/index.astro` (lectura de disco en el
+ * el navegador) como `src/pages/[...zona]/index.astro` (lectura de disco en el
  * build, sin red): las dos vías cargan distinto pero fusionan igual.
  */
 export function fusionarProvincias(datosPorProvincia: DatosProvincia[]): {

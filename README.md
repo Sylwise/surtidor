@@ -15,7 +15,8 @@ compartición `og:image` generada en el build —
 Enlazado interno portada → zona → municipio (RF-91, RF-92) —
 [ADR-0017](docs/adr/0017-jerarquia-de-enlaces.md). El precio que acompaña a
 cada municipio, en zona y en vecinos, sigue al combustible seleccionado
-(RF-94).
+(RF-94). Las URLs de zona llevan el nombre, no el identificador (RF-95,
+RF-96) — [ADR-0018](docs/adr/0018-urls-de-zona-por-nombre.md).
 
 Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
 El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna
