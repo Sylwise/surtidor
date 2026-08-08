@@ -131,7 +131,6 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
     />
 
     <section id="tabla-zona" class="tabla-zona" aria-label={`Las más baratas y los municipios de ${zona.nombre}`}>
-      <h1 class="tabla-zona__titulo">Gasolineras en {zona.nombre}</h1>
       <h2 class="tabla-zona__titulo">Las {filasTabla.length} más baratas de {zona.nombre}</h2>
       {actualizado && (
         <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
