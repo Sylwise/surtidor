@@ -20,12 +20,15 @@ import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../l
 import { ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import type { ClavePrecio, Zona } from '../../scripts/lib/tipos.ts';
 
-const ETIQUETA_TIPO: Record<Zona['tipo'], string> = {
+// Exportadas: src/pages/index.astro (RF-91, ADR-0017) agrupa sus enlaces de
+// portada con el mismo vocabulario y el mismo orden que este selector, para
+// que las dos vías no diverjan.
+export const ETIQUETA_TIPO: Record<Zona['tipo'], string> = {
   provincia: 'Provincias',
   ccaa: 'Comunidades autónomas',
 };
 
-const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa'];
+export const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa'];
 
 function normalizar(texto: string): string {
   return texto

@@ -173,43 +173,39 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
         </table>
       </div>
 
-      <h2 class="tabla-zona__titulo tabla-zona__titulo--municipios">
-        Precios por municipio en {zona.nombre}
-      </h2>
-      <div class="tabla-zona__scroll">
-        <table class="tabla-zona__tabla">
-          <thead>
-            <tr>
-              <th scope="col">Municipio</th>
-              {multiProvinciaTabla && <th scope="col">Provincia</th>}
-              <th scope="col">Estaciones</th>
-              <th scope="col">Gasolina 95 desde</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resumenMunicipios.map((resumen) => {
-              const href = hrefMunicipioZona(resumen);
-              return (
-                <tr>
-                  <th scope="row">
-                    {href ? <a href={href}>{cajaDeTitulo(resumen.municipio)}</a> : cajaDeTitulo(resumen.municipio)}
-                  </th>
-                  {multiProvinciaTabla && <td>{resumen.provinciaNombre}</td>}
-                  <td>{resumen.estaciones}</td>
-                  <td>
-                    {resumen.precioMinimo === null ? (
-                      <span class="tabla-zona__ausente">no vende</span>
-                    ) : (
-                      <span class={`precio precio--${bandaPrecioZona(escalasPorCombustible, 'gasolina95e5', resumen.precioMinimo)}`}>
-                        {formatearPrecio(resumen.precioMinimo)}
-                      </span>
+      {/* RF-92 (ADR-0017): enlaces reales a todos los municipios de la zona
+          que tienen página propia (RF-60) — es el índice de lo que hay
+          debajo, y sin él ninguna página de municipio tenía padre que la
+          enlazara. Los municipios sin página (hrefMunicipioZona === null) no
+          entran: no hay adónde mandar. src/componentes/TablaZona.ts repinta
+          este mismo bloque en cliente al cambiar de zona sin recargar
+          (RF-88); mismo cálculo, misma estructura, para que las dos vías no
+          diverjan. */}
+      <div class="enlaces-bloque">
+        <h2 class="enlaces-bloque__titulo micro">Municipios de {zona.nombre}</h2>
+        <ul class="enlaces-bloque__filas">
+          {resumenMunicipios
+            .filter((resumen) => hrefMunicipioZona(resumen) !== null)
+            .map((resumen) => (
+              <li>
+                <a href={hrefMunicipioZona(resumen) as string} class="enlaces-bloque__fila">
+                  <span class="enlaces-bloque__info">
+                    <span class="enlaces-bloque__nombre">{cajaDeTitulo(resumen.municipio)}</span>
+                    {multiProvinciaTabla && (
+                      <span class="enlaces-bloque__provincia">{resumen.provinciaNombre}</span>
                     )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </span>
+                  {resumen.precioMinimo !== null && (
+                    <span
+                      class={`enlaces-bloque__precio precio precio--${bandaPrecioZona(escalasPorCombustible, 'gasolina95e5', resumen.precioMinimo)}`}
+                    >
+                      {formatearPrecio(resumen.precioMinimo)}
+                    </span>
+                  )}
+                </a>
+              </li>
+            ))}
+        </ul>
       </div>
     </section>
   </body>

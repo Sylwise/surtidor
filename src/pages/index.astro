@@ -1,10 +1,27 @@
 ---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import '../estilos/tokens.css';
 import '../estilos/interfaz.css';
 import marcaSvg from '../assets/marca.svg?raw';
+import { ETIQUETA_TIPO, ORDEN_TIPOS } from '../componentes/Controles.ts';
+import type { Indice } from '../../scripts/lib/tipos.ts';
 
 const titulo = 'Surtidor · Precios de carburantes de España';
 const descripcion = 'Precios de gasolina y diésel por zona, sin anuncios ni registro.';
+
+// RF-91 (ADR-0017): la portada enlaza de verdad, en el HTML servido, a las
+// 52 provincias y las 19 comunidades autónomas — si no, las 1.162 páginas
+// del sitio solo se descubren por el sitemap y no reciben autoridad de
+// enlace. Se lee del disco en el build, como ya hace getStaticPaths de
+// src/pages/[zona]/index.astro; no hay red aquí. Sin precio (RF-91, punto
+// 4): la portada no carga datos de ninguna provincia, y un precio de una
+// gasolinera a 500 km sería engañoso (ver el comentario de imagenCompartir,
+// más abajo).
+const indice = JSON.parse(
+  readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8'),
+) as Indice;
+const zonasOrdenadas = [...indice.zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 // La portada no tiene zona fija en el build (RF-49: se resuelve en el
 // cliente) y, sobre todo, un precio de una gasolinera a 500 km sería
 // engañoso en una página que no habla de ningún sitio concreto. Usa la
@@ -67,6 +84,30 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         </div>
       </div>
     </div>
+
+    <section class="enlaces-territorio" aria-label="Todas las provincias y comunidades autónomas">
+      {ORDEN_TIPOS.map((tipo) => {
+        const deEsteTipo = zonasOrdenadas.filter((zona) => zona.tipo === tipo);
+        if (deEsteTipo.length === 0) return null;
+        return (
+          <div class="enlaces-bloque">
+            <h2 class="enlaces-bloque__titulo micro">{ETIQUETA_TIPO[tipo]}</h2>
+            <ul class="enlaces-bloque__filas">
+              {deEsteTipo.map((zona) => (
+                <li>
+                  {/* RF-76: el nombre del catálogo del ministerio, verbatim. */}
+                  <a href={`/${zona.id}/`} class="enlaces-bloque__fila">
+                    <span class="enlaces-bloque__info">
+                      <span class="enlaces-bloque__nombre">{zona.nombre}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </section>
 
     <script>
       // Orquestación de la página: carga el índice, monta los componentes y

@@ -81,58 +81,65 @@ function construirTablaPrincipal(
   return scroll;
 }
 
-function construirTablaMunicipios(
+// RF-92 (ADR-0017): un bloque de enlaces reales, no una tabla — mismo
+// tratamiento visual que .lista__filas/.fila (docs/05-diseno.md#La-lista-es-
+// el-contenido), pero con <a>, no <button>. Solo entran los municipios con
+// página propia (hrefMunicipioZona !== null): no hay adónde mandar a los
+// demás. Reproduce a mano la misma estructura que src/pages/[zona]/index.astro
+// genera con JSX en el build, para que las dos vías no diverjan (RF-88).
+function construirEnlacesMunicipios(
   resumen: ResumenMunicipioZona[],
   multiProvincia: boolean,
   escalas: Record<ClavePrecio, Escala>,
+  zonaNombre: string,
 ): HTMLDivElement {
-  const scroll = document.createElement('div');
-  scroll.className = 'tabla-zona__scroll';
+  const bloque = document.createElement('div');
+  bloque.className = 'enlaces-bloque';
 
-  const tabla = document.createElement('table');
-  tabla.className = 'tabla-zona__tabla';
+  const titulo = document.createElement('h2');
+  titulo.className = 'enlaces-bloque__titulo micro';
+  titulo.textContent = `Municipios de ${zonaNombre}`;
+  bloque.append(titulo);
 
-  const filaCabecera = document.createElement('tr');
-  filaCabecera.append(celdaColumna('Municipio'));
-  if (multiProvincia) filaCabecera.append(celdaColumna('Provincia'));
-  filaCabecera.append(celdaColumna('Estaciones'), celdaColumna('Gasolina 95 desde'));
-  const thead = document.createElement('thead');
-  thead.append(filaCabecera);
-  tabla.append(thead);
+  const filas = document.createElement('ul');
+  filas.className = 'enlaces-bloque__filas';
 
-  const tbody = document.createElement('tbody');
   for (const resumenMunicipio of resumen) {
-    const tr = document.createElement('tr');
-
-    const cabeceraFila = document.createElement('th');
-    cabeceraFila.scope = 'row';
     const href = hrefMunicipioZona(resumenMunicipio);
-    if (href) {
-      const enlace = document.createElement('a');
-      enlace.href = href;
-      enlace.textContent = cajaDeTitulo(resumenMunicipio.municipio);
-      cabeceraFila.append(enlace);
-    } else {
-      cabeceraFila.textContent = cajaDeTitulo(resumenMunicipio.municipio);
-    }
-    tr.append(cabeceraFila);
+    if (!href) continue;
 
+    const fila = document.createElement('a');
+    fila.className = 'enlaces-bloque__fila';
+    fila.href = href;
+
+    const info = document.createElement('span');
+    info.className = 'enlaces-bloque__info';
+    const nombre = document.createElement('span');
+    nombre.className = 'enlaces-bloque__nombre';
+    nombre.textContent = cajaDeTitulo(resumenMunicipio.municipio);
+    info.append(nombre);
     if (multiProvincia) {
-      const provincia = document.createElement('td');
+      const provincia = document.createElement('span');
+      provincia.className = 'enlaces-bloque__provincia';
       provincia.textContent = resumenMunicipio.provinciaNombre;
-      tr.append(provincia);
+      info.append(provincia);
+    }
+    fila.append(info);
+
+    if (resumenMunicipio.precioMinimo !== null) {
+      const precio = document.createElement('span');
+      precio.className = `enlaces-bloque__precio precio precio--${bandaPrecioZona(escalas, 'gasolina95e5', resumenMunicipio.precioMinimo)}`;
+      precio.textContent = formatearPrecio(resumenMunicipio.precioMinimo);
+      fila.append(precio);
     }
 
-    const estaciones = document.createElement('td');
-    estaciones.textContent = String(resumenMunicipio.estaciones);
-    tr.append(estaciones);
-
-    tr.append(celdaPrecio('gasolina95e5', resumenMunicipio.precioMinimo, escalas));
-    tbody.append(tr);
+    const li = document.createElement('li');
+    li.append(fila);
+    filas.append(li);
   }
-  tabla.append(tbody);
-  scroll.append(tabla);
-  return scroll;
+
+  bloque.append(filas);
+  return bloque;
 }
 
 /** Repinta `seccion` (`#tabla-zona`) entera con los datos de la zona nueva.
@@ -162,11 +169,5 @@ export function renderizarTablaZona(
   }
 
   seccion.append(construirTablaPrincipal(filas, multiProvincia, escalas));
-
-  const tituloMunicipios = document.createElement('h2');
-  tituloMunicipios.className = 'tabla-zona__titulo tabla-zona__titulo--municipios';
-  tituloMunicipios.textContent = `Precios por municipio en ${zonaNombre}`;
-  seccion.append(tituloMunicipios);
-
-  seccion.append(construirTablaMunicipios(resumenMunicipios, multiProvincia, escalas));
+  seccion.append(construirEnlacesMunicipios(resumenMunicipios, multiProvincia, escalas, zonaNombre));
 }
