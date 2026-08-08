@@ -22,24 +22,39 @@
 //   con fetch, el navegador y el CDN reaprovechan el mismo
 //   /data/provincias/NN.json entre todas.
 import marcaSvg from '../assets/marca.svg?raw';
+import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
+import { resumenMunicipiosDe, hrefMunicipioZona } from '../logica/municipios.ts';
+import { ORDEN_COMBUSTIBLES, ETIQUETA } from '../logica/combustibles.ts';
+import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
+import type { EnlacesEstaticos } from './Lista.ts';
 
 interface Props {
   zonaId: string;
   zonaNombre: string;
   /** Si `true`, `estaciones`/`mock`/`actualizado` van embebidos en el HTML
    *  para que el cliente arranque sin red. Si `false`, esos tres props se
-   *  ignoran y el cliente los pide por fetch, como antes de H10. */
+   *  ignoran para la hidratación y el cliente los pide por fetch, como antes
+   *  de H10 — pero `estaciones` SIGUE haciendo falta aquí abajo para pintar
+   *  el HTML servido de #lista (RF-89, RF-61): eso no depende del umbral de
+   *  hidratación, solo de qué estaciones hay que enseñar. */
   hidratacionEmbebida: boolean;
   estaciones?: EstacionZona[];
   mock?: boolean;
   actualizado?: string | null;
   /** RF-88 (ADR-0016): en una página de zona, elegir otra zona no recarga —
-   *  se cambia en sitio y `#tabla-zona` se regenera. En una página de
+   *  se cambia en sitio y #lista se regenera (Lista.ts calcula sus propios
+   *  enlaces de municipio a partir de `estado.estaciones`). En una página de
    *  municipio (`false`), elegir zona sigue siendo una navegación completa:
    *  es otro tipo de página, con su `<h1>` y su JSON-LD propios, que este
    *  componente no sabe regenerar. */
   esPaginaDeZona: boolean;
+  /** RF-89/RF-90: enlaces que cierran la lista en una página de MUNICIPIO —
+   *  vuelta a la provincia y municipios vecinos. `undefined`/`null` en una
+   *  página de zona: ahí los enlaces son los municipios de la propia zona,
+   *  calculados de `estaciones` más abajo (y, en cliente, de
+   *  `estado.estaciones`, ver Lista.ts). */
+  enlacesMunicipio?: EnlacesEstaticos | null;
 }
 
 const {
@@ -50,11 +65,38 @@ const {
   mock = false,
   actualizado = null,
   esPaginaDeZona,
+  enlacesMunicipio = null,
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
   ? JSON.stringify({ estaciones, mock, actualizado }).replace(/</g, '\\u003c')
   : '';
+
+// RF-89: el HTML del build contiene las estaciones ordenadas por los CUATRO
+// combustibles; las pastillas eligen cuál se muestra (Controles.ts,
+// hidratado más abajo), las otras tres siguen en el documento. Con el
+// cliente montado, Lista.ts sustituye este bloque casi al instante por el
+// mismo cálculo (src/logica/listaEstaciones.ts) — esto es lo que ve un
+// rastreador o alguien sin JavaScript.
+const listasPorCombustible = calcularListasPorCombustible(estaciones);
+const COMBUSTIBLE_POR_DEFECTO = ORDEN_COMBUSTIBLES[0];
+
+// RF-89 ("los enlaces a otros municipios cierran la lista") + RF-90 (enlace
+// de vuelta a la provincia). En una página de municipio, `enlacesMunicipio`
+// ya trae vuelta+vecinos resueltos por el frontmatter de esa página. En una
+// de zona, se calculan aquí de las mismas `estaciones` que alimentan la
+// lista de arriba.
+const enlacesCierre: { href: string; nombre: string; precioMinimo: number | null }[] = enlacesMunicipio
+  ? [
+      { href: enlacesMunicipio.volverA.href, nombre: `Ver toda ${enlacesMunicipio.volverA.nombre}`, precioMinimo: null },
+      ...enlacesMunicipio.vecinos,
+    ]
+  : resumenMunicipiosDe(estaciones)
+      .map((resumen) => {
+        const href = hrefMunicipioZona(resumen);
+        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precioMinimo: resumen.precioMinimo } : null;
+      })
+      .filter((enlace): enlace is { href: string; nombre: string; precioMinimo: number | null } => enlace !== null);
 ---
 
 <div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
@@ -75,7 +117,66 @@ const datosHidratacion = hidratacionEmbebida
       <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible"></div>
       <div class="hoja__cuerpo">
         <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
-        <section id="lista" class="lista" aria-label="Lista de estaciones"></section>
+        <section id="lista" class="lista" aria-label="Lista de estaciones">
+          {ORDEN_COMBUSTIBLES.map((clave) => {
+            const filas = listasPorCombustible[clave];
+            return (
+              <div class="lista__grupo" data-combustible={clave} hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
+                <div class="lista__cabecera">
+                  <h2 class="lista__titulo">Más baratas</h2>
+                  {' · '}
+                  <span class="lista__contador">{filas.length}</span>
+                  {' · '}
+                  <button
+                    type="button"
+                    class="controles__pestana lista__filtro"
+                    aria-pressed="false"
+                    aria-label="Filtrar solo estaciones abiertas ahora"
+                  >
+                    Abiertas
+                  </button>
+                </div>
+                {filas.length === 0 ? (
+                  <p class="lista__aviso">
+                    Ninguna estación de {zonaNombre || 'esta zona'} vende {ETIQUETA[clave].toLowerCase()}.
+                  </p>
+                ) : (
+                  <ol class="lista__filas">
+                    {filas.map(({ estacion, puesto, precio, banda }) => (
+                      <li>
+                        <div class="fila">
+                          <span class="fila__orden">{puesto}</span>
+                          <span class="fila__info">
+                            <span class="fila__rotulo">{estacion.rotulo}</span>
+                            <span class="fila__direccion">{cajaDeTitulo(estacion.direccion)}</span>
+                          </span>
+                          <span class={`fila__precio precio precio--${banda}`}>{formatearPrecio(precio)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            );
+          })}
+
+          {enlacesCierre.length > 0 && (
+            <nav class="lista__enlaces" aria-label="Otros municipios">
+              <ul class="lista__enlaces-filas">
+                {enlacesCierre.map((enlace) => (
+                  <li>
+                    <a class="enlace-municipio" href={enlace.href}>
+                      <span>{enlace.nombre}</span>
+                      {enlace.precioMinimo !== null && (
+                        <span class="enlace-municipio__precio">{formatearPrecio(enlace.precioMinimo)}</span>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+        </section>
       </div>
     </aside>
 
@@ -87,6 +188,15 @@ const datosHidratacion = hidratacionEmbebida
 
 {hidratacionEmbebida && (
   <script type="application/json" id="datos-zona" is:inline set:html={datosHidratacion} />
+)}
+
+{enlacesMunicipio && (
+  <script
+    type="application/json"
+    id="enlaces-municipio"
+    is:inline
+    set:html={JSON.stringify(enlacesMunicipio).replace(/</g, '\\u003c')}
+  />
 )}
 
 <script>
@@ -103,7 +213,7 @@ const datosHidratacion = hidratacionEmbebida
   // describiendo otra zona. El motivo por el que eso ya no aplica —quien lee
   // esas etiquetas nunca está en la pestaña del usuario— está en ADR-0016;
   // aquí solo cambia la mecánica: `cambiarZona`, más abajo, carga la zona
-  // nueva y actualiza mapa, lista, `#tabla-zona`, título y dirección a la
+  // nueva y actualiza mapa, lista, título y dirección a la
   // vez, o no toca nada si falla. En una página de municipio
   // (data-es-pagina-de-zona="false") el comportamiento de antes se queda
   // igual: es otro tipo de página, con su propio <h1> y JSON-LD, que este
@@ -122,10 +232,9 @@ const datosHidratacion = hidratacionEmbebida
     type FalloProvincia,
   } from '../logica/zona.ts';
   import { montarControles } from './Controles.ts';
-  import { montarLista } from './Lista.ts';
+  import { montarLista, type EnlacesEstaticos } from './Lista.ts';
   import { montarTotem } from './Totem.ts';
   import { montarHoja } from './Hoja.ts';
-  import { renderizarTablaZona } from './TablaZona.ts';
   import { datosDesactualizados } from '../logica/frescura.ts';
   import { formatearFechaHora } from '../logica/formato.ts';
   import { tituloZona, descripcionZona } from '../logica/metaZona.ts';
@@ -148,10 +257,6 @@ const datosHidratacion = hidratacionEmbebida
   const insigniaMock = elemento('insignia-mock');
   const hoja = elemento('hoja');
   const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
-  // Solo existe en páginas de zona (src/pages/[zona]/index.astro le pone el
-  // id): en páginas de municipio es `null` y no se usa, porque ahí
-  // `esPaginaDeZona` es `false` y `cambiarZona` nunca se llama.
-  const contenedorTablaZona = document.getElementById('tabla-zona');
 
   // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006) y
   // necesita saber su alto real.
@@ -172,7 +277,7 @@ const datosHidratacion = hidratacionEmbebida
   if (!zonaDeLaPagina || !nombreDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
   const esPaginaDeZona = contenedorApp.dataset.esPaginaDeZona === 'true';
 
-  // Zona realmente mostrada ahora mismo (mapa, lista, #tabla-zona, <title>).
+  // Zona realmente mostrada ahora mismo (mapa, lista, <title>).
   // Arranca igual que `zonaDeLaPagina` y solo se mueve cuando
   // `cambiarZona`, más abajo, termina con éxito — nunca antes, y
   // nunca si falla. Es la referencia contra la que se compara `estado.zonaId`
@@ -341,7 +446,7 @@ const datosHidratacion = hidratacionEmbebida
 
   // RF-88 (ADR-0016 + historial): solo en páginas de zona. Carga la zona
   // `nuevaZonaId` (RF-36: fallo parcial incluido) y, si sale bien, actualiza
-  // mapa, lista, `#tabla-zona`, <title> y <meta description> siempre; la
+  // mapa, lista, <title> y <meta description> siempre; la
   // dirección solo si `actualizarHistorial` es `true`.
   //
   // `actualizarHistorial` separa las dos formas de llegar aquí POR
@@ -398,9 +503,11 @@ const datosHidratacion = hidratacionEmbebida
       alReintentar = () => cargarZonaPorFetch();
       zonaMostrada = zona.id;
       actualizadoZona = resultado.actualizado;
-      if (contenedorTablaZona) {
-        renderizarTablaZona(contenedorTablaZona, zona.nombre, resultado.estaciones, resultado.actualizado);
-      }
+      // #lista se repinta sola: el actualizarEstado({estaciones: ...}) de más
+      // abajo notifica a Lista.ts (suscrito desde montarLista), que recalcula
+      // filas Y los enlaces de municipio a partir de las estaciones nuevas
+      // (RF-88, ADR-0016 — antes esto era renderizarTablaZona sobre
+      // #tabla-zona, que ya no existe).
       document.title = tituloZona(zona.nombre);
       document.querySelector('meta[name="description"]')?.setAttribute('content', descripcionZona(zona.nombre));
       if (actualizarHistorial) {
@@ -520,7 +627,16 @@ const datosHidratacion = hidratacionEmbebida
   });
   renderAvisos(obtenerEstado());
 
-  montarLista(contenedorLista);
+  // RF-90: en una página de municipio, los enlaces de cierre son fijos
+  // (vuelta a la provincia + vecinos), no los municipios de `estado.estaciones`
+  // — que aquí ya son solo los del propio municipio, no los de toda la
+  // provincia (ver el comentario del frontmatter de esta página).
+  const enlacesMunicipioEl = document.getElementById('enlaces-municipio');
+  const enlacesEstaticos = enlacesMunicipioEl
+    ? (JSON.parse(enlacesMunicipioEl.textContent ?? 'null') as EnlacesEstaticos | null)
+    : null;
+
+  montarLista(contenedorLista, enlacesEstaticos ?? undefined);
   montarTotem(contenedorTotem);
 
   // RF-37: al encontrar la ubicación se cambia zonaId a la provincia más

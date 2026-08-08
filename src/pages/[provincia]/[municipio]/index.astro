@@ -22,9 +22,9 @@ import { join } from 'node:path';
 import '../../../estilos/tokens.css';
 import '../../../estilos/interfaz.css';
 import AppInteractiva from '../../../componentes/AppInteractiva.astro';
+import type { EnlacesEstaticos } from '../../../componentes/Lista.ts';
 import { fusionarProvincias, type EstacionZona } from '../../../logica/zona.ts';
 import { estacionesVisibles } from '../../../logica/visibilidad.ts';
-import { crearEscala } from '../../../logica/escala.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../../logica/combustibles.ts';
 import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../../logica/formato.ts';
 import { generarSlug } from '../../../../scripts/lib/slug.ts';
@@ -94,14 +94,16 @@ const imagenCompartir = new URL(`/og/${provinciaSlug}/${municipioSlug}.png`, Ast
 
 // RF-61: los precios en el HTML servido. Se lee del disco, en el build, el
 // JSON de la provincia entera —no hay un JSON por municipio— y se filtra
-// aquí a las estaciones de este municipio. La misma lectura alimenta
-// también la escala de color (más abajo) con TODA la provincia, no solo con
-// las pocas estaciones del municipio: RF-12 pide el percentil "dentro de la
-// zona mostrada", y la zona que muestra el widget interactivo de esta
-// página es la provincia (ver el comentario de AppInteractiva.astro).
+// aquí a las estaciones de este municipio. RF-90: la aplicación interactiva
+// de esta página muestra SOLO estas estaciones, no la provincia entera —así
+// que la escala de color (RF-12) también se calcula solo con ellas; eso lo
+// hace AppInteractiva a partir del prop `estaciones` (ver más abajo), no
+// hace falta repetirlo aquí. `visiblesProvincia` se queda para una cosa
+// distinta: el precio mínimo de los municipios VECINOS (RF-65), que si no
+// habría que leer y fusionar otra vez.
 const rutaProvincia = join(DIRECTORIO_DATOS, 'provincias', `${provincia.id}.json`);
 const datosProvincia = JSON.parse(readFileSync(rutaProvincia, 'utf-8')) as DatosProvincia;
-const { estaciones: estacionesProvincia, actualizado } = fusionarProvincias([datosProvincia]);
+const { estaciones: estacionesProvincia, mock, actualizado } = fusionarProvincias([datosProvincia]);
 const visiblesProvincia = estacionesVisibles(estacionesProvincia);
 
 // Tabla COMPLETA (a diferencia de la de zona, acotada a 30): en un municipio
@@ -117,18 +119,6 @@ const filasMunicipio: EstacionZona[] = visiblesProvincia
     return pa - pb;
   });
 
-const escalasPorCombustible = Object.fromEntries(
-  ORDEN_COMBUSTIBLES.map((clave) => [
-    clave,
-    crearEscala(visiblesProvincia.map((e) => e.precios[clave]).filter((p): p is number => p !== null)),
-  ])
-) as Record<ClavePrecio, ReturnType<typeof crearEscala>>;
-
-function bandaPrecio(clave: ClavePrecio, precio: number): string {
-  const escala = escalasPorCombustible[clave];
-  return escala.esMasBarata(precio) ? 'barata' : escala.banda(precio);
-}
-
 function precioMinimo(clave: ClavePrecio): number | null {
   let minimo: number | null = null;
   for (const estacion of filasMunicipio) {
@@ -137,6 +127,29 @@ function precioMinimo(clave: ClavePrecio): number | null {
   }
   return minimo;
 }
+
+// RF-65/RF-89: precio mínimo de gasolina 95 de cada municipio VECINO, para
+// la pastilla que lo enlaza al cerrar la lista (docs/05-diseno.md#La-lista-es-el-contenido).
+function precioMinimoDe(nombreMunicipio: string): number | null {
+  let minimo: number | null = null;
+  for (const estacion of visiblesProvincia) {
+    if (estacion.municipio.trim() !== nombreMunicipio.trim()) continue;
+    const precio = estacion.precios.gasolina95e5;
+    if (precio !== null && (minimo === null || precio < minimo)) minimo = precio;
+  }
+  return minimo;
+}
+
+// RF-90: enlace de vuelta a la provincia entera, y a los municipios vecinos
+// (ya filtrados a los que tienen página propia en getStaticPaths, arriba).
+const enlacesMunicipio: EnlacesEstaticos = {
+  volverA: { href: hrefProvincia, nombre: provincia.nombre },
+  vecinos: vecinos.map((vecino) => ({
+    href: `/${provinciaSlug}/${generarSlug(vecino.nombre)}/`,
+    nombre: cajaDeTitulo(vecino.nombre),
+    precioMinimo: precioMinimoDe(vecino.nombre),
+  })),
+};
 
 // RF-62: título y descripción con el precio mínimo REAL, no un texto fijo.
 // Gasolina 95 es el combustible por defecto de toda la aplicación (ver
@@ -215,76 +228,24 @@ const jsonLd = {
     <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
+    <!-- La lista es el contenido (docs/05-diseno.md): no hay tabla aparte
+         debajo del mapa. AppInteractiva la pinta a partir de `estaciones`
+         (RF-89) y cierra con las pastillas de `enlacesMunicipio` (RF-90:
+         vuelta a la provincia, RF-65: municipios vecinos). Este <h1> es el
+         único resto visible del antiguo pie: sin él la página se queda sin
+         encabezado principal, así que se mantiene, pero fuera de pantalla —
+         el "una pantalla, una pregunta" del diseño no tiene sitio para un
+         título grande sin quitarle presupuesto a la lista. -->
+    <h1 class="sr-only">Gasolineras en {nombreMunicipio}</h1>
     <AppInteractiva
       zonaId={`p-${provincia.id}`}
       zonaNombre={provincia.nombre}
-      hidratacionEmbebida={false}
+      hidratacionEmbebida={true}
+      estaciones={filasMunicipio}
+      mock={mock}
+      actualizado={actualizado}
       esPaginaDeZona={false}
+      enlacesMunicipio={enlacesMunicipio}
     />
-
-    <section class="tabla-zona" aria-label={`Gasolineras de ${nombreMunicipio}`}>
-      <nav class="migas" aria-label="Ruta">
-        <a href="/">Surtidor</a> › <a href={hrefProvincia}>{provincia.nombre}</a> › <span aria-current="page">{nombreMunicipio}</span>
-      </nav>
-
-      <h1 class="tabla-zona__titulo">Gasolineras en {nombreMunicipio}</h1>
-      {actualizado && (
-        <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
-      )}
-      <div class="tabla-zona__scroll">
-        <table class="tabla-zona__tabla">
-          <thead>
-            <tr>
-              <th scope="col">Gasolinera</th>
-              <th scope="col">Dirección</th>
-              <th scope="col">Municipio</th>
-              {ORDEN_COMBUSTIBLES.map((clave) => <th scope="col">{ETIQUETA[clave]}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {filasMunicipio.map((estacion) => (
-              <tr>
-                <th scope="row">{estacion.rotulo}</th>
-                <td>{cajaDeTitulo(estacion.direccion)}</td>
-                <td>{cajaDeTitulo(estacion.municipio)}</td>
-                {ORDEN_COMBUSTIBLES.map((clave) => {
-                  const precio = estacion.precios[clave];
-                  return (
-                    <td>
-                      {precio === null ? (
-                        <span class="tabla-zona__ausente">no vende</span>
-                      ) : (
-                        <span class={`precio precio--${bandaPrecio(clave, precio)}`}>
-                          {formatearPrecio(precio)}
-                        </span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <p class="tabla-zona__enlace-provincia">
-        Ver todas las gasolineras de <a href={hrefProvincia}>{provincia.nombre}</a>.
-      </p>
-
-      {vecinos.length > 0 && (
-        <>
-          <h2 class="tabla-zona__titulo tabla-zona__titulo--municipios">
-            Otros municipios de {provincia.nombre}
-          </h2>
-          <ul class="lista-vecinos">
-            {vecinos.map((vecino) => (
-              <li>
-                <a href={`/${provinciaSlug}/${generarSlug(vecino.nombre)}/`}>{cajaDeTitulo(vecino.nombre)}</a>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-    </section>
   </body>
 </html>

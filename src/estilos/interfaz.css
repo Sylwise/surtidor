@@ -13,12 +13,12 @@
 }
 
 /* Antes "height:100dvh; overflow:hidden": bloqueaba el documento entero a una
-   sola pantalla, que es lo que quiere index.astro (nada vive después de
-   #app). Las páginas de zona sí tienen la tabla estática debajo (H10,
-   RF-61) y necesitan poder desplazarse hasta ella. #app fija su propia
-   altura a 100dvh (ver más abajo) y no depende de esto, así que en
-   index.astro no cambia nada: el body sigue midiendo exactamente un
-   viewport porque no hay más contenido que desplazar. */
+   sola pantalla en todas las páginas por igual. Con RF-89 ("la lista es el
+   contenido", docs/05-diseno.md) ya no hace falta la excepción que hubo aquí
+   para la tabla estática de zona/municipio: no queda nada por debajo de
+   #app en ninguna página, así que min-height + el 100dvh propio de #app (ver
+   más abajo) bastan para que el body mida exactamente un viewport, sin
+   desplazamiento de documento en escritorio. */
 body {
   margin: 0;
   min-height: 100dvh;
@@ -45,6 +45,22 @@ input {
   font-size: var(--fs-1);
   font-weight: 650;
   letter-spacing: 0.16em;
+}
+
+/* Visible solo para lectores de pantalla: el <h1> de una página de
+   municipio (RF-90). "Una pantalla, una pregunta" no deja sitio para un
+   título grande sin quitárselo a la lista, pero la página necesita un
+   encabezado principal igualmente. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .precio,
@@ -236,7 +252,7 @@ input {
   margin-left: 8px;
   border: 1px solid var(--hair);
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radio);
   padding: 2px 8px;
   cursor: pointer;
   font-weight: 650;
@@ -271,7 +287,7 @@ input {
   min-height: 44px;
   border: 1px solid var(--hair);
   background: var(--paper);
-  border-radius: 8px;
+  border-radius: var(--radio);
   padding: 6px 10px;
   font-weight: 700;
   cursor: pointer;
@@ -291,7 +307,7 @@ input {
   overflow-y: auto;
   background: var(--paper);
   border: 1px solid var(--hair);
-  border-radius: 10px;
+  border-radius: var(--radio);
   box-shadow: 0 8px 24px rgba(22, 50, 59, 0.18);
   padding: 10px;
 }
@@ -300,7 +316,7 @@ input {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--hair);
-  border-radius: 6px;
+  border-radius: var(--radio);
   margin-bottom: 8px;
 }
 
@@ -328,7 +344,7 @@ input {
   padding: 6px 8px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radio);
   cursor: pointer;
   font-size: var(--fs-3);
 }
@@ -385,7 +401,7 @@ input {
   display: flex;
   align-items: center;
   border: 1px solid var(--hair-dark);
-  border-radius: 8px;
+  border-radius: var(--radio);
   overflow: hidden;
 }
 
@@ -497,7 +513,7 @@ input {
   align-items: center;
   min-height: 44px;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--radio);
   background: var(--signal);
   color: var(--petrol);
   font-weight: 700;
@@ -579,7 +595,7 @@ input {
   min-height: 44px;
   border: 1px solid var(--hair);
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radio);
   padding: 3px 8px;
   cursor: pointer;
 }
@@ -600,7 +616,7 @@ input {
   width: 100%;
   border: 1.5px solid transparent;
   background: transparent;
-  border-radius: 8px;
+  border-radius: var(--radio);
   padding: 8px 6px;
   cursor: pointer;
   text-align: left;
@@ -642,7 +658,8 @@ input {
   white-space: nowrap;
 }
 
-.fila__municipio {
+/* RF-89: la dirección, no el municipio (docs/05-diseno.md#La-lista-es-el-contenido). */
+.fila__direccion {
   font-size: var(--fs-2);
   color: var(--muted);
   overflow: hidden;
@@ -688,6 +705,63 @@ input {
      hay un punto más de cuerpo al que subir, así que la diferencia de
      tamaño la da el relleno. */
   padding: 6px 12px;
+}
+
+/* ---------- Enlaces de cierre (RF-89, RF-90) ----------
+   "Los enlaces a otros municipios cierran la lista": al final del rail en
+   escritorio, al final de la hoja en móvil, después de la última estación
+   (docs/05-diseno.md#La-lista-es-el-contenido). En una página de zona son
+   los municipios de la propia zona; en una de municipio, la vuelta a la
+   provincia más los vecinos (RF-90). */
+.lista__enlaces {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hair);
+}
+
+.lista__enlaces-filas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Fondo claro, filete --hair, texto --petrol, sin subrayado: nunca el azul
+   ni el morado por defecto del navegador, en ningún estado (docs/05-diseno.md).
+   Radio de caja (--radio), no 999px: con el nombre del municipio + el
+   precio al lado, una píldora totalmente redonda sale casi ovalada junto a
+   las píldoras de precio, mucho más cortas (ver la nota de "Radio único" en
+   docs/05-diseno.md). */
+.enlace-municipio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radio);
+  background: var(--paper);
+  padding: 6px 12px;
+  font-size: var(--fs-3);
+  text-decoration: none;
+}
+
+.enlace-municipio:link,
+.enlace-municipio:visited {
+  color: var(--petrol);
+}
+
+@media (hover: hover) {
+  .enlace-municipio:hover {
+    background: var(--hair);
+  }
+}
+
+.enlace-municipio__precio {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
 
 /* ---------- Tótem ---------- */
@@ -737,7 +811,7 @@ input {
   height: 44px;
   margin: -10px -10px 0 0;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radio);
   background: transparent;
   color: var(--muted-light);
   font-size: var(--fs-4);
@@ -1060,115 +1134,4 @@ input {
     opacity: 1;
     pointer-events: auto;
   }
-}
-
-/* ---------- Tabla estática de zona (H10, RF-61) ----------
-   Vive fuera de #app, después de ella en el documento: no es una isla, no se
-   hidrata ni se sustituye (ver el frontmatter de
-   src/pages/[zona]/index.astro). Reutiliza los tokens y las mismas bandas de
-   precio que la lista y el tótem (.precio / .precio--p1..p5 / .precio--barata
-   de más arriba); no se inventa color nuevo. Sin entrada todavía en
-   docs/05-diseno.md. */
-.tabla-zona {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 28px 16px 56px;
-}
-
-.tabla-zona__titulo {
-  font-size: var(--fs-5);
-  margin: 0 0 4px;
-}
-
-.tabla-zona__actualizado {
-  color: var(--muted);
-  font-size: var(--fs-3);
-  margin: 0 0 18px;
-}
-
-.tabla-zona__titulo--municipios {
-  margin-top: 32px;
-}
-
-.tabla-zona__scroll {
-  overflow-x: auto;
-  border: 1px solid var(--hair);
-  border-radius: 10px;
-}
-
-.tabla-zona__tabla {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--fs-3);
-}
-
-.tabla-zona__tabla th,
-.tabla-zona__tabla td {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--hair);
-  text-align: left;
-  white-space: nowrap;
-}
-
-.tabla-zona__tabla tbody tr:last-child th,
-.tabla-zona__tabla tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.tabla-zona__tabla thead th {
-  font-size: var(--fs-1);
-  text-transform: uppercase;
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  background: var(--paper);
-  position: sticky;
-  top: 0;
-}
-
-.tabla-zona__tabla tbody th {
-  font-weight: 700;
-}
-
-/* Mismo bloque tipográfico que .precio (mono, tabular-nums), pero en el
-   tamaño de cuerpo de la tabla en vez del --fs-6 de la píldora de la lista:
-   ahí es la única cifra en pantalla, aquí hay cuatro por fila. */
-.tabla-zona__tabla .precio {
-  font-size: var(--fs-3);
-  border-radius: 999px;
-  padding: 3px 9px;
-}
-
-.tabla-zona__ausente {
-  color: var(--muted);
-}
-
-/* ---------- Migas de pan y enlazado (H10, RF-65/RF-74) ----------
-   Solo en la página de municipio: Inicio › provincia › municipio, y el
-   enlace de vuelta a la provincia + la lista de municipios vecinos, después
-   de la tabla. Mismos tokens que el resto de la tabla estática, ninguno
-   nuevo. */
-.migas {
-  font-size: var(--fs-2);
-  color: var(--muted);
-  margin: 0 0 16px;
-}
-
-.migas a {
-  color: var(--muted);
-}
-
-.tabla-zona__enlace-provincia {
-  font-size: var(--fs-3);
-  margin: 18px 0 0;
-}
-
-.lista-vecinos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: var(--fs-3);
 }
