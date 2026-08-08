@@ -26,6 +26,7 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0015](0015-el-mapa-manda-abandonado.md) | El mapa no manda: se abandona la carga dinámica por vista | aceptado |
 | [0016](0016-cambio-de-zona-sin-recarga.md) | Cambiar de zona no recarga la página | aceptado |
 | [0017](0017-jerarquia-de-enlaces.md) | El sitio se recorre por enlaces, no solo por el sitemap | aceptado |
+| [0018](0018-urls-de-zona-por-nombre.md) | Las URLs de zona llevan el nombre, no el identificador | aceptado |
 
 ## Plantilla
 

@@ -137,6 +137,8 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 |---|---|---|
 | RF-71 | M | El selector de zona es una pantalla de primer nivel, no un menú de rescate: zonas frecuentes arriba, búsqueda por nombre, áreas de pulsación grandes. |
 | RF-94 | M | El precio que acompaña a cada municipio, tanto en el bloque de municipios de una página de zona como en el de vecinos de una página de municipio, es el del combustible seleccionado. Si ese municipio no vende ese combustible, se dice que no vende; nunca se muestra el precio de otro. |
+| RF-95 | M | Las páginas de zona se sirven en el slug del nombre de la zona. Las comunidades autónomas cuyo slug colisiona con el de una provincia van bajo `/comunidad/{slug}/`; la provincia conserva el nombre limpio. Ver [ADR-0018](adr/0018-urls-de-zona-por-nombre.md). |
+| RF-96 | M | Las 71 URLs de zona anteriores responden con 301 hacia la nueva, mediante reglas exactas generadas en `public/_redirects`. Nunca un comodín. Ver [ADR-0018](adr/0018-urls-de-zona-por-nombre.md). |
 
 ---
 
