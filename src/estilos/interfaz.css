@@ -1180,3 +1180,15 @@ input {
   border-radius: 999px;
   padding: 4px 10px;
 }
+
+/* RF-94: "no vende" es ausencia de dato, no compite con las píldoras de
+   precio de al lado (docs/05-diseno.md: "en minúscula y en gris"). Mismo
+   patrón que .totem__precio--ausente, pero con --muted en vez de
+   --no-vende: aquí el fondo es --paper (claro), no --petrol. */
+.enlaces-bloque__precio--ausente {
+  font-family: var(--sans);
+  font-variant-numeric: normal;
+  font-size: var(--fs-3);
+  font-weight: 400;
+  color: var(--muted);
+}

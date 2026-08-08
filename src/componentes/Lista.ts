@@ -9,16 +9,18 @@
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { calcularListaCombustible } from '../logica/listaEstaciones.ts';
-import { resumenMunicipiosDe, hrefMunicipioZona } from '../logica/municipios.ts';
-import { crearEscala } from '../logica/escala.ts';
+import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from '../logica/municipios.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
+import type { Precios } from '../../scripts/lib/tipos.ts';
 
 export interface EnlaceMunicipio {
   href: string;
   nombre: string;
-  precioMinimo: number | null;
+  /** Los cuatro combustibles (RF-94): quien pinta la fila elige cuál
+   *  enseñar según el combustible activo, nunca fijo a uno solo. */
+  precios: Precios;
 }
 
 /** Enlaces de cierre para una página de MUNICIPIO (RF-90): fijos, no se
@@ -73,7 +75,16 @@ function crearCabecera(soloAbiertas: boolean, contador: number): HTMLDivElement 
 // Mismo tratamiento de fila que las páginas de índice (ADR-0017,
 // .enlaces-bloque en interfaz.css): las píldoras de ancho variable que tuvo
 // primero RF-89 no alineaban con 130 municipios.
-function crearFilaEnlace(enlace: EnlaceMunicipio, claseBanda: string, textoAlternativo?: string): HTMLLIElement {
+function crearFilaEnlace(
+  enlace: { href: string; nombre: string },
+  // `undefined`: fila sin precio en absoluto (el "Ver toda la provincia" de
+  // RF-90, que no es un municipio). `null`: es un municipio pero no vende
+  // el combustible activo (RF-94/RF-23: "no vende", nunca el precio de
+  // otro). Un número: el precio real.
+  precio: number | null | undefined,
+  claseBanda: string,
+  textoAlternativo?: string,
+): HTMLLIElement {
   const li = document.createElement('li');
   const a = document.createElement('a');
   a.className = 'enlaces-bloque__fila';
@@ -87,11 +98,16 @@ function crearFilaEnlace(enlace: EnlaceMunicipio, claseBanda: string, textoAlter
   info.append(nombre);
   a.append(info);
 
-  if (enlace.precioMinimo !== null) {
-    const precio = document.createElement('span');
-    precio.className = `enlaces-bloque__precio precio${claseBanda}`;
-    precio.textContent = formatearPrecio(enlace.precioMinimo);
-    a.append(precio);
+  if (precio !== undefined) {
+    const precioEl = document.createElement('span');
+    if (precio === null) {
+      precioEl.className = 'enlaces-bloque__precio enlaces-bloque__precio--ausente';
+      precioEl.textContent = 'no vende';
+    } else {
+      precioEl.className = `enlaces-bloque__precio precio${claseBanda}`;
+      precioEl.textContent = formatearPrecio(precio);
+    }
+    a.append(precioEl);
   }
 
   li.append(a);
@@ -105,41 +121,38 @@ function crearFilaEnlace(enlace: EnlaceMunicipio, claseBanda: string, textoAlter
 // aparte—. En una página de municipio, `enlacesEstaticos` los fija de una
 // vez porque el municipio de la página nunca cambia.
 function crearEnlacesCierre(estado: EstadoApp, enlacesEstaticos?: EnlacesEstaticos): HTMLElement | null {
-  let enlaces: { href: string; nombre: string; precioMinimo: number | null }[];
+  let entradas: { href: string; nombre: string; precios: Precios }[];
   let volverA: { href: string; nombre: string } | null = null;
   let titulo: string;
 
   if (enlacesEstaticos) {
     volverA = enlacesEstaticos.volverA;
-    enlaces = enlacesEstaticos.vecinos;
+    entradas = enlacesEstaticos.vecinos;
     titulo = `Otros municipios de ${enlacesEstaticos.volverA.nombre}`;
   } else {
-    enlaces = resumenMunicipiosDe(estado.estaciones)
+    entradas = resumenMunicipiosDe(estado.estaciones)
       .map((resumen) => {
         const href = hrefMunicipioZona(resumen);
-        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precioMinimo: resumen.precioMinimo } : null;
+        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precios: resumen.precios } : null;
       })
-      .filter((enlace): enlace is { href: string; nombre: string; precioMinimo: number | null } => enlace !== null);
+      .filter((entrada): entrada is { href: string; nombre: string; precios: Precios } => entrada !== null);
     titulo = `Municipios de ${estado.zonaNombre || 'esta zona'}`;
   }
 
-  if (enlaces.length === 0 && !volverA) return null;
+  if (entradas.length === 0 && !volverA) return null;
 
-  // Banda de color relativa al propio conjunto de enlaces mostrado (mismo
-  // patrón que src/logica/listaEstaciones.ts), no a toda la zona: aquí el
-  // precio que se enseña por municipio ya es un mínimo, no el de una
-  // estación concreta.
-  const escala = crearEscala(enlaces.map((e) => e.precioMinimo).filter((p): p is number => p !== null));
-  function claseBanda(precioMinimo: number | null): string {
-    if (precioMinimo === null) return '';
-    return ` precio--${escala.esMasBarata(precioMinimo) ? 'barata' : escala.banda(precioMinimo)}`;
-  }
+  // RF-94: precio y banda de color resueltos al combustible activo, no
+  // fijos a gasolina 95 — misma función que pinta el HTML servido
+  // (AppInteractiva.astro), para que las dos vías no diverjan.
+  const filas = calcularEnlacesMunicipio(entradas, estado.combustible);
 
   const items: HTMLLIElement[] = [];
   if (volverA) {
-    items.push(crearFilaEnlace({ href: volverA.href, nombre: volverA.nombre, precioMinimo: null }, '', `Ver toda ${volverA.nombre}`));
+    items.push(crearFilaEnlace(volverA, undefined, '', `Ver toda ${volverA.nombre}`));
   }
-  for (const enlace of enlaces) items.push(crearFilaEnlace(enlace, claseBanda(enlace.precioMinimo)));
+  for (const fila of filas) {
+    items.push(crearFilaEnlace(fila, fila.precio, fila.banda ? ` precio--${fila.banda}` : ''));
+  }
 
   const nav = document.createElement('nav');
   nav.className = 'enlaces-bloque';
