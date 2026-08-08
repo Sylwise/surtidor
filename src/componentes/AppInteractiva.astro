@@ -23,11 +23,11 @@
 //   /data/provincias/NN.json entre todas.
 import marcaSvg from '../assets/marca.svg?raw';
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
-import { resumenMunicipiosDe, hrefMunicipioZona } from '../logica/municipios.ts';
-import { crearEscala } from '../logica/escala.ts';
+import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
 import { ORDEN_COMBUSTIBLES, ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
+import type { ClavePrecio, Precios } from '../../scripts/lib/tipos.ts';
 import type { EnlacesEstaticos } from './Lista.ts';
 
 interface Props {
@@ -83,10 +83,11 @@ const listasPorCombustible = calcularListasPorCombustible(estaciones);
 const COMBUSTIBLE_POR_DEFECTO = ORDEN_COMBUSTIBLES[0];
 
 // RF-89 ("los enlaces a otros municipios cierran la lista") + RF-90 (enlace
-// de vuelta a la provincia). En una página de municipio, `enlacesMunicipio`
-// ya trae vuelta+vecinos resueltos por el frontmatter de esa página. En una
-// de zona, se calculan aquí de las mismas `estaciones` que alimentan la
-// lista de arriba.
+// de vuelta a la provincia) + RF-94 (el precio sigue al combustible
+// seleccionado, "no vende" cuando el municipio no lo tiene). En una página
+// de municipio, `enlacesMunicipio` ya trae vuelta+vecinos resueltos por el
+// frontmatter de esa página. En una de zona, se calculan aquí de las mismas
+// `estaciones` que alimentan la lista de arriba.
 //
 // Mismo tratamiento de fila que las páginas de índice (ADR-0017,
 // .enlaces-bloque en interfaz.css): las píldoras de ancho variable que tuvo
@@ -94,30 +95,23 @@ const COMBUSTIBLE_POR_DEFECTO = ORDEN_COMBUSTIBLES[0];
 const tituloEnlacesCierre = enlacesMunicipio
   ? `Otros municipios de ${enlacesMunicipio.volverA.nombre}`
   : `Municipios de ${zonaNombre}`;
-const enlacesCierre: { href: string; nombre: string; precioMinimo: number | null }[] = enlacesMunicipio
-  ? [
-      { href: enlacesMunicipio.volverA.href, nombre: `Ver toda ${enlacesMunicipio.volverA.nombre}`, precioMinimo: null },
-      ...enlacesMunicipio.vecinos,
-    ]
+const entradasCierre: { href: string; nombre: string; precios: Precios }[] = enlacesMunicipio
+  ? enlacesMunicipio.vecinos
   : resumenMunicipiosDe(estaciones)
       .map((resumen) => {
         const href = hrefMunicipioZona(resumen);
-        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precioMinimo: resumen.precioMinimo } : null;
+        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precios: resumen.precios } : null;
       })
-      .filter((enlace): enlace is { href: string; nombre: string; precioMinimo: number | null } => enlace !== null);
+      .filter((entrada): entrada is { href: string; nombre: string; precios: Precios } => entrada !== null);
 
-// Banda de color relativa al propio conjunto de enlaces mostrado (mismo
-// patrón que src/logica/listaEstaciones.ts), no a toda la zona: aquí el
-// precio que se enseña por municipio ya es un mínimo, no el de una estación
-// concreta.
-const escalaEnlacesCierre = crearEscala(
-  enlacesCierre.map((enlace) => enlace.precioMinimo).filter((precio): precio is number => precio !== null),
-);
-function claseBandaEnlace(precioMinimo: number | null): string {
-  if (precioMinimo === null) return '';
-  const banda = escalaEnlacesCierre.esMasBarata(precioMinimo) ? 'barata' : escalaEnlacesCierre.banda(precioMinimo);
-  return ` precio--${banda}`;
-}
+// RF-94: los CUATRO combustibles a la vez (mismo patrón que
+// calcularListasPorCombustible, arriba), con la misma función que usa
+// Lista.ts (src/logica/municipios.ts#calcularEnlacesMunicipio) para que el
+// HTML servido no diverja del repintado del cliente al cambiar de
+// combustible.
+const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((clave) => [clave, calcularEnlacesMunicipio(entradasCierre, clave)]),
+) as Record<ClavePrecio, FilaMunicipio[]>;
 ---
 
 <div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
@@ -181,21 +175,40 @@ function claseBandaEnlace(precioMinimo: number | null): string {
             );
           })}
 
-          {enlacesCierre.length > 0 && (
+          {(enlacesMunicipio !== null || entradasCierre.length > 0) && (
             <nav class="enlaces-bloque" aria-label="Otros municipios">
               <h2 class="enlaces-bloque__titulo micro">{tituloEnlacesCierre}</h2>
               <ul class="enlaces-bloque__filas">
-                {enlacesCierre.map((enlace) => (
+                {enlacesMunicipio && (
                   <li>
-                    <a class="enlaces-bloque__fila" href={enlace.href}>
+                    <a class="enlaces-bloque__fila" href={enlacesMunicipio.volverA.href}>
                       <span class="enlaces-bloque__info">
-                        <span class="enlaces-bloque__nombre">{enlace.nombre}</span>
+                        <span class="enlaces-bloque__nombre">Ver toda {enlacesMunicipio.volverA.nombre}</span>
                       </span>
-                      {enlace.precioMinimo !== null && (
-                        <span class={`enlaces-bloque__precio precio${claseBandaEnlace(enlace.precioMinimo)}`}>
-                          {formatearPrecio(enlace.precioMinimo)}
-                        </span>
-                      )}
+                    </a>
+                  </li>
+                )}
+                {entradasCierre.map((entrada, indice) => (
+                  <li>
+                    <a class="enlaces-bloque__fila" href={entrada.href}>
+                      <span class="enlaces-bloque__info">
+                        <span class="enlaces-bloque__nombre">{entrada.nombre}</span>
+                      </span>
+                      {ORDEN_COMBUSTIBLES.map((clave) => {
+                        const fila = filasCierrePorCombustible[clave][indice]!;
+                        return fila.precio === null ? (
+                          <span class="enlaces-bloque__precio enlaces-bloque__precio--ausente" hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
+                            no vende
+                          </span>
+                        ) : (
+                          <span
+                            class={`enlaces-bloque__precio precio${fila.banda ? ` precio--${fila.banda}` : ''}`}
+                            hidden={clave !== COMBUSTIBLE_POR_DEFECTO}
+                          >
+                            {formatearPrecio(fila.precio)}
+                          </span>
+                        );
+                      })}
                     </a>
                   </li>
                 ))}

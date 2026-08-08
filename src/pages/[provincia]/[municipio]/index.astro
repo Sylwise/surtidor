@@ -34,6 +34,7 @@ import {
   type DatosProvincia,
   type Indice,
   type IndiceMunicipios,
+  type Precios,
   type ResumenMunicipio,
   type ResumenProvincia,
 } from '../../../../scripts/lib/tipos.ts';
@@ -128,16 +129,21 @@ function precioMinimo(clave: ClavePrecio): number | null {
   return minimo;
 }
 
-// RF-65/RF-89: precio mínimo de gasolina 95 de cada municipio VECINO, para
-// la pastilla que lo enlaza al cerrar la lista (docs/05-diseno.md#La-lista-es-el-contenido).
-function precioMinimoDe(nombreMunicipio: string): number | null {
-  let minimo: number | null = null;
+// RF-65/RF-89/RF-94: precio mínimo de los CUATRO combustibles de cada
+// municipio VECINO, para la pastilla que lo enlaza al cerrar la lista
+// (docs/05-diseno.md#La-lista-es-el-contenido). Quien pinta la fila elige
+// cuál enseñar según el combustible activo, nunca fijo a gasolina 95.
+function preciosDeVecino(nombreMunicipio: string): Precios {
+  const precios: Precios = { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null };
   for (const estacion of visiblesProvincia) {
     if (estacion.municipio.trim() !== nombreMunicipio.trim()) continue;
-    const precio = estacion.precios.gasolina95e5;
-    if (precio !== null && (minimo === null || precio < minimo)) minimo = precio;
+    for (const clave of ORDEN_COMBUSTIBLES) {
+      const precio = estacion.precios[clave];
+      const actual = precios[clave];
+      if (precio !== null && (actual === null || precio < actual)) precios[clave] = precio;
+    }
   }
-  return minimo;
+  return precios;
 }
 
 // RF-90: enlace de vuelta a la provincia entera, y a los municipios vecinos
@@ -147,7 +153,7 @@ const enlacesMunicipio: EnlacesEstaticos = {
   vecinos: vecinos.map((vecino) => ({
     href: `/${provinciaSlug}/${generarSlug(vecino.nombre)}/`,
     nombre: cajaDeTitulo(vecino.nombre),
-    precioMinimo: precioMinimoDe(vecino.nombre),
+    precios: preciosDeVecino(vecino.nombre),
   })),
 };
 
