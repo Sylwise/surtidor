@@ -18,7 +18,9 @@
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import type { ClavePrecio, Zona } from '../../scripts/lib/tipos.ts';
+import { cajaDeTitulo } from '../logica/formato.ts';
+import { estacionesDeZona } from '../logica/zona.ts';
+import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
 // Exportadas: src/pages/index.astro (RF-91, ADR-0017) agrupa sus enlaces de
 // portada con el mismo vocabulario y el mismo orden que este selector, para
@@ -46,6 +48,10 @@ function normalizar(texto: string): string {
  * `contenedorIdentidad` recibe el selector de zona.
  * `contenedorRapidos` recibe el selector de combustible; se oculta entero en
  * estado de ficha (RF-80).
+ * `catalogoProvincias` es `Indice.provincias`: de ahí sale el recuento de
+ * estaciones de cada fila del panel de zona (docs/05-diseno.md#Selector-de-
+ * zona), sumado por `estacionesDeZona`. No es una petición nueva: el índice
+ * ya viaja siempre con la página.
  *
  * Devuelve `abrirSelector`, para que la página pueda abrir el panel de zona
  * directamente cuando no hay ninguna zona resuelta todavía (RF-49).
@@ -54,6 +60,7 @@ export function montarControles(
   contenedorIdentidad: HTMLElement,
   contenedorRapidos: HTMLElement,
   zonas: Zona[],
+  catalogoProvincias: ResumenProvincia[],
 ): { abrirSelector: () => void } {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
@@ -78,38 +85,70 @@ export function montarControles(
   panelZona.className = 'panel-zona';
   panelZona.hidden = true;
 
+  // Cabecera de búsqueda de alto fijo (docs/05-diseno.md#Selector-de-zona):
+  // fuera de `.panel-zona__grupos`, que es quien hace scroll, para que el
+  // scroll —y su barra— empiecen debajo del buscador, no en él (ver
+  // interfaz.css, mismo patrón que .hoja/.hoja__rapidos/.hoja__cuerpo).
+  const cabeceraBuscar = document.createElement('div');
+  cabeceraBuscar.className = 'panel-zona__cabecera';
+
   const buscar = document.createElement('input');
   buscar.type = 'search';
   buscar.className = 'panel-zona__buscar';
   buscar.placeholder = 'Buscar provincia, comunidad o zona…';
   buscar.setAttribute('aria-label', 'Buscar zona');
+  cabeceraBuscar.append(buscar);
 
   const listaGrupos = document.createElement('div');
   listaGrupos.className = 'panel-zona__grupos';
 
+  // Indica que hay más filas por debajo sin fiarse de la barra de
+  // desplazamiento del sistema (docs/05-diseno.md#Selector-de-zona). Dentro
+  // de listaGrupos (no del panel entero): es `position: absolute` contra
+  // ese contenedor, que es el que hace scroll.
+  const difuminado = document.createElement('div');
+  difuminado.className = 'panel-zona__difuminado';
+  difuminado.setAttribute('aria-hidden', 'true');
+
   const opcionesZona: { fila: HTMLLIElement; textoBusqueda: string }[] = [];
   const gruposDom: HTMLElement[] = [];
 
+  // Mismas filas que el bloque de enlaces de la portada y del cierre de
+  // lista (RF-91, RF-89): un solo lenguaje visual para "elegir un
+  // territorio de una lista" (docs/05-diseno.md#Selector-de-zona). Aquí es
+  // un <button>, no un <a> (ADR-0017), de ahí el modificador --boton.
   for (const tipo of ORDEN_TIPOS) {
     const deEsteTipo = zonasOrdenadas.filter((z) => z.tipo === tipo);
     if (deEsteTipo.length === 0) continue;
 
     const grupo = document.createElement('div');
-    grupo.className = 'panel-zona__grupo';
+    grupo.className = 'enlaces-bloque';
     const titulo = document.createElement('h3');
-    titulo.className = 'panel-zona__titulo-grupo';
+    titulo.className = 'enlaces-bloque__titulo micro';
     titulo.textContent = ETIQUETA_TIPO[tipo];
     grupo.append(titulo);
 
     const ul = document.createElement('ul');
-    ul.className = 'panel-zona__lista';
+    ul.className = 'enlaces-bloque__filas';
 
     for (const zona of deEsteTipo) {
       const li = document.createElement('li');
       const boton = document.createElement('button');
       boton.type = 'button';
-      boton.className = 'panel-zona__opcion';
-      boton.textContent = zona.nombre;
+      boton.className = 'enlaces-bloque__fila enlaces-bloque__fila--boton';
+      const info = document.createElement('span');
+      info.className = 'enlaces-bloque__info';
+      const nombre = document.createElement('span');
+      nombre.className = 'enlaces-bloque__nombre';
+      // Caja de título, no las mayúsculas crudas del catálogo (ver la nota
+      // sobre RF-76 en src/logica/formato.ts#cajaDeTitulo): este panel no
+      // lo ve ningún rastreador, así que aquí gana la legibilidad.
+      nombre.textContent = cajaDeTitulo(zona.nombre);
+      info.append(nombre);
+      const recuento = document.createElement('span');
+      recuento.className = 'enlaces-bloque__recuento';
+      recuento.textContent = String(estacionesDeZona(zona, catalogoProvincias));
+      boton.append(info, recuento);
       boton.addEventListener('click', () => {
         actualizarEstado({ zonaId: zona.id });
         cerrarPanel();
@@ -125,7 +164,8 @@ export function montarControles(
     gruposDom.push(grupo);
   }
 
-  panelZona.append(buscar, listaGrupos);
+  listaGrupos.append(difuminado);
+  panelZona.append(cabeceraBuscar, listaGrupos);
   bloqueZona.append(botonZona, panelZona);
 
   function abrirPanel(): void {

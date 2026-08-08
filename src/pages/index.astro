@@ -243,7 +243,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
               indice = await cargarIndice();
             }
             if (!controlesMontados) {
-              controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
+              controles = montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias);
               controlesMontados = true;
               actualizarAlturaCabecera();
             }

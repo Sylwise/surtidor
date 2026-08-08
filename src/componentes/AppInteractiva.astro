@@ -419,7 +419,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       indice = await cargarIndice();
     }
     if (!controlesMontados) {
-      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas);
+      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias);
       controlesMontados = true;
       actualizarAlturaCabecera();
     }

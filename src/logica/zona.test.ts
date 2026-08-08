@@ -5,7 +5,7 @@
 
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { cargarZona, zonaDeProvincia, zonaDeReserva } from './zona.ts';
+import { cargarZona, estacionesDeZona, zonaDeProvincia, zonaDeReserva } from './zona.ts';
 import type { DatosProvincia, Estacion, Indice, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
 function estacion(extra: Partial<Estacion> = {}): Estacion {
@@ -144,6 +144,25 @@ describe('cargarZona con Euskadi (tres provincias)', () => {
     assert.equal(resultado.estaciones.length, 0);
     assert.equal(resultado.provinciasFallidas.length, 3);
     assert.equal(resultado.actualizado, null);
+  });
+});
+
+describe('estacionesDeZona', () => {
+  it('suma las estaciones de las provincias que componen la zona', () => {
+    assert.equal(estacionesDeZona(ZONA_EUSKADI, CATALOGO_PROVINCIAS), 3);
+  });
+
+  it('una zona de una sola provincia devuelve el recuento de esa provincia', () => {
+    const zonaBarcelona: Zona = { id: 'barcelona', nombre: 'BARCELONA', tipo: 'provincia', provincias: ['08'] };
+    const catalogo: ResumenProvincia[] = [
+      { id: '08', nombre: 'BARCELONA', estaciones: 10, minimos: {}, centro: { lat: 41.39, lon: 2.17 } },
+    ];
+    assert.equal(estacionesDeZona(zonaBarcelona, catalogo), 10);
+  });
+
+  it('una provincia que no aparece en el catálogo no rompe la suma', () => {
+    const zonaHuerfana: Zona = { id: 'ninguna', nombre: 'NINGUNA', tipo: 'provincia', provincias: ['99'] };
+    assert.equal(estacionesDeZona(zonaHuerfana, CATALOGO_PROVINCIAS), 0);
   });
 });
 

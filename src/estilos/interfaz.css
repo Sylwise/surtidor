@@ -78,6 +78,10 @@ input {
   display: flex;
   flex-direction: column;
   height: 100dvh;
+  /* Ancho del rail en escritorio. El panel de zona lo reutiliza para
+     arrancar justo donde termina el rail y no taparlo nunca (ver
+     .panel-zona, docs/05-diseno.md#Selector-de-zona). */
+  --hoja-ancho: 326px;
 }
 
 .cabecera {
@@ -137,7 +141,7 @@ input {
    convierte en una hoja inferior arrastrable con tres estados, y el mapa
    pasa a ser una capa de fondo en vez de compartir flex con ella. */
 .hoja {
-  width: 326px;
+  width: var(--hoja-ancho);
   flex: none;
   display: flex;
   flex-direction: column;
@@ -174,27 +178,36 @@ input {
   display: none;
 }
 
-.hoja__cuerpo {
-  flex: 1;
-  min-height: 0;
+.hoja__cuerpo,
+.panel-zona__grupos {
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* Scrollbar fina y de la paleta, nunca la del sistema. */
+  /* Scrollbar fina y de la paleta, nunca la del sistema (también en el
+     panel de zona, docs/05-diseno.md#Selector-de-zona). */
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
 }
 
-.hoja__cuerpo::-webkit-scrollbar {
+.hoja__cuerpo {
+  flex: 1;
+  min-height: 0;
+}
+
+.hoja__cuerpo::-webkit-scrollbar,
+.panel-zona__grupos::-webkit-scrollbar {
   width: 6px;
 }
-.hoja__cuerpo::-webkit-scrollbar-track {
+.hoja__cuerpo::-webkit-scrollbar-track,
+.panel-zona__grupos::-webkit-scrollbar-track {
   background: transparent;
 }
-.hoja__cuerpo::-webkit-scrollbar-thumb {
+.hoja__cuerpo::-webkit-scrollbar-thumb,
+.panel-zona__grupos::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--muted) 55%, transparent);
   border-radius: 999px;
 }
-.hoja__cuerpo::-webkit-scrollbar-thumb:hover {
+.hoja__cuerpo::-webkit-scrollbar-thumb:hover,
+.panel-zona__grupos::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--muted) 80%, transparent);
 }
 
@@ -277,10 +290,6 @@ input {
   white-space: nowrap;
 }
 
-.controles__zona {
-  position: relative;
-}
-
 .boton-zona {
   display: inline-flex;
   align-items: center;
@@ -297,19 +306,48 @@ input {
   text-transform: uppercase;
 }
 
+/* Se despliega sobre el mapa, no sobre el rail (docs/05-diseno.md#Selector-
+   de-zona): arranca en --hoja-ancho, así el rail con la lista de precios
+   queda siempre visible detrás mientras el panel está abierto. Arranca
+   donde termina la cabecera (--cabecera-alto), no a la altura del botón:
+   alinearlo con el botón lo hace invadir la propia cabecera y deja un
+   hueco vacío por encima de la lista. */
 .panel-zona {
-  position: absolute;
+  position: fixed;
   z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
-  width: min(320px, 90vw);
-  max-height: 60vh;
-  overflow-y: auto;
+  top: var(--cabecera-alto, 56px);
+  left: var(--hoja-ancho);
+  width: min(360px, calc(100vw - var(--hoja-ancho)));
+  max-height: min(70dvh, calc(100dvh - var(--cabecera-alto, 56px) - 16px));
+  display: flex;
+  flex-direction: column;
   background: var(--paper);
   border: 1px solid var(--hair);
   border-radius: var(--radio);
-  box-shadow: 0 8px 24px rgba(22, 50, 59, 0.18);
-  padding: 10px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--petrol) 18%, transparent);
+}
+
+/* Mismo gotcha que .hoja__rapidos[hidden] más arriba: el `display:flex` de
+   la regla de encima gana por especificidad al `display:none` del
+   user-agent para `[hidden]`, así que hay que declararlo aquí a mano o el
+   atributo no oculta nada — el panel se quedaba abierto todo el rato. */
+.panel-zona[hidden] {
+  display: none;
+}
+
+/* Cabecera de búsqueda fija: mismo patrón que .hoja/.hoja__rapidos/
+   .hoja__cuerpo (columna flex, cabecera de alto fijo, cuerpo que se lleva
+   el resto y hace su propio scroll). Antes .panel-zona__cabecera era
+   `position: sticky` sobre un `.panel-zona` que hacía scroll entero:
+   funcionaba visualmente, pero el scroll (y su barra) seguía empezando en
+   el propio buscador. Con la cabecera fuera del contenedor con scroll, el
+   scroll —y su barra— empiezan justo debajo (docs/05-diseno.md#Selector-de-
+   zona). */
+.panel-zona__cabecera {
+  flex: none;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--hair);
+  box-shadow: 0 4px 6px color-mix(in srgb, var(--petrol) 10%, transparent);
 }
 
 .panel-zona__buscar {
@@ -317,40 +355,28 @@ input {
   padding: 8px 10px;
   border: 1px solid var(--hair);
   border-radius: var(--radio);
-  margin-bottom: 8px;
 }
 
-.panel-zona__titulo-grupo {
-  margin: 10px 0 4px;
-  font-size: var(--fs-1);
-  font-weight: 650;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
+.panel-zona__grupos {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 8px 10px 10px;
 }
 
-.panel-zona__lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.panel-zona__opcion {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  width: 100%;
-  text-align: left;
-  padding: 6px 8px;
-  border: none;
-  background: transparent;
-  border-radius: var(--radio);
-  cursor: pointer;
-  font-size: var(--fs-3);
-}
-
-.panel-zona__opcion:hover {
-  background: var(--hair);
+/* Degradado pegado al borde inferior del área con scroll: indica que hay
+   más filas sin fiarse de la barra de desplazamiento del sistema.
+   `position: absolute` dentro de `.panel-zona__grupos` (que es el propio
+   contenedor con scroll): se queda fijo en el borde visible, no viaja con
+   el contenido. */
+.panel-zona__difuminado {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, var(--paper));
+  pointer-events: none;
 }
 
 .controles__combustible {
@@ -1063,16 +1089,11 @@ input {
     touch-action: pan-y;
   }
 
-  /* Selector de zona: en escritorio es un dropdown pequeño anclado al botón
-     (reglas de arriba, sin tocar). En móvil ese anclaje desbordaba la
-     pantalla por la derecha porque el ancho se calculaba contra el viewport
-     (90vw) pero la posición contra el botón, que no está pegado al borde.
-     Aquí se integra como una hoja propia que cuelga de la cabecera real
-     (--cabecera-alto) a todo el ancho, animada al abrir. */
-  .controles__zona {
-    position: static;
-  }
-
+  /* Selector de zona: en escritorio es un panel fijo que cuelga sobre el
+     mapa, a la derecha del rail (reglas de arriba, sin tocar). En móvil no
+     hay mapa que respetar ni rail que dejar visible, así que ocupa todo el
+     ancho como una hoja propia que cuelga de la cabecera real
+     (--cabecera-alto), animada al abrir. */
   .panel-zona {
     position: fixed;
     top: var(--cabecera-alto, 56px);
@@ -1152,6 +1173,20 @@ input {
   background: var(--hair);
 }
 
+/* El panel de zona (src/componentes/Controles.ts) es un <button>, no un
+   <a> (ADR-0017): mismas filas, pero sin las propiedades de enlace y sin el
+   cromado por defecto del navegador. */
+/* `text-align: left` no es decorativo: la hoja de estilos del navegador
+   centra el texto de un <button> por defecto, y ese valor hereda al nombre
+   de la fila (RF-91/RF-89 usan <a>, sin este problema — solo aparece aquí). */
+.enlaces-bloque__fila--boton {
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
 .enlaces-bloque__info {
   flex: 1;
   min-width: 0;
@@ -1179,6 +1214,17 @@ input {
   flex: none;
   border-radius: 999px;
   padding: 4px 10px;
+}
+
+/* Recuento de estaciones del panel de zona (docs/05-diseno.md#Selector-de-
+   zona): segunda ancla de la fila, no un precio, así que no lleva píldora
+   de color como .enlaces-bloque__precio. */
+.enlaces-bloque__recuento {
+  flex: none;
+  font-family: var(--mono);
+  font-size: var(--fs-2);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* RF-94: "no vende" es ausencia de dato, no compite con las píldoras de

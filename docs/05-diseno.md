@@ -275,6 +275,62 @@ para que lista y mapa hablen el mismo idioma cromático.
 
 Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
 
+### Selector de zona
+
+Es el único componente que se quedó sin diseñar cuando el resto ya lo
+estaba: nombres en mayúsculas del catálogo, sin tratamiento, con filas
+larguísimas por el `letter-spacing` heredado. Y en escritorio se abre encima
+del rail, tapando la lista de precios, que es lo único que el usuario está
+mirando.
+
+**No tapa la lista.** En escritorio el panel se despliega sobre el mapa, que
+es la zona que se puede cubrir sin coste, y deja el rail visible. En móvil
+ocupa la pantalla, como hasta ahora: ahí no hay alternativa y es lo
+esperado.
+
+**Filas alineadas a la izquierda, con recuento a la derecha.** Los nombres
+arrancan todos en la misma vertical, como en el resto de la aplicación. A la
+derecha, el número de estaciones de esa zona, en monoespaciada y en
+`--muted`. Da a la fila su segunda ancla sin competir con el nombre, y no
+promete ninguna decisión: solo dice el tamaño de lo que se va a abrir.
+
+Centrar los nombres, que es lo que había, impide que el ojo encuentre un
+borde común entre longitudes muy distintas, y hace que la lista se lea como
+una nube de palabras en vez de como una lista.
+
+**Nombres en caja de título**, no en las mayúsculas crudas del catálogo. Las
+mayúsculas están reservadas a las microetiquetas de 10 px; en filas de
+contenido se leen más despacio y estiran las líneas largas.
+
+**El buscador es cabecera fija**, separado de la lista con un filete y una
+sombra corta, para que no se lea como el primer elemento de la lista.
+
+**El final de la lista se indica con un degradado**, no confiando en la
+barra de desplazamiento del sistema, que es un elemento ajeno al diseño
+dentro de un panel que tiene su propio lenguaje.
+
+**Colocación en escritorio: junto al rail, nunca encima.** El panel arranca
+donde termina el rail y se despliega sobre el mapa. En vertical, arranca
+donde termina la cabecera, no a la altura del botón: alinearlo con el botón
+lo hace invadir la propia cabecera y deja un hueco vacío por encima de la
+lista.
+
+Ancho similar al del rail, sin sobrepasarlo mucho. Alto acotado en torno a
+dos tercios de la ventana: si crece hasta el borde inferior vuelve a ser una
+columna interminable. Si en una ventana estrecha no cabe sin invadir el
+rail, se estrecha el panel. Los precios son lo que la persona estaba
+mirando.
+
+El panel lleva sombra propia, para que se lea encima de lo que hay detrás y
+no cosido a la cabecera.
+
+**Sin precio.** Se valoró añadir el precio mínimo de cada zona y se
+descartó: nadie decide dónde repostar mirando la media de otra provincia, y
+un número que no informa ninguna decisión solo ocupa sitio.
+
+El buscador por nombre y el orden del catálogo se conservan tal cual: son
+RF-32 y RF-71 y no se tocan.
+
 ### La lista es el contenido
 
 No hay pie de página. La lista de estaciones que ya se ve —en el rail en
