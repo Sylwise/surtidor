@@ -37,6 +37,12 @@ Cada página lleva:
 - **`sitemap.xml` con `lastmod`**, regenerado en cada despliegue.
 - **Enlazado interno** hacia municipios vecinos y hacia la provincia.
 
+**Dónde viven los precios servidos.** La exigencia es que los precios estén
+en el HTML que devuelve el servidor, no que estén en una tabla aparte. La
+lista de estaciones de la propia aplicación, generada en el build, cumple
+esa condición y evita duplicar el contenido en la misma pantalla. Ver la
+sección "La lista es el contenido" de `docs/05-diseno.md`.
+
 ## Motivos
 
 Poca competencia por consulta, muchísimas consultas, e intención de compra
