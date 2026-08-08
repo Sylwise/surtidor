@@ -95,6 +95,14 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
+    <!-- RF-93. La lista es el contenido (docs/05-diseno.md): no hay tabla
+         aparte debajo del mapa. AppInteractiva la pinta a partir de
+         `estaciones` (RF-89) y cierra con los enlaces a los municipios de la
+         propia zona (RF-92, ADR-0017). Este <h1> es el encabezado principal
+         del documento, fuera de pantalla — igual que en la página de
+         municipio: el "una pantalla, una pregunta" del diseño no tiene sitio
+         para un título grande sin quitarle presupuesto a la lista. -->
+    <h1 class="sr-only">Gasolineras en {zona.nombre}</h1>
     <AppInteractiva
       zonaId={zona.id}
       zonaNombre={zona.nombre}
