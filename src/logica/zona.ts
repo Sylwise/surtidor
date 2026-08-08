@@ -75,6 +75,20 @@ export function cargarIndice(): Promise<Indice> {
 }
 
 /**
+ * Estaciones totales de una zona: suma de las de cada provincia que la
+ * compone. No pide red ni cambia el índice: el recuento por provincia ya
+ * vive en `Indice.provincias` (el mismo fichero que carga cada página), el
+ * selector de zona (RF-32) solo lo agrega (docs/05-diseno.md#Selector-de-
+ * zona).
+ */
+export function estacionesDeZona(zona: Zona, catalogoProvincias: ResumenProvincia[]): number {
+  return zona.provincias.reduce((total, id) => {
+    const provincia = catalogoProvincias.find((p) => p.id === id);
+    return total + (provincia?.estaciones ?? 0);
+  }, 0);
+}
+
+/**
  * La zona de tipo "provincia" de un id de provincia dado — nunca se
  * construye el id a mano (ADR-0018: desde RF-95 ya no tiene una forma
  * predecible como `p-{id}`). Se filtra también por `tipo`: una comunidad de

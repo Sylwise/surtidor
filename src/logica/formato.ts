@@ -29,7 +29,13 @@ export function formatearFechaHora(iso: string): string {
 // RF-86: el ministerio devuelve dirección y municipio en mayúsculas. Es
 // prosa, no un rótulo, así que se pasa a caja de título con estas
 // partículas en minúscula (docs/05-diseno.md#Mayúsculas). El rótulo de la
-// estación y la provincia se dejan verbatim: esta función no se aplica ahí.
+// estación se deja verbatim: esta función no se aplica ahí.
+//
+// La provincia también se deja verbatim (RF-76) en todo lo que un
+// rastreador ve: portada, `<h1>`, `<title>`, JSON-LD. La única excepción es
+// el panel del selector de zona (docs/05-diseno.md#Selector-de-zona): es un
+// `<button>` sin `href` (ADR-0017), invisible para un rastreador, así que
+// ahí sí gana la legibilidad y se pasa por esta misma función.
 const PARTICULAS = new Set(['de', 'del', 'la', 'las', 'lo', 'los', 'y', 'e', 'a', 'en']);
 
 /** "AVENIDA DE LOS HUETOS, 64" → "Avenida de los Huetos, 64". */
