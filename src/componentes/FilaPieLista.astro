@@ -1,0 +1,43 @@
+---
+// Fila del componente Lista dentro del pie (RF-89): por debajo de 700px
+// sustituye a <FilaPieTabla>, con el mismo idioma visual que la lista
+// interactiva (.fila/.fila__*, interfaz.css) — número de orden en
+// monoespaciada, rótulo y texto secundario en el centro, precio de
+// gasolina 95 en píldora a la derecha. Solo un combustible: los otros tres
+// siguen en la tabla, oculta a este ancho pero servida igual en el HTML.
+import { formatearPrecio } from '../logica/formato.ts';
+import { bandaPrecioZona } from '../logica/tablaZona.ts';
+import type { Escala } from '../logica/escala.ts';
+import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import type { EstacionZona } from '../logica/zona.ts';
+
+interface Props {
+  estacion: EstacionZona;
+  puesto: number;
+  escalas: Record<ClavePrecio, Escala>;
+  /** Municipio (+ provincia si la zona es multiprovincia) en la tabla de
+   *  zona; dirección en la de municipio, donde el municipio es siempre el
+   *  mismo y no aporta nada repetido en cada fila. */
+  secundario: string;
+}
+
+const { estacion, puesto, escalas, secundario } = Astro.props;
+const precio = estacion.precios.gasolina95e5;
+---
+
+<li>
+  <div class="fila fila--pie">
+    <span class="fila__orden">{puesto}</span>
+    <span class="fila__info">
+      <span class="fila__rotulo">{estacion.rotulo}</span>
+      <span class="fila__municipio">{secundario}</span>
+    </span>
+    {precio === null ? (
+      <span class="fila__precio tabla-zona__ausente">no vende</span>
+    ) : (
+      <span class={`fila__precio precio precio--${bandaPrecioZona(escalas, 'gasolina95e5', precio)}`}>
+        {formatearPrecio(precio)}
+      </span>
+    )}
+  </div>
+</li>

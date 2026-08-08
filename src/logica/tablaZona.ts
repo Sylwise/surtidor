@@ -98,3 +98,28 @@ export function hrefMunicipioZona(resumen: ResumenMunicipioZona): string | null 
   if (resumen.estaciones < MINIMO_ESTACIONES_MUNICIPIO) return null;
   return `/${generarSlug(resumen.provinciaNombre)}/${generarSlug(resumen.municipio)}/`;
 }
+
+// ---------- Pie de contenido (RF-89, docs/05-diseno.md#Pie-de-contenido) ----------
+// Compartido entre el build de [zona]/index.astro, el rerender en cliente de
+// TablaZona.ts (RF-88) y [provincia]/[municipio]/index.astro (que no tiene
+// zona propiamente dicha, pero comparte la misma tabla principal de
+// estaciones y el mismo criterio de plegado): un solo sitio para estos
+// números, para que las tres vías no diverjan.
+
+/** Filas visibles antes de plegar, tanto en la tabla principal como en la
+ *  lista de móvil. */
+export const LIMITE_FILAS_VISIBLES_PIE = 3;
+
+/** Pastillas de municipio visibles antes de plegar tras "+ {n} más". */
+export const LIMITE_PASTILLAS_VISIBLES_PIE = 8;
+
+// Porcentajes fijos de ancho de columna (Gasolinera, Dirección, Municipio,
+// [Provincia], y los cuatro combustibles), para que `table-layout: fixed`
+// nunca deje que el contenido empuje la tabla fuera de su contenedor: antes
+// se cortaba por la derecha en vez de reflowear (RF-89).
+const ANCHOS_SIN_PROVINCIA = [20, 26, 16, 9.5, 9.5, 9.5, 9.5];
+const ANCHOS_CON_PROVINCIA = [18, 22, 14, 10, 9, 9, 9, 9];
+
+export function anchosTablaPrincipal(multiProvincia: boolean): number[] {
+  return multiProvincia ? ANCHOS_CON_PROVINCIA : ANCHOS_SIN_PROVINCIA;
+}

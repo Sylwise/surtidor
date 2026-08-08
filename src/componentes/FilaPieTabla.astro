@@ -1,0 +1,41 @@
+---
+// Fila <tr> del pie de contenido (RF-89, docs/05-diseno.md#Pie-de-contenido):
+// reutilizada por la tabla "más baratas" de src/pages/[zona]/index.astro y
+// por la de "gasolineras en {municipio}" de
+// src/pages/[provincia]/[municipio]/index.astro, cada una llamándola dos
+// veces (primeras filas visibles + resto plegado en <details>) — de ahí que
+// viva en su propio fichero en vez de repetirse cuatro veces.
+import { ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
+import { bandaPrecioZona } from '../logica/tablaZona.ts';
+import type { Escala } from '../logica/escala.ts';
+import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import type { EstacionZona } from '../logica/zona.ts';
+
+interface Props {
+  estacion: EstacionZona;
+  multiProvincia: boolean;
+  escalas: Record<ClavePrecio, Escala>;
+}
+
+const { estacion, multiProvincia, escalas } = Astro.props;
+---
+
+<tr>
+  <th scope="row">{estacion.rotulo}</th>
+  <td>{cajaDeTitulo(estacion.direccion)}</td>
+  <td>{cajaDeTitulo(estacion.municipio)}</td>
+  {multiProvincia && <td>{estacion.provinciaNombre}</td>}
+  {ORDEN_COMBUSTIBLES.map((clave) => {
+    const precio = estacion.precios[clave];
+    return (
+      <td>
+        {precio === null ? (
+          <span class="tabla-zona__ausente">no vende</span>
+        ) : (
+          <span class={`precio precio--${bandaPrecioZona(escalas, clave, precio)}`}>{formatearPrecio(precio)}</span>
+        )}
+      </td>
+    );
+  })}
+</tr>

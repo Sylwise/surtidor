@@ -4,6 +4,11 @@
   /* Chrome: gasóleo */
   --petrol: #16323b;
   --paper: #edefef;
+  /* Única superficie más clara que --paper: el fondo de página ya es un gris
+     muy pálido, así que una pastilla con ese mismo fondo se confundiría con
+     la página. Solo para el relleno de las pastillas del pie (RF-89), con el
+     filete --hair encima para delimitarla. */
+  --superficie: #ffffff;
   --hair: rgba(22, 50, 59, 0.14);
   --hair-dark: rgba(255, 255, 255, 0.13);
   --muted: #6b7b82;

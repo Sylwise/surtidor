@@ -40,6 +40,12 @@ interface Props {
    *  es otro tipo de página, con su `<h1>` y su JSON-LD propios, que este
    *  componente no sabe regenerar. */
   esPaginaDeZona: boolean;
+  /** RF-89: solo en páginas de municipio. Lista.ts la usa para añadir, como
+   *  última fila de la hoja móvil, un enlace "Ver todos los precios de
+   *  {municipio}" que desplaza hasta el pie (#pie). En páginas de zona no
+   *  hay ningún municipio concreto al que apuntar ese enlace, así que se
+   *  omite (undefined). */
+  municipioNombre?: string;
 }
 
 const {
@@ -50,6 +56,7 @@ const {
   mock = false,
   actualizado = null,
   esPaginaDeZona,
+  municipioNombre,
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
@@ -57,7 +64,14 @@ const datosHidratacion = hidratacionEmbebida
   : '';
 ---
 
-<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
+<div
+  class="app"
+  id="app"
+  data-zona-id={zonaId}
+  data-zona-nombre={zonaNombre}
+  data-es-pagina-de-zona={String(esPaginaDeZona)}
+  data-municipio-nombre={municipioNombre}
+>
   <header class="cabecera">
     <span class="marca">
       <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
@@ -171,6 +185,9 @@ const datosHidratacion = hidratacionEmbebida
   const nombreDeLaPagina = contenedorApp.dataset.zonaNombre;
   if (!zonaDeLaPagina || !nombreDeLaPagina) throw new Error('Falta la zona de la página en el HTML.');
   const esPaginaDeZona = contenedorApp.dataset.esPaginaDeZona === 'true';
+  // RF-89: solo presente en páginas de municipio (ver el comentario del prop
+  // en el frontmatter de arriba).
+  const municipioNombre = contenedorApp.dataset.municipioNombre;
 
   // Zona realmente mostrada ahora mismo (mapa, lista, #tabla-zona, <title>).
   // Arranca igual que `zonaDeLaPagina` y solo se mueve cuando
@@ -520,7 +537,7 @@ const datosHidratacion = hidratacionEmbebida
   });
   renderAvisos(obtenerEstado());
 
-  montarLista(contenedorLista);
+  montarLista(contenedorLista, municipioNombre ? { municipioNombre } : undefined);
   montarTotem(contenedorTotem);
 
   // RF-37: al encontrar la ubicación se cambia zonaId a la provincia más

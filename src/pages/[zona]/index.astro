@@ -23,11 +23,22 @@ import { join } from 'node:path';
 import '../../estilos/tokens.css';
 import '../../estilos/interfaz.css';
 import AppInteractiva from '../../componentes/AppInteractiva.astro';
+import FilaPieTabla from '../../componentes/FilaPieTabla.astro';
+import FilaPieLista from '../../componentes/FilaPieLista.astro';
+import PastillaMunicipio from '../../componentes/PastillaMunicipio.astro';
 import { fusionarProvincias, UMBRAL_HIDRATACION_EMBEBIDA } from '../../logica/zona.ts';
-import { calcularTablaZona, bandaPrecioZona, hrefMunicipioZona } from '../../logica/tablaZona.ts';
+import {
+  calcularTablaZona,
+  bandaPrecioZona,
+  hrefMunicipioZona,
+  anchosTablaPrincipal,
+  LIMITE_FILAS_VISIBLES_PIE,
+  LIMITE_PASTILLAS_VISIBLES_PIE,
+} from '../../logica/tablaZona.ts';
 import { tituloZona, descripcionZona } from '../../logica/metaZona.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import { cajaDeTitulo, formatearFechaHora } from '../../logica/formato.ts';
+import type { EstacionZona } from '../../logica/zona.ts';
 import type { DatosProvincia, Indice, Zona } from '../../../scripts/lib/tipos.ts';
 
 const DIRECTORIO_DATOS = join(process.cwd(), 'public', 'data');
@@ -93,6 +104,25 @@ const { estaciones, mock, actualizado } = fusionarProvincias(datosPorProvincia);
 const { filas: filasTabla, multiProvincia: multiProvinciaTabla, escalas: escalasPorCombustible, resumenMunicipios } =
   calcularTablaZona(estaciones);
 
+// RF-89: plegado a las primeras LIMITE_FILAS_VISIBLES_PIE, con el resto
+// dentro de un <details> — mismo criterio para la tabla (desktop) y la
+// lista (móvil, <FilaPieLista>), que muestran las mismas filas.
+const anchosPrincipal = anchosTablaPrincipal(multiProvinciaTabla);
+const filasPrimeras = filasTabla.slice(0, LIMITE_FILAS_VISIBLES_PIE);
+const filasResto = filasTabla.slice(LIMITE_FILAS_VISIBLES_PIE);
+
+function secundarioFila(estacion: EstacionZona): string {
+  const municipio = cajaDeTitulo(estacion.municipio);
+  return multiProvinciaTabla ? `${municipio} · ${estacion.provinciaNombre}` : municipio;
+}
+
+const municipiosPrimeras = resumenMunicipios.slice(0, LIMITE_PASTILLAS_VISIBLES_PIE);
+const municipiosResto = resumenMunicipios.slice(LIMITE_PASTILLAS_VISIBLES_PIE);
+
+function bandaMunicipio(precio: number | null): string | null {
+  return precio === null ? null : bandaPrecioZona(escalasPorCombustible, 'gasolina95e5', precio);
+}
+
 // Solo por debajo de UMBRAL_HIDRATACION_EMBEBIDA (ver el porqué en
 // src/logica/zona.ts) va embebido el bloque de hidratación del widget
 // interactivo; por encima, AppInteractiva pide los JSON de provincia por
@@ -130,13 +160,19 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
       esPaginaDeZona={true}
     />
 
+    <div class="pie-separador micro" id="pie">Todos los precios</div>
+
     <section id="tabla-zona" class="tabla-zona" aria-label={`Las más baratas y los municipios de ${zona.nombre}`}>
       <h2 class="tabla-zona__titulo">Las {filasTabla.length} más baratas de {zona.nombre}</h2>
       {actualizado && (
         <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
       )}
-      <div class="tabla-zona__scroll">
+
+      <div class="pie-tabla tabla-zona__scroll">
         <table class="tabla-zona__tabla">
+          <colgroup>
+            {anchosPrincipal.map((ancho) => <col style={`width:${ancho}%`} />)}
+          </colgroup>
           <thead>
             <tr>
               <th scope="col">Gasolinera</th>
@@ -147,70 +183,79 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
             </tr>
           </thead>
           <tbody>
-            {filasTabla.map((estacion) => (
-              <tr>
-                <th scope="row">{estacion.rotulo}</th>
-                <td>{cajaDeTitulo(estacion.direccion)}</td>
-                <td>{cajaDeTitulo(estacion.municipio)}</td>
-                {multiProvinciaTabla && <td>{estacion.provinciaNombre}</td>}
-                {ORDEN_COMBUSTIBLES.map((clave) => {
-                  const precio = estacion.precios[clave];
-                  return (
-                    <td>
-                      {precio === null ? (
-                        <span class="tabla-zona__ausente">no vende</span>
-                      ) : (
-                        <span class={`precio precio--${bandaPrecioZona(escalasPorCombustible, clave, precio)}`}>
-                          {formatearPrecio(precio)}
-                        </span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
+            {filasPrimeras.map((estacion) => (
+              <FilaPieTabla estacion={estacion} multiProvincia={multiProvinciaTabla} escalas={escalasPorCombustible} />
             ))}
           </tbody>
         </table>
       </div>
+      <ol class="pie-filas">
+        {filasPrimeras.map((estacion, indice) => (
+          <FilaPieLista
+            estacion={estacion}
+            puesto={indice + 1}
+            escalas={escalasPorCombustible}
+            secundario={secundarioFila(estacion)}
+          />
+        ))}
+      </ol>
+
+      {filasResto.length > 0 && (
+        <details class="pie-plegable">
+          <summary class="pie-plegable__control">Ver las {filasTabla.length}</summary>
+          <div class="pie-tabla tabla-zona__scroll">
+            <table class="tabla-zona__tabla">
+              <colgroup>
+                {anchosPrincipal.map((ancho) => <col style={`width:${ancho}%`} />)}
+              </colgroup>
+              <tbody>
+                {filasResto.map((estacion) => (
+                  <FilaPieTabla estacion={estacion} multiProvincia={multiProvinciaTabla} escalas={escalasPorCombustible} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ol class="pie-filas">
+            {filasResto.map((estacion, indice) => (
+              <FilaPieLista
+                estacion={estacion}
+                puesto={LIMITE_FILAS_VISIBLES_PIE + indice + 1}
+                escalas={escalasPorCombustible}
+                secundario={secundarioFila(estacion)}
+              />
+            ))}
+          </ol>
+        </details>
+      )}
 
       <h2 class="tabla-zona__titulo tabla-zona__titulo--municipios">
         Precios por municipio en {zona.nombre}
       </h2>
-      <div class="tabla-zona__scroll">
-        <table class="tabla-zona__tabla">
-          <thead>
-            <tr>
-              <th scope="col">Municipio</th>
-              {multiProvinciaTabla && <th scope="col">Provincia</th>}
-              <th scope="col">Estaciones</th>
-              <th scope="col">Gasolina 95 desde</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resumenMunicipios.map((resumen) => {
-              const href = hrefMunicipioZona(resumen);
-              return (
-                <tr>
-                  <th scope="row">
-                    {href ? <a href={href}>{cajaDeTitulo(resumen.municipio)}</a> : cajaDeTitulo(resumen.municipio)}
-                  </th>
-                  {multiProvinciaTabla && <td>{resumen.provinciaNombre}</td>}
-                  <td>{resumen.estaciones}</td>
-                  <td>
-                    {resumen.precioMinimo === null ? (
-                      <span class="tabla-zona__ausente">no vende</span>
-                    ) : (
-                      <span class={`precio precio--${bandaPrecioZona(escalasPorCombustible, 'gasolina95e5', resumen.precioMinimo)}`}>
-                        {formatearPrecio(resumen.precioMinimo)}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <ul class="pastillas">
+        {municipiosPrimeras.map((resumen) => (
+          <PastillaMunicipio
+            nombre={resumen.municipio}
+            href={hrefMunicipioZona(resumen)}
+            precio={resumen.precioMinimo}
+            banda={bandaMunicipio(resumen.precioMinimo)}
+          />
+        ))}
+      </ul>
+      {municipiosResto.length > 0 && (
+        <details class="pie-plegable">
+          <summary class="pie-plegable__control">+ {municipiosResto.length} más</summary>
+          <ul class="pastillas">
+            {municipiosResto.map((resumen) => (
+              <PastillaMunicipio
+                nombre={resumen.municipio}
+                href={hrefMunicipioZona(resumen)}
+                precio={resumen.precioMinimo}
+                banda={bandaMunicipio(resumen.precioMinimo)}
+              />
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   </body>
 </html>

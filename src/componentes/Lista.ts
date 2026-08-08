@@ -52,9 +52,18 @@ function nombreLugar(estacion: EstacionZona, multiProvincia: boolean): string {
   return multiProvincia ? `${municipio} · ${estacion.provinciaNombre}` : municipio;
 }
 
+interface OpcionesLista {
+  /** RF-89: solo en páginas de municipio (AppInteractiva.astro la pasa desde
+   *  `data-municipio-nombre`). Añade, como última fila, un enlace "Ver todos
+   *  los precios de {municipio}" que desplaza hasta el pie (#pie) — la hoja
+   *  móvil enseña la provincia entera, no solo este municipio, y el pie es
+   *  donde está la tabla completa de sus gasolineras. */
+  municipioNombre?: string;
+}
+
 /** Monta la lista en `contenedor` y la mantiene sincronizada con el estado.
  *  Devuelve una función para desuscribirse, por si el llamador la necesita. */
-export function montarLista(contenedor: HTMLElement): () => void {
+export function montarLista(contenedor: HTMLElement, opciones: OpcionesLista = {}): () => void {
   function render(estado: EstadoApp): void {
     contenedor.innerHTML = '';
     contenedor.setAttribute('aria-busy', estado.cargando ? 'true' : 'false');
@@ -150,6 +159,16 @@ export function montarLista(contenedor: HTMLElement): () => void {
       fila.append(orden, info, precioEl);
       fila.addEventListener('click', () => actualizarEstado({ estacionId: estacion.id }));
       item.append(fila);
+      filas.append(item);
+    }
+
+    if (opciones.municipioNombre) {
+      const item = document.createElement('li');
+      const enlace = document.createElement('a');
+      enlace.className = 'fila fila--enlace-pie';
+      enlace.href = '#pie';
+      enlace.textContent = `Ver todos los precios de ${opciones.municipioNombre}`;
+      item.append(enlace);
       filas.append(item);
     }
 

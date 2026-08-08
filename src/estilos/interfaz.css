@@ -618,6 +618,17 @@ input {
   opacity: 0.58;
 }
 
+/* Última fila de la lista interactiva en la página de municipio (RF-89):
+   enlace real, no botón, así que necesita su propio color y subrayado
+   apagado — el resto de .fila lo hereda del <button> de siempre. */
+.fila--enlace-pie {
+  justify-content: center;
+  border: 1px solid var(--hair);
+  color: var(--petrol);
+  font-weight: 650;
+  text-decoration: none;
+}
+
 .fila__orden {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
@@ -1062,6 +1073,22 @@ input {
   }
 }
 
+/* ---------- Pie de contenido (RF-89, docs/05-diseno.md#Pie-de-contenido) ----------
+   Frontera visible entre la aplicación y el pie: banda a todo el ancho en
+   --petrol, con la microetiqueta de siempre. Vive fuera de #app, justo
+   antes de .tabla-zona; el enlace móvil "Ver todos los precios de
+   {municipio}" (Lista.ts) apunta a su id. */
+.pie-separador {
+  background: var(--petrol);
+  padding: 12px 16px;
+}
+
+.pie-separador.micro {
+  color: var(--muted-light);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
 /* ---------- Tabla estática de zona (H10, RF-61) ----------
    Vive fuera de #app, después de ella en el documento: no es una isla, no se
    hidrata ni se sustituye (ver el frontmatter de
@@ -1096,8 +1123,16 @@ input {
   border-radius: 10px;
 }
 
+/* table-layout: fixed + los anchos por columna del <colgroup> (RF-89,
+   src/logica/tablaZona.ts#anchosTablaPrincipal): antes la tabla se
+   reajustaba al contenido y se cortaba por la derecha en pantallas
+   estrechas. Ahora los anchos son fijos y .tabla-zona__scroll absorbe
+   cualquier exceso con scroll propio, sin desbordar nunca la página. Esta
+   tabla solo se muestra desde 700px (ver .pie-tabla más abajo), donde ya
+   sobra sitio. */
 .tabla-zona__tabla {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: var(--fs-3);
 }
@@ -1108,6 +1143,8 @@ input {
   border-bottom: 1px solid var(--hair);
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tabla-zona__tabla tbody tr:last-child th,
@@ -1143,11 +1180,85 @@ input {
   color: var(--muted);
 }
 
+/* ---------- Filas del pie: tabla ↔ Lista (RF-89) ----------
+   Por encima de 700px, .pie-tabla (envuelve <table>); por debajo, .pie-filas
+   (el componente Lista, reutilizando .fila/.fila__* de la lista interactiva
+   de arriba: mismo idioma visual). Las dos versiones llevan el mismo
+   contenido siempre — es presentación, no ocultación (regla dura de
+   CLAUDE.md: nada que el buscador vea queda inalcanzable para el usuario, y
+   viceversa). */
+.pie-tabla {
+  display: block;
+}
+
+.pie-filas {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (max-width: 699.98px) {
+  .pie-tabla {
+    display: none;
+  }
+  .pie-filas {
+    display: flex;
+  }
+}
+
+/* .fila ya trae cursor:pointer de la lista interactiva (es un <button>);
+   aquí es contenido estático sin acción propia. */
+.fila--pie {
+  cursor: default;
+}
+
+/* ---------- Plegado (RF-89) ----------
+   <details>/<summary> nativos: se abren de un toque, sin JavaScript, y el
+   contenido plegado sigue en el HTML servido (regla dura de CLAUDE.md).
+   Mismo control para "Ver las {n}" (filas) y "+ {n} más" (pastillas). */
+.pie-plegable {
+  margin-top: 8px;
+}
+
+.pie-plegable > .pie-tabla {
+  margin-top: 8px;
+}
+
+.pie-plegable__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--petrol);
+  font-size: var(--fs-3);
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+
+.pie-plegable__control::-webkit-details-marker {
+  display: none;
+}
+
+.pie-plegable__control::marker {
+  content: '';
+}
+
+.pie-plegable[open] .pie-plegable__control {
+  margin-bottom: 8px;
+}
+
 /* ---------- Migas de pan y enlazado (H10, RF-65/RF-74) ----------
    Solo en la página de municipio: Inicio › provincia › municipio, y el
-   enlace de vuelta a la provincia + la lista de municipios vecinos, después
-   de la tabla. Mismos tokens que el resto de la tabla estática, ninguno
-   nuevo. */
+   enlace de vuelta a la provincia + los municipios vecinos, después de la
+   tabla. Mismos tokens que el resto de la tabla estática, ninguno nuevo. */
 .migas {
   font-size: var(--fs-2);
   color: var(--muted);
@@ -1163,12 +1274,51 @@ input {
   margin: 18px 0 0;
 }
 
-.lista-vecinos {
+/* ---------- Pastillas de municipio (RF-89) ----------
+   Sustituyen al enlace de texto azul por defecto del navegador —el fallo
+   principal de este hito— y a la tabla "Precios por municipio" de la página
+   de zona: en los dos sitios son enlaces a otras páginas de municipio con su
+   precio mínimo al lado. Fondo --superficie (más claro que el --paper de la
+   página), filete --hair, texto --petrol, sin subrayado. El precio reutiliza
+   las mismas clases .precio/.precio--pN que la lista y el tótem: misma
+   banda, mismo cálculo de contraste ya verificado (RNF-22), sin inventar un
+   color de texto nuevo. */
+.pastillas {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 14px;
+  gap: 10px 12px;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.pastilla {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--petrol);
   font-size: var(--fs-3);
+  text-decoration: none;
+}
+
+/* Área de pulsación de 44px mínimo (docs/05-diseno.md) aunque la parte
+   visible sea menor: mismo truco que .lista__filtro::before de arriba. */
+.pastilla::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.pastilla--sin-pagina {
+  color: var(--muted);
+}
+
+.pastilla .precio {
+  font-size: var(--fs-2);
+  padding: 2px 8px;
 }

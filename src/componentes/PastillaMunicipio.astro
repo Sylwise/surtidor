@@ -1,0 +1,33 @@
+---
+// Pastilla de enlace a un municipio (RF-89): sustituye al enlace de texto
+// subrayado en el azul por defecto del navegador, tanto en "Precios por
+// municipio en {zona}" (src/pages/[zona]/index.astro) como en "Otros
+// municipios de {provincia}" (src/pages/[provincia]/[municipio]/index.astro)
+// — misma pastilla en los dos sitios, con el precio mínimo de gasolina 95
+// de ese municipio al lado, en la misma banda que la lista y el tótem.
+import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
+
+interface Props {
+  nombre: string;
+  /** `null` si el municipio no llega al mínimo de RF-60 y no tiene página. */
+  href: string | null;
+  precio: number | null;
+  /** `Banda | 'barata'` (bandaPrecioZona), como cadena: nunca se compone
+   *  aquí, solo se interpola en la clase `precio--{banda}`. */
+  banda: string | null;
+}
+
+const { nombre, href, precio, banda } = Astro.props;
+const Etiqueta = href ? 'a' : 'span';
+---
+
+<li>
+  <Etiqueta class={href ? 'pastilla' : 'pastilla pastilla--sin-pagina'} href={href ?? undefined}>
+    <span class="pastilla__nombre">{cajaDeTitulo(nombre)}</span>
+    {precio === null || banda === null ? (
+      <span class="tabla-zona__ausente">no vende</span>
+    ) : (
+      <span class={`precio precio--${banda}`}>{formatearPrecio(precio)}</span>
+    )}
+  </Etiqueta>
+</li>
