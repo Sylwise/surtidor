@@ -15,9 +15,10 @@ import {
   type ProvinciaCatalogo,
 } from './lib/miteco.ts';
 import { normalizarEstaciones, type EstacionCruda } from './lib/normalizar.ts';
-import { escribirJsonAtomico } from './lib/escritura.ts';
+import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
-import { comprobarSlugsUnicos } from './lib/slug.ts';
+import { comprobarSlugsUnicos, generarSlug, idZonaComunidad } from './lib/slug.ts';
+import { generarRedirects, type ParRedirect } from './lib/redirecciones.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
@@ -78,10 +79,18 @@ function calcularCentro(datos: DatosProvincia): { lat: number; lon: number } {
   return { lat, lon };
 }
 
+/**
+ * Zonas de comunidad autónoma, con el id de URL de ADR-0018: el slug del
+ * nombre, salvo que coincida con el de una provincia (`slugsProvincia`, las
+ * 52 calculadas ya en `main`), en cuyo caso `comunidad/{slug}`. Devuelve
+ * también el par {idAntiguo, idNuevo} de cada una, para generar
+ * `public/_redirects` sin recalcular nada.
+ */
 function construirZonasCcaa(
   provinciasCatalogo: ProvinciaCatalogo[],
   ccaaCatalogo: { IDCCAA: string; CCAA: string }[],
-): Zona[] {
+  slugsProvincia: ReadonlySet<string>,
+): { zonas: Zona[]; redirects: ParRedirect[] } {
   const nombrePorIdCcaa = new Map(ccaaCatalogo.map((c) => [c.IDCCAA, c.CCAA]));
   const provinciasPorCcaa = new Map<string, string[]>();
 
@@ -91,12 +100,15 @@ function construirZonasCcaa(
     provinciasPorCcaa.set(provincia.IDCCAA, lista);
   }
 
-  return Array.from(provinciasPorCcaa.entries()).map(([idCcaa, provincias]) => ({
-    id: `ccaa-${idCcaa}`,
-    nombre: nombrePorIdCcaa.get(idCcaa) ?? `CCAA ${idCcaa}`,
-    tipo: 'ccaa' as const,
-    provincias: provincias.sort(),
-  }));
+  const zonas: Zona[] = [];
+  const redirects: ParRedirect[] = [];
+  for (const [idCcaa, provincias] of provinciasPorCcaa.entries()) {
+    const nombre = nombrePorIdCcaa.get(idCcaa) ?? `CCAA ${idCcaa}`;
+    const id = idZonaComunidad(nombre, slugsProvincia);
+    zonas.push({ id, nombre, tipo: 'ccaa' as const, provincias: provincias.sort() });
+    redirects.push({ idAntiguo: `ccaa-${idCcaa}`, idNuevo: id });
+  }
+  return { zonas, redirects };
 }
 
 async function main(): Promise<void> {
@@ -167,15 +179,6 @@ async function main(): Promise<void> {
     centro: calcularCentro(datos),
   }));
 
-  const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({
-    id: `p-${datos.provincia.id}`,
-    nombre: datos.provincia.nombre,
-    tipo: 'provincia' as const,
-    provincias: [datos.provincia.id],
-  }));
-
-  const zonasCcaa = construirZonasCcaa(provinciasCatalogo, ccaaCatalogo);
-
   const { municipios, sinCatalogar } = construirMunicipios(datosPorProvincia, municipiosCatalogo);
   if (sinCatalogar > 0) {
     console.log(
@@ -186,9 +189,31 @@ async function main(): Promise<void> {
 
   // Guarda contra colisión de URL (docs/06-roadmap.md#H10): dos provincias o
   // dos municipios de la misma provincia que generasen el mismo slug se
-  // pisarían la página. Antes de escribir nada, no después.
+  // pisarían la página. Antes de calcular ningún id de zona, no después.
   comprobarSlugsUnicos(resumenProvincias, (p) => p.nombre, () => 'global', 'Provincias');
   comprobarSlugsUnicos(municipios, (m) => m.nombre, (m) => m.provinciaId, 'Municipios');
+
+  // ADR-0018: las provincias siempre usan el slug de su nombre. Las 52 se
+  // calculan aquí una vez —nunca la lista de colisiones a mano— para que
+  // construirZonasCcaa decida por comparación, no por una lista fija.
+  const slugsProvincia = new Set(resumenProvincias.map((p) => generarSlug(p.nombre)));
+
+  const zonasProvincia: Zona[] = datosPorProvincia.map((datos) => ({
+    id: generarSlug(datos.provincia.nombre),
+    nombre: datos.provincia.nombre,
+    tipo: 'provincia' as const,
+    provincias: [datos.provincia.id],
+  }));
+  const redirectsProvincia: ParRedirect[] = datosPorProvincia.map((datos, i) => ({
+    idAntiguo: `p-${datos.provincia.id}`,
+    idNuevo: zonasProvincia[i]!.id,
+  }));
+
+  const { zonas: zonasCcaa, redirects: redirectsCcaa } = construirZonasCcaa(
+    provinciasCatalogo,
+    ccaaCatalogo,
+    slugsProvincia,
+  );
 
   const indice: Indice = {
     actualizado,
@@ -205,6 +230,12 @@ async function main(): Promise<void> {
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
+  // RF-96/ADR-0018: 71 reglas 301 exactas, nunca un comodín (ver el porqué
+  // en scripts/lib/redirecciones.ts).
+  await escribirTextoAtomico(
+    join(DIRECTORIO_PUBLIC, '_redirects'),
+    generarRedirects([...redirectsProvincia, ...redirectsCcaa]),
+  );
 
   const avisosFinales = [
     totalSinCoordenadas > 0 ? `${totalSinCoordenadas} sin coordenadas utilizables en total` : null,

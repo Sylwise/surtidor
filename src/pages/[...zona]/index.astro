@@ -6,6 +6,11 @@
 // desde la URL, y <title>/<meta description> propios por zona para que
 // Google indexe cada una por separado.
 //
+// `[...zona]`, parámetro resto, no `[zona]`: ADR-0018 hace que `zona.id` sea
+// ya la ruta entera (uno o dos tramos: "barcelona" o "comunidad/madrid"), así
+// que un solo fichero cubre las dos formas sin duplicar esta página bajo
+// `src/pages/comunidad/[zona]/`.
+//
 // El frontmatter corre en Node durante el build: lee public/data/indice.json
 // del disco (no por fetch) para generar un path estático por zona.
 import { readFileSync } from 'node:fs';
@@ -13,8 +18,8 @@ import { join } from 'node:path';
 // `process.cwd()`, no `import.meta.dirname`: `astro build` empaqueta el
 // getStaticPaths de cada ruta dinámica en dist/.prerender/chunks/ antes de
 // ejecutarlo, así que en build import.meta.dirname ya no apunta a
-// src/pages/[zona]/ (sí lo hace en `astro dev`, que ejecuta el fichero en su
-// sitio). Contar ../../../ a mano "funciona" en build por pura coincidencia
+// src/pages/[...zona]/ (sí lo hace en `astro dev`, que ejecuta el fichero en
+// su sitio). Contar ../../../ a mano "funciona" en build por pura coincidencia
 // de profundidad con dist/.prerender/chunks/, y deja de coincidir en
 // cualquier ruta anidada un nivel más —ver
 // src/pages/[provincia]/[municipio]/index.astro, donde sí rompió—.

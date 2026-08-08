@@ -5,8 +5,8 @@
 
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { cargarZona } from './zona.ts';
-import type { DatosProvincia, Estacion, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
+import { cargarZona, zonaDeProvincia, zonaDeReserva } from './zona.ts';
+import type { DatosProvincia, Estacion, Indice, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
 function estacion(extra: Partial<Estacion> = {}): Estacion {
   return {
@@ -144,5 +144,42 @@ describe('cargarZona con Euskadi (tres provincias)', () => {
     assert.equal(resultado.estaciones.length, 0);
     assert.equal(resultado.provinciasFallidas.length, 3);
     assert.equal(resultado.actualizado, null);
+  });
+});
+
+// ADR-0018: desde RF-95 el id de zona ya no tiene la forma predecible
+// `p-{id}`/`ccaa-{id}`, así que zonaDeProvincia/zonaDeReserva no pueden
+// reconstruirlo a mano — tienen que buscarlo en el índice. Madrid es el caso
+// que de verdad ejercita la guarda de `tipo`: su comunidad tiene una sola
+// provincia, así que `provincias[0]` coincide con el de la provincia.
+const INDICE_MADRID: Indice = {
+  actualizado: '2026-08-06T10:00:00Z',
+  provincias: [
+    { id: '28', nombre: 'MADRID', estaciones: 500, minimos: {}, centro: { lat: 40.42, lon: -3.7 } },
+    { id: '08', nombre: 'BARCELONA', estaciones: 10, minimos: {}, centro: { lat: 41.39, lon: 2.17 } },
+  ],
+  zonas: [
+    { id: 'madrid', nombre: 'MADRID', tipo: 'provincia', provincias: ['28'] },
+    { id: 'comunidad/madrid', nombre: 'Madrid', tipo: 'ccaa', provincias: ['28'] },
+    { id: 'barcelona', nombre: 'BARCELONA', tipo: 'provincia', provincias: ['08'] },
+  ],
+};
+
+describe('zonaDeProvincia', () => {
+  it('encuentra la zona de PROVINCIA, no la comunidad homónima de una sola provincia', () => {
+    const zona = zonaDeProvincia(INDICE_MADRID, '28');
+    assert.equal(zona?.id, 'madrid');
+    assert.equal(zona?.tipo, 'provincia');
+  });
+
+  it('undefined si el id de provincia no existe', () => {
+    assert.equal(zonaDeProvincia(INDICE_MADRID, '99'), undefined);
+  });
+});
+
+describe('zonaDeReserva', () => {
+  it('cae a la provincia con más estaciones, con su id real (no `p-{id}` reconstruido)', () => {
+    const zona = zonaDeReserva(INDICE_MADRID);
+    assert.equal(zona.id, 'madrid');
   });
 });
