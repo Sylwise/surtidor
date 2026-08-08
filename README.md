@@ -13,7 +13,8 @@ municipio sin página propia —
 compartición `og:image` generada en el build —
 [ADR-0011](docs/adr/0011-imagen-og-generada-en-build-con-resvg.md).
 Enlazado interno portada → zona → municipio (RF-91, RF-92) —
-[ADR-0017](docs/adr/0017-jerarquia-de-enlaces.md).
+[ADR-0017](docs/adr/0017-jerarquia-de-enlaces.md). Cada página de zona
+declara su `<h1>` en el HTML servido (RF-93).
 
 Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
 El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna

@@ -156,6 +156,11 @@ export function renderizarTablaZona(
   seccion.innerHTML = '';
   seccion.setAttribute('aria-label', `Las más baratas y los municipios de ${zonaNombre}`);
 
+  const tituloPagina = document.createElement('h1');
+  tituloPagina.className = 'tabla-zona__titulo';
+  tituloPagina.textContent = `Gasolineras en ${zonaNombre}`;
+  seccion.append(tituloPagina);
+
   const tituloPrincipal = document.createElement('h2');
   tituloPrincipal.className = 'tabla-zona__titulo';
   tituloPrincipal.textContent = `Las ${filas.length} más baratas de ${zonaNombre}`;
