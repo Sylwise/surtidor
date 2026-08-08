@@ -275,61 +275,44 @@ para que lista y mapa hablen el mismo idioma cromático.
 
 Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
 
-### Pie de contenido
+### La lista es el contenido
 
-Es la parte de la página de zona y de municipio que va **debajo de la
-aplicación**: las tablas de precios servidas en el HTML y el enlazado
-interno hacia otros municipios.
+No hay pie de página. La lista de estaciones que ya se ve —en el rail en
+escritorio, en la hoja en móvil— **es** el contenido servido que indexa
+Google. No hay una segunda tabla debajo del mapa repitiendo lo mismo.
 
-No es relleno ni decoración. Es el activo de captación del proyecto
-([ADR-0007](adr/0007-paginas-por-municipio.md)): los precios escritos en el
-HTML son lo que indexa Google, y los enlaces internos son lo que evita que
-las 800 páginas municipales queden huérfanas.
+La versión anterior sí la tenía, y estaba mal por dos motivos. Duplicaba
+información: el rail decía "MÁS BARATAS · 853" y treinta píxeles más abajo
+una tabla repetía las mismas estaciones con más columnas. Y colgaba de un
+mapa que ocupa toda la pantalla, así que el usuario no tenía forma de saber
+que existía salvo desplazándose por accidente.
 
-De ahí salen dos prohibiciones. **No se oculta**: contenido servido al
-buscador que el usuario no puede alcanzar es *cloaking*, y se penaliza.
-**No se muda a otra URL**: llevárselo a una página aparte vacía la página
-municipal y crea dos páginas parecidas compitiendo, que es el contenido
-delgado que ADR-0007 evita.
+**La página mide una pantalla.** Nada cuelga por debajo del mapa. En
+escritorio no hay desplazamiento de documento; en móvil, la hoja es la única
+superficie que se desplaza.
 
-Lo que sí se hace es ordenarlo.
+**Las cuatro listas se generan en el build.** El HTML servido contiene las
+estaciones ordenadas por cada uno de los cuatro combustibles. Las pastillas
+de combustible eligen cuál se muestra; las otras tres siguen en el documento.
+Son cuatro números por estación, datos que ya están en el JSON de provincia.
 
-**Frontera visible.** El pie no empieza sin avisar. Entre la aplicación y
-el pie va una banda a todo el ancho en `--petrol`, con la microetiqueta en
-mayúsculas de siempre. Marca que se ha salido de la aplicación y se ha
-entrado en otra parte de la página.
+Con esto hay más texto indexable por página que con la tabla anterior, no
+menos: cuatro precios por estación en vez de uno.
 
-**Entrada en móvil.** Con la hoja en posición completa, la última fila de
-la lista es un enlace —"Ver todos los precios de {municipio}"— que desplaza
-hasta el pie. Aparece solo cuando el usuario ya ha agotado la lista, así que
-no estorba a quien únicamente quiere repostar, y no consume ningún control
-de la cabecera, que está cerrada.
+**Cada fila lleva rótulo, dirección y precio.** La dirección va bajo el
+rótulo, en el sitio donde antes iba el municipio. En una página de municipio
+el municipio es siempre el mismo y esa línea decía lo obvio.
 
-Nada flotante sobre el mapa. La única excepción sigue siendo la hoja.
+**Los enlaces a otros municipios cierran la lista.** Van al final del propio
+rail o de la hoja, después de la última estación, como pastillas: fondo
+claro, filete de `--hair`, texto en `--petrol`, sin subrayado, con el precio
+mínimo del municipio al lado en monoespaciada. Nunca en el azul ni en el
+morado por defecto del navegador.
 
-**Las filas son el componente `Lista`, no una tabla.** Número de orden en
-monoespaciada a la izquierda, rótulo y municipio en el centro, precio en
-píldora de color a la derecha, con la misma banda que el marcador. Una tabla
-de seis columnas no cabe en 360 px y hoy se corta por la derecha. En
-escritorio, donde sobra ancho, se mantiene la tabla, con anchos de columna
-fijos y sin desbordar nunca el contenedor.
-
-**Plegado por defecto.** Se muestran las tres primeras filas y un control
-"Ver las {n}" que despliega el resto. El contenido sigue en el HTML y se
-alcanza de un toque: es revelación progresiva, no ocultación.
-
-**Los enlaces a otros municipios son pastillas, no texto subrayado.** Fondo
-claro, filete de `--hair`, texto en `--petrol`, sin subrayado, y el precio
-mínimo del municipio al lado en monoespaciada con su color de banda. Se
-muestran los primeros y un "+ {n} más" despliega los demás.
-
-Esto corrige tres incumplimientos que había: enlaces en el azul por defecto
-del navegador —un color que no está en `tokens.css` y que además es lo único
-cromático de la pantalla que no es un precio—, áreas de pulsación de unos
-20 px cuando el mínimo es 44, y la tabla desbordada por debajo de 360 px.
-
-El precio de cada pastilla sale del JSON de la provincia, que ya se lee en
-el build de esa página. No hay ningún dato nuevo que generar.
+**Radio único.** `tokens.css` define hoy colores y tipografía pero ningún
+radio, así que cada componente se inventa el suyo: las pastillas de
+municipio salen casi ovaladas junto a píldoras de precio mucho menos
+redondeadas. Se añade un token de radio y lo usan todos.
 
 ## Estados de error y vacío
 
