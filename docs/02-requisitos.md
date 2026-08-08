@@ -74,6 +74,7 @@ esté publicada.
 | RF-90 | M | En una página de municipio, la aplicación muestra únicamente las estaciones de ese municipio, no las de la provincia. Un enlace lleva a la página de la provincia. |
 | RF-91 | M | La portada contiene, en el HTML servido, enlaces `<a href>` reales a las 52 provincias y las 19 comunidades autónomas. Ver [ADR-0017](adr/0017-jerarquia-de-enlaces.md). |
 | RF-92 | M | Cada página de zona contiene, en el HTML servido, enlaces `<a href>` reales a todos sus municipios con página propia. Ver [ADR-0017](adr/0017-jerarquia-de-enlaces.md). |
+| RF-93 | M | Cada página de zona declara un `<h1>` con el nombre de la zona, en el HTML servido, encima de la lista. |
 | RF-77 | M | No existen zonas definidas a mano. Toda zona sale de un límite administrativo oficial o de la adyacencia geográfica. |
 | RF-36 | M | Una zona de varias provincias descarga sus ficheros en paralelo y los fusiona. Si alguno falla, se muestra lo que sí ha llegado y se avisa de qué falta. |
 | RF-37 | S | Cuando el usuario pulsa el botón de ubicación, se le propone además cambiar a la zona que le corresponde. |

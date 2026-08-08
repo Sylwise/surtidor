@@ -261,3 +261,51 @@ asume.
 no hay precio fresco, y un precio que no es el del cartel no sirve para decidir
 dónde repostar. Además es el único componente que no se corrige desplegando.
 El motivo completo, en [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md).
+
+---
+
+## Ideas sin evaluar
+
+Recogidas el 8 de agosto de 2026. No están comprometidas, no tienen
+requisito ni versión asignada, y varias se solapan con lo ya planificado.
+Se anotan para no perderlas.
+
+**Dependen del resumen histórico (V2-01) y salen casi solas una vez exista:**
+
+- Gráficas de evolución del precio de los últimos 30 días, generadas en el
+  build.
+- "¿Está barato ahora?": situar el precio actual frente a su propia media
+  histórica, en porcentaje.
+- Cambios desde ayer o desde la semana pasada, en céntimos, mostrando el
+  precio anterior junto al actual.
+- "Las ganadoras del día": ranking de las mayores bajadas y subidas.
+- Precio medio del municipio comparado en porcentaje con el de su
+  provincia.
+- "Semáforo nacional" en la portada: medias de España, evolución a 30 días
+  y comunidades más baratas.
+
+**Depende del histórico y además del calendario:**
+
+- "Récord histórico": aviso cuando un precio se acerca al mínimo de los
+  últimos doce meses. Necesita doce meses de datos guardados, o que el
+  ministerio publique el pasado.
+
+**Dependen de la ubicación del usuario y cuestan interfaz:**
+
+- "¿Merece la pena ir?": cruzar ubicación, precio y distancia para decir si
+  el ahorro compensa el desplazamiento, sin exigir perfil de vehículo.
+- "La mejor gasolinera para ti": puntuación que combina precio y distancia,
+  distinta de la más barata a secas.
+- Gráfico de dispersión de ahorro frente a distancia, cada estación un
+  punto.
+- El municipio más barato cerca del usuario.
+
+**Se solapan con cosas ya planificadas o ya hechas, comprobar antes:**
+
+- Preferencia de combustible persistente. Puede que ya esté: `estado.ts`
+  guarda combustible junto a zona y litros.
+- Indicador de frescura del dato. La línea de "Datos de las HH:MM" ya
+  cumple la función; podría faltarle forma, no fondo.
+- Detección de estaciones anómalas: precios inusualmente bajos, cambios
+  desproporcionados, estaciones sin actualizar. Se solapa con el precio
+  congelado (V2-08).
