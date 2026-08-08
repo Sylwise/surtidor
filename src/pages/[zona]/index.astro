@@ -24,10 +24,7 @@ import '../../estilos/tokens.css';
 import '../../estilos/interfaz.css';
 import AppInteractiva from '../../componentes/AppInteractiva.astro';
 import { fusionarProvincias, UMBRAL_HIDRATACION_EMBEBIDA } from '../../logica/zona.ts';
-import { calcularTablaZona, bandaPrecioZona, hrefMunicipioZona } from '../../logica/tablaZona.ts';
 import { tituloZona, descripcionZona } from '../../logica/metaZona.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
 import type { DatosProvincia, Indice, Zona } from '../../../scripts/lib/tipos.ts';
 
 const DIRECTORIO_DATOS = join(process.cwd(), 'public', 'data');
@@ -71,28 +68,6 @@ const datosPorProvincia: DatosProvincia[] = zona.provincias.map((id) => {
 });
 const { estaciones, mock, actualizado } = fusionarProvincias(datosPorProvincia);
 
-// --- Tabla estática, acotada (corrección tras medir la primera versión) ---
-// Una tabla con las 2.000 y pico estaciones de una comunidad no posiciona
-// mejor que una con 30: Google no premia el volcado exhaustivo, y esas filas
-// de más hay que parsearlas en el móvil aunque el gzip las disimule. Aquí solo
-// van las 30 más baratas con sus cuatro precios, más un resumen por
-// municipio (RF-74: es lo que enlaza esta página con sus municipios). La
-// tabla completa de una gasolinera por gasolinera vive en la página de SU
-// municipio (H10, segunda mitad), donde sí son pocas y son el contenido
-// entero de la página.
-//
-// Deliberadamente NO es la misma lista que hidrata la aplicación interactiva
-// de más abajo: esa se pinta con el combustible por defecto porque el elegido
-// de verdad vive en localStorage, que el build no puede leer, así que
-// reordenarla al montar el cliente es inevitable. Esta tabla, en cambio, no
-// depende de ningún combustible activo —enseña los cuatro a la vez— y no se
-// pinta con JavaScript en la primera carga: la sirve el build. RF-88
-// (ADR-0016) sí la regenera después, en cliente, si el usuario cambia de
-// zona sin recargar — con este mismo cálculo, src/logica/tablaZona.ts, para
-// que las dos vías no diverjan.
-const { filas: filasTabla, multiProvincia: multiProvinciaTabla, escalas: escalasPorCombustible, resumenMunicipios } =
-  calcularTablaZona(estaciones);
-
 // Solo por debajo de UMBRAL_HIDRATACION_EMBEBIDA (ver el porqué en
 // src/logica/zona.ts) va embebido el bloque de hidratación del widget
 // interactivo; por encima, AppInteractiva pide los JSON de provincia por
@@ -129,84 +104,5 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
       actualizado={actualizado}
       esPaginaDeZona={true}
     />
-
-    <section id="tabla-zona" class="tabla-zona" aria-label={`Las más baratas y los municipios de ${zona.nombre}`}>
-      <h2 class="tabla-zona__titulo">Las {filasTabla.length} más baratas de {zona.nombre}</h2>
-      {actualizado && (
-        <p class="tabla-zona__actualizado">Actualizado: {formatearFechaHora(actualizado)}.</p>
-      )}
-      <div class="tabla-zona__scroll">
-        <table class="tabla-zona__tabla">
-          <thead>
-            <tr>
-              <th scope="col">Gasolinera</th>
-              <th scope="col">Dirección</th>
-              <th scope="col">Municipio</th>
-              {multiProvinciaTabla && <th scope="col">Provincia</th>}
-              {ORDEN_COMBUSTIBLES.map((clave) => <th scope="col">{ETIQUETA[clave]}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {filasTabla.map((estacion) => (
-              <tr>
-                <th scope="row">{estacion.rotulo}</th>
-                <td>{cajaDeTitulo(estacion.direccion)}</td>
-                <td>{cajaDeTitulo(estacion.municipio)}</td>
-                {multiProvinciaTabla && <td>{estacion.provinciaNombre}</td>}
-                {ORDEN_COMBUSTIBLES.map((clave) => {
-                  const precio = estacion.precios[clave];
-                  return (
-                    <td>
-                      {precio === null ? (
-                        <span class="tabla-zona__ausente">no vende</span>
-                      ) : (
-                        <span class={`precio precio--${bandaPrecioZona(escalasPorCombustible, clave, precio)}`}>
-                          {formatearPrecio(precio)}
-                        </span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* RF-92 (ADR-0017): enlaces reales a todos los municipios de la zona
-          que tienen página propia (RF-60) — es el índice de lo que hay
-          debajo, y sin él ninguna página de municipio tenía padre que la
-          enlazara. Los municipios sin página (hrefMunicipioZona === null) no
-          entran: no hay adónde mandar. src/componentes/TablaZona.ts repinta
-          este mismo bloque en cliente al cambiar de zona sin recargar
-          (RF-88); mismo cálculo, misma estructura, para que las dos vías no
-          diverjan. */}
-      <div class="enlaces-bloque">
-        <h2 class="enlaces-bloque__titulo micro">Municipios de {zona.nombre}</h2>
-        <ul class="enlaces-bloque__filas">
-          {resumenMunicipios
-            .filter((resumen) => hrefMunicipioZona(resumen) !== null)
-            .map((resumen) => (
-              <li>
-                <a href={hrefMunicipioZona(resumen) as string} class="enlaces-bloque__fila">
-                  <span class="enlaces-bloque__info">
-                    <span class="enlaces-bloque__nombre">{cajaDeTitulo(resumen.municipio)}</span>
-                    {multiProvinciaTabla && (
-                      <span class="enlaces-bloque__provincia">{resumen.provinciaNombre}</span>
-                    )}
-                  </span>
-                  {resumen.precioMinimo !== null && (
-                    <span
-                      class={`enlaces-bloque__precio precio precio--${bandaPrecioZona(escalasPorCombustible, 'gasolina95e5', resumen.precioMinimo)}`}
-                    >
-                      {formatearPrecio(resumen.precioMinimo)}
-                    </span>
-                  )}
-                </a>
-              </li>
-            ))}
-        </ul>
-      </div>
-    </section>
   </body>
 </html>

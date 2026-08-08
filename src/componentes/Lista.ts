@@ -1,13 +1,37 @@
 // Lista de estaciones ordenada de menor a mayor precio del combustible activo,
 // sincronizada con la selección (RF-20, RF-21).
+//
+// El HTML que sirve el build (AppInteractiva.astro, RF-89) ya trae esta
+// misma lista pintada para los cuatro combustibles; en cuanto este módulo
+// monta, la sustituye por la versión reactiva de aquí (mismo cálculo,
+// src/logica/listaEstaciones.ts, para que las dos vías no diverjan) y a
+// partir de ahí manda ella.
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
+import { calcularListaCombustible } from '../logica/listaEstaciones.ts';
+import { resumenMunicipiosDe, hrefMunicipioZona } from '../logica/municipios.ts';
+import { crearEscala } from '../logica/escala.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
-import { estacionesVisibles } from '../logica/visibilidad.ts';
-import type { EstacionZona } from '../logica/zona.ts';
+
+export interface EnlaceMunicipio {
+  href: string;
+  nombre: string;
+  precioMinimo: number | null;
+}
+
+/** Enlaces de cierre para una página de MUNICIPIO (RF-90): fijos, no se
+ *  recalculan con el estado (el municipio de la página no cambia). En una
+ *  página de ZONA no se pasan: se calculan en cada render a partir de
+ *  `estado.estaciones`, para que un cambio de zona en sitio (RF-88,
+ *  ADR-0016) los actualice solo. */
+export interface EnlacesEstaticos {
+  /** RF-90: enlace de vuelta a la página de la provincia entera. */
+  volverA: { href: string; nombre: string };
+  /** RF-65/RF-74: municipios vecinos, con página propia. */
+  vecinos: EnlaceMunicipio[];
+}
 
 function crearAviso(texto: string): HTMLParagraphElement {
   const p = document.createElement('p');
@@ -46,15 +70,94 @@ function crearCabecera(soloAbiertas: boolean, contador: number): HTMLDivElement 
   return cabecera;
 }
 
-// RF-86: el municipio se pasa a caja de título; la provincia, verbatim (RF-76).
-function nombreLugar(estacion: EstacionZona, multiProvincia: boolean): string {
-  const municipio = cajaDeTitulo(estacion.municipio);
-  return multiProvincia ? `${municipio} · ${estacion.provinciaNombre}` : municipio;
+// Mismo tratamiento de fila que las páginas de índice (ADR-0017,
+// .enlaces-bloque en interfaz.css): las píldoras de ancho variable que tuvo
+// primero RF-89 no alineaban con 130 municipios.
+function crearFilaEnlace(enlace: EnlaceMunicipio, claseBanda: string, textoAlternativo?: string): HTMLLIElement {
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+  a.className = 'enlaces-bloque__fila';
+  a.href = enlace.href;
+
+  const info = document.createElement('span');
+  info.className = 'enlaces-bloque__info';
+  const nombre = document.createElement('span');
+  nombre.className = 'enlaces-bloque__nombre';
+  nombre.textContent = textoAlternativo ?? enlace.nombre;
+  info.append(nombre);
+  a.append(info);
+
+  if (enlace.precioMinimo !== null) {
+    const precio = document.createElement('span');
+    precio.className = `enlaces-bloque__precio precio${claseBanda}`;
+    precio.textContent = formatearPrecio(enlace.precioMinimo);
+    a.append(precio);
+  }
+
+  li.append(a);
+  return li;
+}
+
+// RF-89 ("los enlaces a otros municipios cierran la lista") + RF-90 (enlace
+// de vuelta a la provincia). En una página de zona, `enlacesEstaticos` es
+// `undefined` y los municipios salen de las estaciones ya cargadas —así que
+// un cambio de zona en sitio (ADR-0016) los renueva solo, sin plumbing
+// aparte—. En una página de municipio, `enlacesEstaticos` los fija de una
+// vez porque el municipio de la página nunca cambia.
+function crearEnlacesCierre(estado: EstadoApp, enlacesEstaticos?: EnlacesEstaticos): HTMLElement | null {
+  let enlaces: { href: string; nombre: string; precioMinimo: number | null }[];
+  let volverA: { href: string; nombre: string } | null = null;
+  let titulo: string;
+
+  if (enlacesEstaticos) {
+    volverA = enlacesEstaticos.volverA;
+    enlaces = enlacesEstaticos.vecinos;
+    titulo = `Otros municipios de ${enlacesEstaticos.volverA.nombre}`;
+  } else {
+    enlaces = resumenMunicipiosDe(estado.estaciones)
+      .map((resumen) => {
+        const href = hrefMunicipioZona(resumen);
+        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precioMinimo: resumen.precioMinimo } : null;
+      })
+      .filter((enlace): enlace is { href: string; nombre: string; precioMinimo: number | null } => enlace !== null);
+    titulo = `Municipios de ${estado.zonaNombre || 'esta zona'}`;
+  }
+
+  if (enlaces.length === 0 && !volverA) return null;
+
+  // Banda de color relativa al propio conjunto de enlaces mostrado (mismo
+  // patrón que src/logica/listaEstaciones.ts), no a toda la zona: aquí el
+  // precio que se enseña por municipio ya es un mínimo, no el de una
+  // estación concreta.
+  const escala = crearEscala(enlaces.map((e) => e.precioMinimo).filter((p): p is number => p !== null));
+  function claseBanda(precioMinimo: number | null): string {
+    if (precioMinimo === null) return '';
+    return ` precio--${escala.esMasBarata(precioMinimo) ? 'barata' : escala.banda(precioMinimo)}`;
+  }
+
+  const items: HTMLLIElement[] = [];
+  if (volverA) {
+    items.push(crearFilaEnlace({ href: volverA.href, nombre: volverA.nombre, precioMinimo: null }, '', `Ver toda ${volverA.nombre}`));
+  }
+  for (const enlace of enlaces) items.push(crearFilaEnlace(enlace, claseBanda(enlace.precioMinimo)));
+
+  const nav = document.createElement('nav');
+  nav.className = 'enlaces-bloque';
+  nav.setAttribute('aria-label', 'Otros municipios');
+  const h2 = document.createElement('h2');
+  h2.className = 'enlaces-bloque__titulo micro';
+  h2.textContent = titulo;
+  nav.append(h2);
+  const ul = document.createElement('ul');
+  ul.className = 'enlaces-bloque__filas';
+  ul.append(...items);
+  nav.append(ul);
+  return nav;
 }
 
 /** Monta la lista en `contenedor` y la mantiene sincronizada con el estado.
  *  Devuelve una función para desuscribirse, por si el llamador la necesita. */
-export function montarLista(contenedor: HTMLElement): () => void {
+export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesEstaticos): () => void {
   function render(estado: EstadoApp): void {
     contenedor.innerHTML = '';
     contenedor.setAttribute('aria-busy', estado.cargando ? 'true' : 'false');
@@ -77,10 +180,9 @@ export function montarLista(contenedor: HTMLElement): () => void {
       return;
     }
 
-    // RF-48: las estaciones sin venta al público se excluyen en toda la
-    // interfaz, no solo aquí; el mapa y la ficha aplican el mismo filtro.
-    const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
-    const ordenadas = ordenarPorPrecio(visiblesTipoVenta, estado.combustible);
+    // RF-89: mismo cálculo (puesto, precio, banda) que el HTML servido en el
+    // build para los cuatro combustibles a la vez.
+    const ordenadas = calcularListaCombustible(estado.estaciones, estado.combustible);
 
     // RF-42: ninguna estación de la zona vende el combustible elegido.
     if (ordenadas.length === 0) {
@@ -89,10 +191,14 @@ export function montarLista(contenedor: HTMLElement): () => void {
       contenedor.append(
         crearAviso(`Ninguna estación de ${nombreZona} vende ${ETIQUETA[estado.combustible].toLowerCase()}.`)
       );
+      const enlaces = crearEnlacesCierre(estado, enlacesEstaticos);
+      if (enlaces) contenedor.append(enlaces);
       return;
     }
 
-    const visibles = estado.soloAbiertas ? ordenadas.filter((e) => estaAbierta(e.horario, new Date())) : ordenadas;
+    const visibles = estado.soloAbiertas
+      ? ordenadas.filter((f) => estaAbierta(f.estacion.horario, new Date()))
+      : ordenadas;
 
     contenedor.append(crearCabecera(estado.soloAbiertas, visibles.length));
 
@@ -106,18 +212,15 @@ export function montarLista(contenedor: HTMLElement): () => void {
       boton.addEventListener('click', () => actualizarEstado({ soloAbiertas: false }));
       aviso.append(document.createTextNode(' '), boton);
       contenedor.append(aviso);
+      const enlaces = crearEnlacesCierre(estado, enlacesEstaticos);
+      if (enlaces) contenedor.append(enlaces);
       return;
     }
-
-    const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
-    const multiProvincia = new Set(visiblesTipoVenta.map((e) => e.provinciaId)).size > 1;
 
     const filas = document.createElement('ol');
     filas.className = 'lista__filas';
 
-    for (const estacion of visibles) {
-      const puesto = ordenadas.indexOf(estacion) + 1;
-      const precio = estacion.precios[estado.combustible] as number;
+    for (const { estacion, puesto, precio, banda } of visibles) {
       const abierta = estaAbierta(estacion.horario, new Date());
 
       const item = document.createElement('li');
@@ -137,13 +240,13 @@ export function montarLista(contenedor: HTMLElement): () => void {
       const rotulo = document.createElement('span');
       rotulo.className = 'fila__rotulo';
       rotulo.textContent = estacion.rotulo;
-      const lugar = document.createElement('span');
-      lugar.className = 'fila__municipio';
-      lugar.textContent = nombreLugar(estacion, multiProvincia);
-      info.append(rotulo, lugar);
+      // RF-89: la dirección va donde antes iba el municipio.
+      const direccion = document.createElement('span');
+      direccion.className = 'fila__direccion';
+      direccion.textContent = cajaDeTitulo(estacion.direccion);
+      info.append(rotulo, direccion);
 
       const precioEl = document.createElement('span');
-      const banda = escala.esMasBarata(precio) ? 'barata' : escala.banda(precio);
       precioEl.className = `fila__precio precio precio--${banda}`;
       precioEl.textContent = formatearPrecio(precio);
 
@@ -154,6 +257,9 @@ export function montarLista(contenedor: HTMLElement): () => void {
     }
 
     contenedor.append(filas);
+
+    const enlaces = crearEnlacesCierre(estado, enlacesEstaticos);
+    if (enlaces) contenedor.append(enlaces);
   }
 
   render(obtenerEstado());
