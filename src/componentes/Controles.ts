@@ -18,8 +18,6 @@
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import { cajaDeTitulo } from '../logica/formato.ts';
-import { estacionesDeZona } from '../logica/zona.ts';
 import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
 // Exportadas: src/pages/index.astro (RF-91, ADR-0017) agrupa sus enlaces de
@@ -60,116 +58,38 @@ export function montarControles(
   contenedorIdentidad: HTMLElement,
   contenedorRapidos: HTMLElement,
   zonas: Zona[],
-  catalogoProvincias: ResumenProvincia[],
+  _catalogoProvincias: ResumenProvincia[],
 ): { abrirSelector: () => void } {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
-  contenedorIdentidad.innerHTML = '';
   contenedorRapidos.innerHTML = '';
 
-  // --- Selector de zona: buscable, agrupado por tipo (RF-32) ---
-  const bloqueZona = document.createElement('div');
-  bloqueZona.className = 'controles__zona';
-
-  const botonZona = document.createElement('button');
-  botonZona.type = 'button';
-  botonZona.className = 'boton-zona';
-  botonZona.setAttribute('aria-expanded', 'false');
-  botonZona.setAttribute('aria-controls', 'panel-zona');
-  const nombreZonaSpan = document.createElement('span');
-  nombreZonaSpan.className = 'boton-zona__nombre';
-  botonZona.append(nombreZonaSpan);
-
-  const panelZona = document.createElement('div');
-  panelZona.id = 'panel-zona';
-  panelZona.className = 'panel-zona';
-  panelZona.hidden = true;
-
-  // Cabecera de búsqueda de alto fijo (docs/05-diseno.md#Selector-de-zona):
-  // fuera de `.panel-zona__grupos`, que es quien hace scroll, para que el
-  // scroll —y su barra— empiecen debajo del buscador, no en él (ver
-  // interfaz.css, mismo patrón que .hoja/.hoja__rapidos/.hoja__cuerpo).
-  const cabeceraBuscar = document.createElement('div');
-  cabeceraBuscar.className = 'panel-zona__cabecera';
-
-  const buscar = document.createElement('input');
-  buscar.type = 'search';
-  buscar.className = 'panel-zona__buscar';
-  buscar.placeholder = 'Buscar provincia, comunidad o zona…';
-  buscar.setAttribute('aria-label', 'Buscar zona');
-  cabeceraBuscar.append(buscar);
-
-  const listaGrupos = document.createElement('div');
-  listaGrupos.className = 'panel-zona__grupos';
-
-  // Indica que hay más filas por debajo sin fiarse de la barra de
-  // desplazamiento del sistema (docs/05-diseno.md#Selector-de-zona). Dentro
-  // de listaGrupos (no del panel entero): es `position: absolute` contra
-  // ese contenedor, que es el que hace scroll.
-  const difuminado = document.createElement('div');
-  difuminado.className = 'panel-zona__difuminado';
-  difuminado.setAttribute('aria-hidden', 'true');
-
-  const opcionesZona: { fila: HTMLLIElement; textoBusqueda: string }[] = [];
-  const gruposDom: HTMLElement[] = [];
-
-  // Mismas filas que el bloque de enlaces de la portada y del cierre de
-  // lista (RF-91, RF-89): un solo lenguaje visual para "elegir un
-  // territorio de una lista" (docs/05-diseno.md#Selector-de-zona). Aquí es
-  // un <button>, no un <a> (ADR-0017), de ahí el modificador --boton.
-  for (const tipo of ORDEN_TIPOS) {
-    const deEsteTipo = zonasOrdenadas.filter((z) => z.tipo === tipo);
-    if (deEsteTipo.length === 0) continue;
-
-    const grupo = document.createElement('div');
-    grupo.className = 'enlaces-bloque';
-    const titulo = document.createElement('h3');
-    titulo.className = 'enlaces-bloque__titulo micro';
-    titulo.textContent = ETIQUETA_TIPO[tipo];
-    grupo.append(titulo);
-
-    const ul = document.createElement('ul');
-    ul.className = 'enlaces-bloque__filas';
-
-    for (const zona of deEsteTipo) {
-      const li = document.createElement('li');
-      const boton = document.createElement('button');
-      boton.type = 'button';
-      boton.className = 'enlaces-bloque__fila enlaces-bloque__fila--boton';
-      const info = document.createElement('span');
-      info.className = 'enlaces-bloque__info';
-      const nombre = document.createElement('span');
-      nombre.className = 'enlaces-bloque__nombre';
-      // Caja de título, no las mayúsculas crudas del catálogo (ver la nota
-      // sobre RF-76 en src/logica/formato.ts#cajaDeTitulo): este panel no
-      // lo ve ningún rastreador, así que aquí gana la legibilidad.
-      nombre.textContent = cajaDeTitulo(zona.nombre);
-      info.append(nombre);
-      const recuento = document.createElement('span');
-      recuento.className = 'enlaces-bloque__recuento';
-      recuento.textContent = String(estacionesDeZona(zona, catalogoProvincias));
-      boton.append(info, recuento);
-      boton.addEventListener('click', () => {
-        actualizarEstado({ zonaId: zona.id });
-        cerrarPanel();
-        botonZona.focus();
-      });
-      li.append(boton);
-      ul.append(li);
-      opcionesZona.push({ fila: li, textoBusqueda: normalizar(zona.nombre) });
-    }
-
-    grupo.append(ul);
-    listaGrupos.append(grupo);
-    gruposDom.push(grupo);
-  }
-
-  listaGrupos.append(difuminado);
-  panelZona.append(cabeceraBuscar, listaGrupos);
-  bloqueZona.append(botonZona, panelZona);
+  // --- Selector de zona: enlaces servidos, mejorados en cliente (RF-91) ---
+  const exigir = <T extends HTMLElement>(selector: string): T => {
+    const elemento = document.querySelector<T>(selector);
+    if (!elemento) throw new Error(`Falta ${selector} en la navegación de la aplicación.`);
+    return elemento;
+  };
+  const botonZona = exigir<HTMLButtonElement>('#boton-zona');
+  const nombreZonaSpan = exigir<HTMLElement>('#nombre-zona');
+  const panelZona = exigir<HTMLElement>('#panel-zona');
+  const fondoPanelZona = exigir<HTMLElement>('#fondo-panel-zona');
+  const cerrarZona = exigir<HTMLButtonElement>('#cerrar-panel-zona');
+  const buscar = exigir<HTMLInputElement>('#buscar-zona');
+  const botonHoy = exigir<HTMLButtonElement>('#boton-hoy');
+  const panelHoy = exigir<HTMLElement>('#panel-hoy');
+  const cerrarHoy = exigir<HTMLButtonElement>('#cerrar-panel-hoy');
+  const opcionesZona = Array.from(
+    contenedorIdentidad.querySelectorAll<HTMLLIElement>('[data-opcion-zona]'),
+    (fila) => ({ fila, textoBusqueda: normalizar(fila.dataset.busqueda ?? '') }),
+  );
+  const gruposDom = Array.from(contenedorIdentidad.querySelectorAll<HTMLElement>('[data-grupo-zona]'));
+  const enlacesZona = Array.from(contenedorIdentidad.querySelectorAll<HTMLAnchorElement>('[data-zona-id]'));
 
   function abrirPanel(): void {
+    cerrarPanelHoy();
     panelZona.hidden = false;
+    fondoPanelZona.hidden = false;
     botonZona.setAttribute('aria-expanded', 'true');
     buscar.value = '';
     filtrarZonas('');
@@ -182,6 +102,7 @@ export function montarControles(
 
   function cerrarPanel(): void {
     panelZona.hidden = true;
+    fondoPanelZona.hidden = true;
     panelZona.classList.remove('panel-zona--abierta');
     botonZona.setAttribute('aria-expanded', 'false');
   }
@@ -201,16 +122,60 @@ export function montarControles(
     if (panelZona.hidden) abrirPanel();
     else cerrarPanel();
   });
+  cerrarZona.addEventListener('click', () => {
+    cerrarPanel();
+    botonZona.focus();
+  });
+  fondoPanelZona.addEventListener('click', () => {
+    cerrarPanel();
+    botonZona.focus();
+  });
+  for (const enlace of enlacesZona) {
+    enlace.addEventListener('click', (evento) => {
+      const zonaId = enlace.dataset.zonaId;
+      if (!zonaId) return;
+      evento.preventDefault();
+      actualizarEstado({ zonaId });
+      cerrarPanel();
+      botonZona.focus();
+    });
+  }
   buscar.addEventListener('input', () => filtrarZonas(buscar.value));
   document.addEventListener('click', (evento) => {
-    if (!panelZona.hidden && !bloqueZona.contains(evento.target as Node)) cerrarPanel();
+    if (!panelHoy.hidden && !panelHoy.contains(evento.target as Node) && !botonHoy.contains(evento.target as Node)) {
+      cerrarPanelHoy();
+    }
   });
-  bloqueZona.addEventListener('keydown', (evento) => {
+  document.addEventListener('keydown', (evento) => {
     if (evento.key === 'Escape' && !panelZona.hidden) {
       evento.stopPropagation();
       cerrarPanel();
       botonZona.focus();
+    } else if (evento.key === 'Escape' && !panelHoy.hidden) {
+      cerrarPanelHoy();
+      botonHoy.focus();
     }
+  });
+
+  function abrirPanelHoy(): void {
+    cerrarPanel();
+    panelHoy.hidden = false;
+    botonHoy.setAttribute('aria-expanded', 'true');
+    panelHoy.querySelector<HTMLAnchorElement>('a')?.focus();
+  }
+
+  function cerrarPanelHoy(): void {
+    panelHoy.hidden = true;
+    botonHoy.setAttribute('aria-expanded', 'false');
+  }
+
+  botonHoy.addEventListener('click', () => {
+    if (panelHoy.hidden) abrirPanelHoy();
+    else cerrarPanelHoy();
+  });
+  cerrarHoy.addEventListener('click', () => {
+    cerrarPanelHoy();
+    botonHoy.focus();
   });
 
   // --- Selector de combustible: pestañas, un toque (RF-30) ---
@@ -230,7 +195,6 @@ export function montarControles(
     botonesCombustible.set(clave, boton);
   }
 
-  contenedorIdentidad.append(bloqueZona);
   contenedorRapidos.append(tabsCombustible);
 
   function render(estado: EstadoApp): void {
@@ -242,6 +206,12 @@ export function montarControles(
     nombreZonaSpan.textContent = estado.cargando
       ? 'Cargando…'
       : (zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona');
+
+    for (const enlace of enlacesZona) {
+      const activo = enlace.dataset.zonaId === estado.zonaId;
+      if (activo) enlace.setAttribute('aria-current', 'page');
+      else enlace.removeAttribute('aria-current');
+    }
 
     for (const [clave, boton] of botonesCombustible) {
       const activo = clave === estado.combustible;

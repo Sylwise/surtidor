@@ -225,6 +225,13 @@ Tres salidas, y las tres valen:
 2. **Arrastrar la hoja hacia abajo** hasta la posición asomada.
 3. **Una X** en la esquina de la ficha, para quien no descubra las otras dos.
 
+**Todo cierre de superficie usa el mismo botón.** Área de pulsación de 44 × 44
+px, símbolo `✕`, fondo transparente y sin círculo ni borde permanente. Solo
+aparece un fondo tenue al pasar el puntero, enfocar o pulsar. En reposo tiene
+contraste suficiente para reconocerse sin buscarlo: sobre superficies claras
+se acerca a `--petrol`; sobre el tótem oscuro, a `--paper`. La
+ficha, el selector territorial y el panel «Hoy» no inventan variantes propias.
+
 ### Cabecera en móvil
 
 La palabra "Surtidor" **no se muestra en móvil**, solo el icono. El nombre no
@@ -277,16 +284,22 @@ Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
 
 ### Selector de zona
 
-Es el único componente que se quedó sin diseñar cuando el resto ya lo
-estaba: nombres en mayúsculas del catálogo, sin tratamiento, con filas
-larguísimas por el `letter-spacing` heredado. Y en escritorio se abre encima
-del rail, tapando la lista de precios, que es lo único que el usuario está
-mirando.
+Setenta y un destinos, búsqueda, agrupaciones y recuentos no son un
+desplegable. El selector es un **panel de selección con entidad propia**. Sus
+filas son enlaces HTML servidos en el build; JavaScript mejora la navegación
+para cambiar de zona sin recarga, pero no crea el catálogo ni sustituye su
+semántica.
 
-**No tapa la lista.** En escritorio el panel se despliega sobre el mapa, que
-es la zona que se puede cubrir sin coste, y deja el rail visible. En móvil
-ocupa la pantalla, como hasta ahora: ahí no hay alternativa y es lo
-esperado.
+**No tapa la lista.** En escritorio se presenta centrado sobre el mapa, con
+ancho suficiente para leer y comparar nombres y con un fondo atenuado que lo
+separa del resto de la aplicación. El rail permanece visible. En móvil ocupa
+el ancho disponible bajo la cabecera y se comporta como una pantalla de primer
+nivel, que es lo que exige RF-71.
+
+El panel tiene una cabecera explícita: título «Cambiar zona», botón de cierre y
+buscador. Se cierra con ese botón, con `Escape` o al pulsar el fondo. La zona
+activa se marca con `--signal` y `aria-current`, no solo con una diferencia
+sutil de peso.
 
 **Filas alineadas a la izquierda, con recuento a la derecha.** Los nombres
 arrancan todos en la misma vertical, como en el resto de la aplicación. A la
@@ -309,20 +322,10 @@ sombra corta, para que no se lea como el primer elemento de la lista.
 barra de desplazamiento del sistema, que es un elemento ajeno al diseño
 dentro de un panel que tiene su propio lenguaje.
 
-**Colocación en escritorio: junto al rail, nunca encima.** El panel arranca
-donde termina el rail y se despliega sobre el mapa. En vertical, arranca
-donde termina la cabecera, no a la altura del botón: alinearlo con el botón
-lo hace invadir la propia cabecera y deja un hueco vacío por encima de la
-lista.
-
-Ancho similar al del rail, sin sobrepasarlo mucho. Alto acotado en torno a
-dos tercios de la ventana: si crece hasta el borde inferior vuelve a ser una
-columna interminable. Si en una ventana estrecha no cabe sin invadir el
-rail, se estrecha el panel. Los precios son lo que la persona estaba
-mirando.
-
-El panel lleva sombra propia, para que se lea encima de lo que hay detrás y
-no cosido a la cabecera.
+**Colocación en escritorio: centrado en el espacio del mapa.** No se ancla a
+una coordenada fija ni intenta fingir que nace del botón. Lleva borde, sombra y
+un fondo de bloqueo translúcido. Su altura se acota al viewport; solo la lista
+interior se desplaza.
 
 **Sin precio.** Se valoró añadir el precio mínimo de cada zona y se
 descartó: nadie decide dónde repostar mirando la media de otra provincia, y
@@ -330,6 +333,18 @@ un número que no informa ninguna decisión solo ocupa sitio.
 
 El buscador por nombre y el orden del catálogo se conservan tal cual: son
 RF-32 y RF-71 y no se tocan.
+
+### Acceso «Hoy»
+
+Las editoriales no forman parte del selector territorial. La cabecera de cada
+página de aplicación contiene un control «Hoy» con un panel independiente de
+seis enlaces. En escritorio es compacto y se alinea al borde derecho de la
+cabecera; en móvil ocupa el ancho disponible bajo ella. Nunca empuja el mapa ni
+crea una segunda pantalla por debajo.
+
+Solo un panel de navegación puede estar abierto a la vez. Abrir «Hoy» cierra el
+selector territorial y viceversa. Los controles conservan un área de pulsación
+de 44 px y anuncian su estado con `aria-expanded` y `aria-controls`.
 
 ### La lista es el contenido
 
@@ -344,10 +359,14 @@ mapa que ocupa toda la pantalla, así que el usuario no tenía forma de saber
 que existía salvo desplazándose por accidente.
 
 **La página de aplicación mide una pantalla.** Nada cuelga por debajo del mapa
-en las páginas de zona o municipio. En escritorio no hay desplazamiento de
-documento; en móvil, la hoja es la única superficie que se desplaza. Los
+en la portada ni en las páginas de zona o municipio. En escritorio no hay
+desplazamiento de documento; en móvil, la hoja es la única superficie que se
+desplaza. Los 71 enlaces territoriales viven dentro del selector de zona y los
+seis enlaces editoriales dentro del acceso «Hoy», ambos como paneles
+superpuestos de la cabecera; nunca forman un directorio después de `.app`. Los
 documentos editoriales viven fuera de la aplicación y se desplazan por
-definición; ver [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md).
+definición; ver [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md) y
+[ADR-0020](adr/0020-navegacion-en-paneles-dentro-de-la-aplicacion.md).
 
 El «no hay pie de página» se limita también a la aplicación. Los documentos
 editoriales terminan en un pie compartido, compacto y claramente separado del

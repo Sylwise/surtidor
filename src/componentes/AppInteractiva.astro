@@ -29,6 +29,7 @@ import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 import type { ClavePrecio, Precios } from '../../scripts/lib/tipos.ts';
 import type { EnlacesEstaticos } from './Lista.ts';
+import NavegacionApp from './NavegacionApp.astro';
 
 interface Props {
   zonaId: string;
@@ -120,7 +121,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
       <span class="marca__texto">Surtidor</span>
     </span>
-    <div id="controles-identidad" class="controles-identidad" aria-label="Zona"></div>
+    <NavegacionApp zonaId={zonaId} zonaNombre={zonaNombre} />
     <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
   </header>
 

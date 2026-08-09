@@ -188,6 +188,16 @@ input {
   scrollbar-color: color-mix(in srgb, var(--muted) 55%, transparent) transparent;
 }
 
+.panel-zona__grupos > .enlaces-bloque {
+  min-width: 0;
+}
+
+.panel-zona__grupos > .enlaces-bloque + .enlaces-bloque {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--hair);
+}
+
 .hoja__cuerpo {
   flex: 1;
   min-height: 0;
@@ -297,34 +307,72 @@ input {
   border: 1px solid var(--hair);
   background: var(--paper);
   border-radius: var(--radio);
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 5px 10px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.boton-zona__nombre {
-  text-transform: uppercase;
+.boton-zona__etiqueta {
+  color: var(--muted);
+  font-size: var(--fs-2);
+  font-weight: 600;
 }
 
-/* Se despliega sobre el mapa, no sobre el rail (docs/05-diseno.md#Selector-
-   de-zona): arranca en --hoja-ancho, así el rail con la lista de precios
-   queda siempre visible detrás mientras el panel está abierto. Arranca
-   donde termina la cabecera (--cabecera-alto), no a la altura del botón:
-   alinearlo con el botón lo hace invadir la propia cabecera y deja un
-   hueco vacío por encima de la lista. */
+.boton-zona__nombre {
+  max-width: min(38vw, 330px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boton-zona__flecha,
+.boton-hoy__flecha {
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+[aria-expanded='true'] > .boton-zona__flecha,
+[aria-expanded='true'] > .boton-hoy__flecha {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.panel-fondo {
+  position: fixed;
+  z-index: 19;
+  top: var(--cabecera-alto, 64px);
+  right: 0;
+  bottom: 0;
+  left: var(--hoja-ancho);
+  background: color-mix(in srgb, var(--petrol) 32%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.panel-fondo[hidden] {
+  display: none;
+}
+
+/* Panel de selección, no dropdown: centrado en el espacio del mapa y
+   separado de la aplicación por un fondo de bloqueo (ADR-0020). */
 .panel-zona {
   position: fixed;
   z-index: 20;
-  top: var(--cabecera-alto, 56px);
-  left: var(--hoja-ancho);
-  width: min(360px, calc(100vw - var(--hoja-ancho)));
-  max-height: min(70dvh, calc(100dvh - var(--cabecera-alto, 56px) - 16px));
+  top: calc(var(--cabecera-alto, 64px) + (100dvh - var(--cabecera-alto, 64px)) / 2);
+  left: calc(var(--hoja-ancho) + (100vw - var(--hoja-ancho)) / 2);
+  width: min(680px, calc(100vw - var(--hoja-ancho) - 48px));
+  max-height: min(76dvh, calc(100dvh - var(--cabecera-alto, 64px) - 32px));
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   background: var(--paper);
   border: 1px solid var(--hair);
-  border-radius: var(--radio);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--petrol) 18%, transparent);
+  border-radius: 14px;
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--petrol) 30%, transparent);
+  overflow: hidden;
 }
 
 /* Mismo gotcha que .hoja__rapidos[hidden] más arriba: el `display:flex` de
@@ -345,23 +393,158 @@ input {
    zona). */
 .panel-zona__cabecera {
   flex: none;
-  padding: 10px 10px 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px 16px;
+  align-items: start;
+  padding: 18px 20px 16px;
   border-bottom: 1px solid var(--hair);
-  box-shadow: 0 4px 6px color-mix(in srgb, var(--petrol) 10%, transparent);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--petrol) 8%, transparent);
+}
+
+.panel-zona__titulo {
+  margin: 0;
+  font-size: var(--fs-6);
+}
+
+.panel-zona__ayuda {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-3);
 }
 
 .panel-zona__buscar {
+  grid-column: 1 / -1;
   width: 100%;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 9px 12px;
   border: 1px solid var(--hair);
   border-radius: var(--radio);
+  background: #fff;
 }
 
 .panel-zona__grupos {
   position: relative;
   flex: 1;
   min-height: 0;
-  padding: 8px 10px 10px;
+  padding: 10px 16px 18px;
+}
+
+.boton-cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radio);
+  background: transparent;
+  color: color-mix(in srgb, var(--petrol) 78%, var(--muted));
+  font-size: var(--fs-5);
+  line-height: 1;
+  cursor: pointer;
+  transition: background 130ms, color 130ms;
+}
+
+.boton-cerrar--oscuro {
+  color: color-mix(in srgb, var(--paper) 78%, var(--muted-light));
+}
+
+@media (hover: hover) {
+  .boton-cerrar:hover {
+    background: var(--hair);
+    color: var(--petrol);
+  }
+
+  .boton-cerrar--oscuro:hover {
+    background: var(--hair-dark);
+    color: var(--paper);
+  }
+}
+
+.boton-cerrar:focus-visible,
+.boton-cerrar:active {
+  background: var(--hair);
+  color: var(--petrol);
+}
+
+.boton-cerrar--oscuro:focus-visible,
+.boton-cerrar--oscuro:active {
+  background: var(--hair-dark);
+  color: var(--paper);
+}
+
+.navegacion-hoy {
+  position: relative;
+  margin-left: auto;
+}
+
+.boton-hoy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radio);
+  background: var(--paper);
+  color: var(--petrol);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panel-hoy {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(350px, calc(100vw - 28px));
+  padding: 8px;
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 14px 36px color-mix(in srgb, var(--petrol) 24%, transparent);
+}
+
+.panel-hoy[hidden] {
+  display: none;
+}
+
+.panel-hoy__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 8px 10px;
+  color: var(--muted);
+}
+
+.panel-hoy__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.panel-hoy__lista a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--petrol);
+  font-size: var(--fs-4);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.panel-hoy__lista a:hover,
+.panel-hoy__lista a:focus-visible {
+  background: var(--hair);
 }
 
 /* Degradado pegado al borde inferior del área con scroll: indica que hay
@@ -787,36 +970,7 @@ input {
 /* RF-83: la X para quien no descubra que tocar el mapa o arrastrar la hoja
    también cierra la ficha. */
 .totem__cerrar {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
   margin: -10px -10px 0 0;
-  border: none;
-  border-radius: var(--radio);
-  background: transparent;
-  color: var(--muted-light);
-  font-size: var(--fs-4);
-  line-height: 1;
-  cursor: pointer;
-  transition: background 130ms, color 130ms;
-}
-
-/* Solo con puntero de precisión de verdad (ratón): en pantallas táctiles
-   :hover se queda pegado tras el toque hasta el siguiente toque en otro
-   sitio. */
-@media (hover: hover) {
-  .totem__cerrar:hover {
-    background: var(--hair-dark);
-    color: var(--paper);
-  }
-}
-
-.totem__cerrar:active {
-  background: var(--hair-dark);
-  color: var(--paper);
 }
 
 .totem__direccion,
@@ -1089,19 +1243,29 @@ input {
     touch-action: pan-y;
   }
 
-  /* Selector de zona: en escritorio es un panel fijo que cuelga sobre el
-     mapa, a la derecha del rail (reglas de arriba, sin tocar). En móvil no
-     hay mapa que respetar ni rail que dejar visible, así que ocupa todo el
-     ancho como una hoja propia que cuelga de la cabecera real
-     (--cabecera-alto), animada al abrir. */
+  .boton-zona__etiqueta {
+    display: none;
+  }
+
+  .boton-zona__nombre {
+    max-width: calc(100vw - 160px);
+  }
+
+  .panel-fondo {
+    left: 0;
+  }
+
+  /* En móvil el selector es una pantalla de primer nivel bajo la cabecera. */
   .panel-zona {
     position: fixed;
     top: var(--cabecera-alto, 56px);
     left: 0;
     right: 0;
     width: auto;
-    max-height: min(70dvh, calc(100dvh - var(--cabecera-alto, 56px) - 12px));
-    border-radius: 0 0 14px 14px;
+    height: calc(100dvh - var(--cabecera-alto, 56px));
+    max-height: none;
+    border: none;
+    border-radius: 0;
     transform: translateY(-8px);
     opacity: 0;
     pointer-events: none;
@@ -1113,6 +1277,32 @@ input {
     opacity: 1;
     pointer-events: auto;
   }
+
+  .panel-zona__cabecera {
+    padding: 14px 14px 12px;
+  }
+
+  .panel-zona__grupos {
+    padding: 8px 10px 18px;
+  }
+
+  .panel-zona__grupos > .enlaces-bloque + .enlaces-bloque {
+    margin-top: 18px;
+    padding-top: 14px;
+  }
+
+  .panel-hoy {
+    position: fixed;
+    top: var(--cabecera-alto, 56px);
+    right: 0;
+    left: 0;
+    width: auto;
+    max-height: calc(100dvh - var(--cabecera-alto, 56px) - 8px);
+    overflow-y: auto;
+    border-right: none;
+    border-left: none;
+    border-radius: 0 0 12px 12px;
+  }
 }
 /* ---------- Enlaces de jerarquía (H10, RF-91/RF-92, ADR-0017) ----------
    Portada → provincias/comunidades (src/pages/index.astro) y zona/municipio
@@ -1123,12 +1313,6 @@ input {
    tratamiento visual para "enlaces a otro lugar del sitio": las píldoras de
    ancho variable que tuvo primero RF-89 (.lista__enlaces/.enlace-municipio)
    no alineaban con 130 municipios y se descartaron. */
-.enlaces-territorio {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 28px 16px 56px;
-}
-
 .enlaces-bloque {
   margin-top: 32px;
 }
@@ -1149,6 +1333,18 @@ input {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.panel-zona .enlaces-bloque__filas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 18px;
+}
+
+@media (max-width: 760px) {
+  .panel-zona .enlaces-bloque__filas {
+    grid-template-columns: 1fr;
+  }
 }
 
 .enlaces-bloque__fila {
@@ -1173,18 +1369,8 @@ input {
   background: var(--hair);
 }
 
-/* El panel de zona (src/componentes/Controles.ts) es un <button>, no un
-   <a> (ADR-0017): mismas filas, pero sin las propiedades de enlace y sin el
-   cromado por defecto del navegador. */
-/* `text-align: left` no es decorativo: la hoja de estilos del navegador
-   centra el texto de un <button> por defecto, y ese valor hereda al nombre
-   de la fila (RF-91/RF-89 usan <a>, sin este problema — solo aparece aquí). */
-.enlaces-bloque__fila--boton {
-  width: 100%;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
+.enlaces-bloque__fila--zona[aria-current='page'] {
+  background: color-mix(in srgb, var(--signal) 22%, var(--paper));
 }
 
 .enlaces-bloque__info {
@@ -1208,6 +1394,11 @@ input {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.enlaces-bloque__tipo {
+  color: var(--muted);
+  font-size: var(--fs-2);
 }
 
 .enlaces-bloque__precio {

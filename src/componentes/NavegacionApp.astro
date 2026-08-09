@@ -1,0 +1,109 @@
+---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { cajaDeTitulo } from '../logica/formato.ts';
+import { estacionesDeZona } from '../logica/zona.ts';
+import type { Indice, Zona } from '../../scripts/lib/tipos.ts';
+
+interface Props {
+  zonaId?: string | null;
+  zonaNombre?: string | null;
+}
+
+const { zonaId = null, zonaNombre = null } = Astro.props;
+const indice = JSON.parse(
+  readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8'),
+) as Indice;
+const zonas = [...indice.zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+const nombresRepetidos = new Set(
+  zonas
+    .map((zona) => zona.nombre.trim().toLocaleLowerCase('es'))
+    .filter((nombre, posicion, nombres) => nombres.indexOf(nombre) !== posicion),
+);
+const tipos: { tipo: Zona['tipo']; etiqueta: string }[] = [
+  { tipo: 'provincia', etiqueta: 'Provincias' },
+  { tipo: 'ccaa', etiqueta: 'Comunidades autónomas' },
+];
+const editoriales = [
+  { href: '/hoy/provincias-mas-baratas/', nombre: 'Provincias más baratas' },
+  { href: '/hoy/cuanto-te-juegas/', nombre: 'Cuánto puedes ahorrar' },
+  { href: '/hoy/marcas-mas-baratas/', nombre: 'Marcas más baratas' },
+  { href: '/hoy/capitales-de-provincia/', nombre: 'Capitales de provincia' },
+  { href: '/hoy/la-mas-barata-de-espana/', nombre: 'La más barata de España' },
+  { href: '/hoy/canarias-ceuta-melilla/', nombre: 'Canarias, Ceuta y Melilla' },
+];
+---
+
+<div id="controles-identidad" class="controles-identidad" aria-label="Zona">
+  <div class="controles__zona">
+    <button id="boton-zona" type="button" class="boton-zona" aria-expanded="false" aria-controls="panel-zona">
+      <span class="boton-zona__etiqueta">Zona</span>
+      <span id="nombre-zona" class="boton-zona__nombre">{zonaNombre ?? 'Elige tu zona'}</span>
+      <span class="boton-zona__flecha" aria-hidden="true"></span>
+    </button>
+
+    <div id="fondo-panel-zona" class="panel-fondo" hidden></div>
+    <section id="panel-zona" class="panel-zona" role="dialog" aria-modal="true" aria-labelledby="titulo-panel-zona" hidden>
+      <header class="panel-zona__cabecera">
+        <div>
+          <h2 id="titulo-panel-zona" class="panel-zona__titulo">Cambiar zona</h2>
+          <p class="panel-zona__ayuda">Elige una provincia o comunidad autónoma</p>
+        </div>
+        <button id="cerrar-panel-zona" type="button" class="boton-cerrar" aria-label="Cerrar selector de zona">✕</button>
+        <input id="buscar-zona" type="search" class="panel-zona__buscar" placeholder="Buscar por nombre…" aria-label="Buscar zona" />
+      </header>
+
+      <div id="grupos-zona" class="panel-zona__grupos">
+        {tipos.map(({ tipo, etiqueta }) => {
+          const opciones = zonas.filter((zona) => zona.tipo === tipo);
+          return (
+            <section class="enlaces-bloque" data-grupo-zona>
+              <h3 class="enlaces-bloque__titulo micro">{etiqueta}</h3>
+              <ul class="enlaces-bloque__filas">
+                {opciones.map((zona) => (
+                  <li data-opcion-zona data-busqueda={zona.nombre}>
+                    <a
+                      href={`/${zona.id}/`}
+                      class="enlaces-bloque__fila enlaces-bloque__fila--zona"
+                      data-zona-id={zona.id}
+                      aria-current={zona.id === zonaId ? 'page' : undefined}
+                    >
+                      <span class="enlaces-bloque__info">
+                        <span class="enlaces-bloque__nombre">{cajaDeTitulo(zona.nombre)}</span>
+                        {nombresRepetidos.has(zona.nombre.trim().toLocaleLowerCase('es')) && (
+                          <span class="enlaces-bloque__tipo">
+                            {zona.tipo === 'provincia' ? 'Provincia' : 'Comunidad autónoma'}
+                          </span>
+                        )}
+                      </span>
+                      <span class="enlaces-bloque__recuento">{estacionesDeZona(zona, indice.provincias)}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+        <div class="panel-zona__difuminado" aria-hidden="true"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="navegacion-hoy">
+  <button id="boton-hoy" type="button" class="boton-hoy" aria-expanded="false" aria-controls="panel-hoy">
+    Hoy
+    <span class="boton-hoy__flecha" aria-hidden="true"></span>
+  </button>
+  <nav id="panel-hoy" class="panel-hoy" aria-label="Análisis de precios de hoy" hidden>
+    <div class="panel-hoy__cabecera">
+      <span class="micro">ANÁLISIS DE HOY</span>
+      <button id="cerrar-panel-hoy" type="button" class="boton-cerrar" aria-label="Cerrar análisis de hoy">✕</button>
+    </div>
+    <ul class="panel-hoy__lista">
+      {editoriales.map((editorial) => (
+        <li><a href={editorial.href}>{editorial.nombre}<span aria-hidden="true">→</span></a></li>
+      ))}
+    </ul>
+  </nav>
+</div>

@@ -28,6 +28,7 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0017](0017-jerarquia-de-enlaces.md) | El sitio se recorre por enlaces, no solo por el sitemap | aceptado |
 | [0018](0018-urls-de-zona-por-nombre.md) | Las URLs de zona llevan el nombre, no el identificador | aceptado |
 | [0019](0019-paginas-editoriales-sin-aplicacion.md) | Las páginas editoriales viven fuera de la aplicación | aceptado |
+| [0020](0020-navegacion-en-paneles-dentro-de-la-aplicacion.md) | Los enlaces de portada viven en paneles dentro de la aplicación | aceptado |
 
 ## Plantilla
 

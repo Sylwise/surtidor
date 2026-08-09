@@ -44,7 +44,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   // tocar el mapa y arrastrar la hoja hacia abajo, ver Mapa.ts y Hoja.ts).
   const botonCerrar = document.createElement('button');
   botonCerrar.type = 'button';
-  botonCerrar.className = 'totem__cerrar';
+  botonCerrar.className = 'boton-cerrar boton-cerrar--oscuro totem__cerrar';
   botonCerrar.setAttribute('aria-label', 'Cerrar ficha de la estación');
   botonCerrar.textContent = '✕';
   botonCerrar.addEventListener('click', () => actualizarEstado({ estacionId: null }));
