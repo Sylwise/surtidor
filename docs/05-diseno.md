@@ -620,8 +620,7 @@ estación delante: litros a repostar, coste total, ahorro, cómo llegar, lado de
 carretera, horario.
 
 **Estrato 3 — ajustes.** Lo que se configura una vez y luego se olvida: mostrar u
-ocultar las de venta restringida y, cuando lleguen, el perfil de vehículo y los
-favoritos. Se llega desde un único acceso
+ocultar las de venta restringida y, si llegan, los favoritos. Se llega desde un único acceso
 discreto en la barra superior.
 
 El error que ya cometimos: el selector de litros estaba en el estrato 1 comiendo
@@ -665,8 +664,6 @@ Las funciones de la v2 tienen sitio asignado desde ya, para que nadie improvise:
 | Vista nacional por provincias | Mapa, sustituyendo estaciones y racimos por debajo del umbral; no añade controles |
 | Tendencia respecto a ayer | 2, junto al precio |
 | "¿Lleno hoy o el martes?" | Página de zona, fuera de la aplicación de mapa |
-| Perfil de vehículo | 3 |
-| Coste del desvío | 2, dentro del bloque de ahorro |
 | Filtro por carretera | 1, **sustituyendo** al filtro de abiertas en un menú de filtros |
 | Precio congelado | 2, como distintivo en la ficha |
 | Favoritos | 2 para marcar, lista para ver |

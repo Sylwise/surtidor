@@ -76,8 +76,6 @@ Nada de esto necesita servidor. Está en cola por tiempo, no por arquitectura.
 |---|---|
 | Histórico y tendencia | Flecha de subida o bajada respecto a ayer |
 | "¿Lleno hoy o el martes?" | Patrón semanal por provincia. Nadie más lo cuenta |
-| Perfil de vehículo | Consumo y combustible habitual. Desbloquea las dos siguientes |
-| Coste del desvío | Ahorro neto tras descontar el combustible de ir hasta allí |
 | Filtro por carretera | "Voy por la A-1". Distancias precalculadas en el build |
 | Precio congelado | Señalar las que dejan de actualizar para parecer baratas |
 | Favoritos | Fijar arriba tus tres habituales |
@@ -101,6 +99,10 @@ Nada de esto necesita servidor. Está en cola por tiempo, no por arquitectura.
   [ADR-0009](adr/0009-descuentos-en-el-dispositivo.md). Los programas de
   fidelización son de las gasolineras caras, así que el descuento no mueve la
   cabeza de la lista.
+- **Perfil de vehículo, coste del desvío y euros por 100 km.** Exigen pedir
+  datos al usuario y conservarlos solo en el navegador. Añaden fricción al uso
+  principal y ofrecen una persistencia demasiado frágil para una configuración
+  que el usuario esperaría recuperar en otro navegador o dispositivo.
 - **Cualquier cosa que necesite un proceso encendido.** Es el filtro que se
   aplica a toda idea nueva, antes que cualquier otro criterio.
 

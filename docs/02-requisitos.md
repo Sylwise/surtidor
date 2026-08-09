@@ -222,9 +222,9 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 |---|---|
 | V2-01 | Resumen histórico diario por provincia, generado en el build desde `EstacionesTerrestresHist`. Unos pocos KB al día. |
 | V2-02 | Flecha de tendencia en la ficha: sube o baja respecto a ayer. |
-| V2-04 | Perfil de vehículo: consumo en L/100 km y combustible habitual, en `localStorage`. |
-| V2-05 | Coste del desvío: ahorro neto tras descontar el combustible de llegar hasta allí. Requiere V2-04 y geolocalización. |
-| V2-06 | Comparar en euros por 100 km además de en euros por litro. |
+| V2-04 | ~~Perfil de vehículo persistente en `localStorage`.~~ **Descartado:** añade configuración y su persistencia no cruza navegadores o dispositivos. |
+| V2-05 | ~~Coste del desvío basado en el perfil de vehículo.~~ **Descartado** junto con V2-04; una futura estimación sin perfil requeriría una propuesta independiente. |
+| V2-06 | ~~Comparar en euros por 100 km mediante el consumo guardado.~~ **Descartado** junto con V2-04. |
 | V2-08 | Detección de precio congelado: estaciones que llevan días sin actualizar. |
 | V2-09 | Favoritos fijados arriba, en `localStorage`. |
 | V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |

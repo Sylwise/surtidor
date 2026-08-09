@@ -173,14 +173,12 @@ Telegram, muestra la tarjeta con el precio.
 La v1 ya está publicada. El orden es de valor aparente y la gente lo va a
 reordenar. V2-10 y V2-18 están terminados; el resto sigue en espera.
 
-**Coste del desvío.** Si la barata está a 9 km, ese desvío gasta gasolina.
-Ahorro neto = ahorro bruto − (km extra × consumo × precio). Con 20 litros y tres
-céntimos de diferencia muchas veces sale que **no** compensa, y decirlo es más
-útil que ocultarlo.
-
-**Perfil de vehículo.** Consumo a los 100 y combustible habitual, en
-`localStorage`. Convierte el coste del desvío en exacto y desbloquea comparar en
-euros por 100 km, que es la unidad real de lo que cuesta conducir.
+**Perfil de vehículo, coste del desvío y euros por 100 km — descartados.** Pedir
+consumo y combustible habitual añade configuración antes de aportar valor. En
+una aplicación sin cuentas esos datos solo pueden guardarse en el navegador:
+no cruzan dispositivos o navegadores y desaparecen al limpiar sus datos. V2-04,
+V2-05 y V2-06 se cierran como conjunto; una posible estimación futura sin perfil
+se evaluaría desde cero.
 
 **Favoritos.** Marcar tus tres habituales y verlas fijas arriba. Barato, y es el
 90 % del uso real de un conductor cotidiano.
