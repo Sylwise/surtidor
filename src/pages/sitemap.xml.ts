@@ -18,6 +18,7 @@ const RUTAS_EDITORIALES = [
   '/hoy/marcas-mas-baratas/',
   '/hoy/capitales-de-provincia/',
   '/hoy/la-mas-barata-de-espana/',
+  '/hoy/canarias-ceuta-melilla/',
 ];
 
 function escaparXml(texto: string): string {

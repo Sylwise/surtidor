@@ -1,0 +1,117 @@
+---
+import TablaFiscalEditorial from '../../componentes/TablaFiscalEditorial.astro';
+import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
+import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
+import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+
+const ruta = '/hoy/canarias-ceuta-melilla/';
+const titulo = 'Precio de la gasolina en Canarias, Ceuta y Melilla hoy · Surtidor';
+const descripcion =
+  'Precios medios de gasolina y diésel en Las Palmas, Santa Cruz de Tenerife, Ceuta y Melilla, separados por su fiscalidad.';
+const agregados = await leerAgregadosEditoriales();
+const provincias = agregados.zonas.canariasCeutaMelilla.filter(
+  (zona) => zona.tipo === 'provincia',
+);
+
+function ranking(combustible: ClavePrecio) {
+  return ordenarRanking(
+    provincias,
+    (provincia) => provincia.combustibles[combustible].media,
+    (provincia) => provincia.nombre,
+  );
+}
+
+const rankings = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const lideres = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    rankings[combustible].find(
+      ({ elemento }) => elemento.combustibles[combustible].media !== null,
+    )?.elemento ?? null,
+  ]),
+) as Record<ClavePrecio, AgregadoZona | null>;
+---
+
+<DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
+  <header class="editorial-intro">
+    <p class="editorial-eyebrow">Precios de hoy</p>
+    <h1 class="editorial-titulo">Gasolina y diésel en Canarias, Ceuta y Melilla</h1>
+    <p class="editorial-entradilla">
+      Comparamos por separado los cuatro territorios que no entran en los rankings nacionales por
+      su fiscalidad distinta. Cada cifra enlaza a las estaciones de su territorio.
+    </p>
+    <p class="editorial-actualizado">
+      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
+    </p>
+  </header>
+
+  <section class="editorial-resumen" aria-label="Provincia con menor media por combustible">
+    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+      const lider = lideres[combustible];
+      const resumen = lider?.combustibles[combustible] ?? null;
+      return (
+        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
+          <strong class="editorial-tarjeta__precio">
+            {resumen?.media === null || resumen === null ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}
+          </strong>
+          {lider && <a class="editorial-tarjeta__zona" href={`/${lider.id}/`}>{lider.nombre}</a>}
+          {resumen && (
+            <span class="editorial-tarjeta__muestra">
+              Media calculada sobre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
+            </span>
+          )}
+        </article>
+      );
+    })}
+  </section>
+
+  <section class="editorial-contexto-fiscal" aria-labelledby="por-que-separados">
+    <h2 id="por-que-separados">Por qué aparecen por separado</h2>
+    <p>
+      Los precios de Canarias, Ceuta y Melilla se presentan por separado porque su fiscalidad de
+      carburantes no es la misma que en Península y Baleares. Canarias aplica un impuesto autonómico
+      específico sobre los combustibles derivados del petróleo; Ceuta y Melilla aplican el IPSI y
+      pueden gravar los carburantes con un complemento propio. Por eso una diferencia de precio no
+      refleja solo competencia o costes comerciales: también incorpora regímenes tributarios distintos.
+    </p>
+    <ul aria-label="Fuentes de la explicación fiscal">
+      <li><a href="https://www3.gobiernodecanarias.org/tributos/atc/w/combustibles-2">Agencia Tributaria Canaria</a></li>
+      <li><a href="https://www.boe.es/eli/es/l/1991/03/25/8/con">Ley del IPSI de Ceuta y Melilla</a></li>
+    </ul>
+  </section>
+
+  <section class="editorial-metodo" aria-label="Metodología">
+    <p class="editorial-metodo__resumen">
+      <strong>Media simple por estación</strong> · cuatro territorios · solo las que venden el
+      combustible.
+    </p>
+    <details class="editorial-detalles editorial-detalles--metodo">
+      <summary>Cómo se calcula</summary>
+      <div class="editorial-detalles__contenido">
+        <p>
+          Calculamos una media simple por estación, sin ponderar por volumen de venta porque ese dato
+          no existe en la fuente. Una estación que no vende un combustible queda fuera de su media y
+          nunca cuenta como cero. La columna «Estaciones» muestra la muestra exacta.
+        </p>
+        <p>
+          Los precios se comparan con los tres decimales publicados por el ministerio. Los empates
+          comparten posición y se ordenan alfabéticamente.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  {ORDEN_COMBUSTIBLES.map((combustible) => (
+    <section class="editorial-combustible" id={combustible}>
+      <h2>{ETIQUETA[combustible]}</h2>
+      <p>Precio medio provincial, de menor a mayor, dentro de este ámbito fiscal separado.</p>
+      <TablaFiscalEditorial filas={rankings[combustible]} combustible={combustible} />
+    </section>
+  ))}
+</DocumentoEditorial>
