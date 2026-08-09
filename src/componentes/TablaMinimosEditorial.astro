@@ -1,0 +1,57 @@
+---
+import type { MinimosZona } from '../../scripts/lib/minimos.ts';
+import type { FilaRanking } from '../../scripts/lib/ranking.ts';
+import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import { formatearPrecio } from '../logica/formato.ts';
+
+interface Props {
+  filas: FilaRanking<MinimosZona>[];
+  combustible: ClavePrecio;
+  etiqueta?: string;
+}
+
+const { filas, combustible, etiqueta } = Astro.props;
+---
+
+<div class="editorial-tabla-wrap">
+  <table class="editorial-tabla" aria-label={etiqueta}>
+    <thead>
+      <tr>
+        <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+        <th scope="col">Comunidad</th>
+        <th scope="col" class="editorial-tabla__numero">Mínimo</th>
+        <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filas.map(({ elemento: zona, posicion }) => {
+        const resumen = zona.combustibles[combustible];
+        return (
+          <tr>
+            <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+            <td class="editorial-tabla__zona">
+              <a href={`/${zona.id}/`}>{zona.nombre}</a>
+              {resumen.origenes.length > 0 && (
+                <span class="editorial-tabla__origen">
+                  {resumen.origenes.map((origen, indice) => (
+                    <>
+                      {indice > 0 && ', '}
+                      <a href={origen.href}>{origen.municipio}</a>
+                      {origen.destino === 'provincia' && ` · ${origen.provinciaNombre}`}
+                    </>
+                  ))}
+                </span>
+              )}
+            </td>
+            <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.minimo === null }]}>
+              {resumen.minimo === null ? 'no vende' : `${formatearPrecio(resumen.minimo)} €/L`}
+            </td>
+            <td class="editorial-tabla__numero editorial-tabla__estaciones">
+              {resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>

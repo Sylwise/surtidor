@@ -296,6 +296,21 @@ a:focus-visible {
   text-underline-offset: 3px;
 }
 
+.editorial-tabla__origen {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: var(--fs-2);
+  font-weight: 500;
+  white-space: normal;
+}
+
+.editorial-tabla__origen a,
+.editorial-tabla__origen a:visited {
+  color: var(--muted);
+  font-weight: 650;
+}
+
 .editorial-tabla__ausente {
   color: var(--muted);
   font-family: var(--sans);

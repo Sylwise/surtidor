@@ -17,6 +17,7 @@ const RUTAS_EDITORIALES = [
   '/hoy/cuanto-te-juegas/',
   '/hoy/marcas-mas-baratas/',
   '/hoy/capitales-de-provincia/',
+  '/hoy/la-mas-barata-de-espana/',
 ];
 
 function escaparXml(texto: string): string {
