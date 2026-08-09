@@ -303,8 +303,9 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
           }
         }, 12000);
 
-        // RF-35: la URL tiene que reflejar la zona para poder compartir un
-        // enlace concreto. Antes, un cambio de zona aquí se resolvía en sitio
+        // RF-35: la URL refleja la zona para poder compartir un enlace
+        // concreto (el combustible no va en la URL, vive en localStorage,
+        // RF-34). Antes, un cambio de zona aquí se resolvía en sitio
         // (cargarTodo() de nuevo) y la URL se quedaba en "/" para siempre —
         // quien copiara esa URL no compartía la zona que veía, compartía la
         // portada. Ahora, igual que ya hacen las páginas de zona y municipio

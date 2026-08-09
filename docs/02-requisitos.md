@@ -82,7 +82,7 @@ esté publicada.
 | RF-44 | M | Con los litros indicados, la ficha muestra **dos cifras**: coste total en esta estación y coste en la más cara de la zona. El ahorro es el número destacado; los totales, secundarios. |
 | RF-48 | M | El normalizador acepta los tres códigos de `Tipo Venta` (`P`, `R`, `A`) sin romper, y las estaciones con código distinto de `P` se excluyen de la lista y el mapa. Sin interfaz asociada en la v1: ver RF-56. |
 | RF-34 | M | Combustible, zona y litros a repostar se recuerdan entre visitas en `localStorage`. |
-| RF-35 | S | La URL refleja provincia y combustible, de modo que se pueda compartir un enlace concreto. |
+| RF-35 | S | La URL refleja la zona, de modo que se pueda compartir un enlace concreto. El combustible **no** va en la URL: como parámetro de consulta crearía cuatro variantes rastreables de cada página del sitio y obligaría a un `canonical` en todas. El combustible elegido vive en `localStorage` (RF-34). |
 | RF-49 | M | Al entrar en la raíz, la zona se resuelve **sin servidor**: la guardada en `localStorage`, si no la página de aterrizaje por la que se ha entrado, y si no un selector. **Nunca se pide permiso de geolocalización al cargar.** |
 | RF-38 | M | En móvil, hoja inferior con tres posiciones de anclaje (asomada, media, completa), arrastrable. El selector de combustible y el filtro son visibles en las tres. |
 | RF-39 | M | En móvil, la ficha de estación se apila sobre la lista dentro de la hoja; no la sustituye. |
