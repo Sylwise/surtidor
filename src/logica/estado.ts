@@ -7,6 +7,9 @@
 
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona, FalloProvincia } from './zona.ts';
+import type { PosicionUsuario } from './cercania.ts';
+
+export type OrdenLista = 'precio' | 'distancia';
 
 export interface EstadoApp {
   /** Id de la zona activa (Zona.id en indice.json), o null si todavía no se
@@ -24,6 +27,10 @@ export interface EstadoApp {
   /** Litros a repostar, para el cálculo de ahorro (RF-33). No "depósito":
    *  casi nadie llena desde vacío. */
   litros: number;
+  /** Posición concedida durante esta carga. Es efímera: RNF-31 y V2-13. */
+  ubicacionUsuario: PosicionUsuario | null;
+  /** Orden actual de la lista. Tampoco se persiste entre visitas. */
+  ordenLista: OrdenLista;
 
   /** Estaciones fusionadas de la zona activa (src/logica/zona.ts). */
   estaciones: EstacionZona[];
@@ -94,6 +101,8 @@ let estado: EstadoApp = {
   estacionId: null,
   soloAbiertas: false,
   litros: guardado.litros ?? LITROS_POR_DEFECTO,
+  ubicacionUsuario: null,
+  ordenLista: 'precio',
   estaciones: [],
   provinciasFallidas: [],
   cargando: true,

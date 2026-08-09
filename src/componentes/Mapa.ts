@@ -187,6 +187,7 @@ class ControlUbicacion implements IControl {
   private aviso: HTMLParagraphElement | null = null;
   private temporizadorAviso: ReturnType<typeof setTimeout> | null = null;
   private pendiente = false;
+  private marcadorUbicacion: Marker | null = null;
 
   constructor(private alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void) {}
 
@@ -199,7 +200,7 @@ class ControlUbicacion implements IControl {
     const boton = document.createElement('button');
     boton.type = 'button';
     boton.className = 'control-ubicacion__boton';
-    boton.setAttribute('aria-label', 'Centrar el mapa en mi ubicación');
+    boton.setAttribute('aria-label', 'Usar mi ubicación para centrar el mapa y ordenar por cercanía');
     boton.title = 'Mi ubicación';
     boton.innerHTML = ICONO_UBICACION;
     boton.addEventListener('click', () => this.pedirUbicacion());
@@ -220,6 +221,8 @@ class ControlUbicacion implements IControl {
 
   onRemove(): void {
     if (this.temporizadorAviso) clearTimeout(this.temporizadorAviso);
+    this.marcadorUbicacion?.remove();
+    this.marcadorUbicacion = null;
     this.contenedor?.remove();
     this.mapa = null;
     this.contenedor = null;
@@ -258,10 +261,20 @@ class ControlUbicacion implements IControl {
         if (!this.mapa) return;
         // Solo centra: el zoom actual y la zona activa no cambian.
         const centro: [number, number] = [posicion.coords.longitude, posicion.coords.latitude];
-        if (prefiereMovimientoReducido()) {
-          this.mapa.jumpTo({ center: centro });
+        if (!this.marcadorUbicacion) {
+          const punto = document.createElement('div');
+          punto.className = 'marcador-ubicacion';
+          punto.setAttribute('role', 'img');
+          punto.setAttribute('aria-label', 'Tu ubicación aproximada');
+          this.marcadorUbicacion = new Marker({ element: punto, anchor: 'center' }).setLngLat(centro).addTo(this.mapa);
         } else {
-          this.mapa.flyTo({ center: centro, duration: 650 });
+          this.marcadorUbicacion.setLngLat(centro);
+        }
+        const zoom = Math.max(this.mapa.getZoom(), 13);
+        if (prefiereMovimientoReducido()) {
+          this.mapa.jumpTo({ center: centro, zoom });
+        } else {
+          this.mapa.flyTo({ center: centro, zoom, duration: 650 });
         }
         this.alEncontrarUbicacion?.({ lat: posicion.coords.latitude, lon: posicion.coords.longitude });
       },

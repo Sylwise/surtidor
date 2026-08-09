@@ -1,0 +1,38 @@
+import type { EstacionZona } from './zona.ts';
+
+export interface PosicionUsuario {
+  lat: number;
+  lon: number;
+}
+
+const RADIO_TIERRA_KM = 6371.0088;
+
+function radianes(grados: number): number {
+  return grados * Math.PI / 180;
+}
+
+/** Distancia ortodrómica. No representa una ruta por carretera. */
+export function distanciaKm(a: PosicionUsuario, b: PosicionUsuario): number {
+  const diferenciaLat = radianes(b.lat - a.lat);
+  const diferenciaLon = radianes(b.lon - a.lon);
+  const latA = radianes(a.lat);
+  const latB = radianes(b.lat);
+  const haversine = Math.sin(diferenciaLat / 2) ** 2
+    + Math.cos(latA) * Math.cos(latB) * Math.sin(diferenciaLon / 2) ** 2;
+  return 2 * RADIO_TIERRA_KM * Math.asin(Math.sqrt(haversine));
+}
+
+export function compararPorDistancia(
+  posicion: PosicionUsuario,
+  a: EstacionZona,
+  b: EstacionZona,
+): number {
+  return distanciaKm(posicion, a) - distanciaKm(posicion, b)
+    || a.id.localeCompare(b.id, 'es');
+}
+
+export function formatearDistancia(km: number): string {
+  if (km < 1) return `${Math.max(10, Math.round(km * 100) * 10)} m`;
+  if (km < 10) return `${km.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
+  return `${Math.round(km).toLocaleString('es-ES')} km`;
+}

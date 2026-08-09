@@ -291,6 +291,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         // índice todavía no ha llegado (pulsar el botón antes de que cargue
         // nada, poco probable pero posible), no hay nada que resolver todavía.
         function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
+          actualizarEstado({ ubicacionUsuario: posicion, ordenLista: 'distancia' });
           if (!indice) return;
           const provincia = provinciaMasCercana(indice, posicion);
           // ADR-0018: el id de zona de una provincia ya no se puede

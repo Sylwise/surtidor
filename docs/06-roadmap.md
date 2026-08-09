@@ -171,7 +171,7 @@ Telegram, muestra la tarjeta con el precio.
 # V2 · Ya pensado, en curso
 
 La v1 ya está publicada. El orden es de valor aparente y la gente lo va a
-reordenar. V2-10 y V2-18 están terminados; el resto sigue en espera.
+reordenar. V2-10, V2-13 y V2-18 están terminados; el resto sigue en espera.
 
 **Perfil de vehículo, coste del desvío y euros por 100 km — descartados.** Pedir
 consumo y combustible habitual añade configuración antes de aportar valor. En
@@ -183,7 +183,10 @@ se evaluaría desde cero.
 **Favoritos.** Marcar tus tres habituales y verlas fijas arriba. Barato, y es el
 90 % del uso real de un conductor cotidiano.
 
-**Ordenar por distancia** con geolocalización concedida (RF-26).
+**Ordenar por distancia — V2-13, terminada.** Al pulsar «Mi ubicación», el mapa muestra la
+posición aproximada del usuario y la lista pasa a cercanía con la distancia
+geográfica de cada estación. Se puede volver a precio sin pedir permiso otra
+vez. Posición y modo de orden son efímeros y nunca salen del dispositivo.
 
 **Vista nacional por provincias — V2-18, terminada.** Al alejar el zoom, las
 estaciones dan paso a una pastilla por provincia con su precio medio, en el

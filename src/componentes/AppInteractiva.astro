@@ -696,6 +696,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   // cercana. Aquí eso dispara la navegación de arriba, a la página estática
   // de esa provincia.
   function alEncontrarUbicacion(posicion: { lat: number; lon: number }): void {
+    actualizarEstado({ ubicacionUsuario: posicion, ordenLista: 'distancia' });
     if (!indice) return;
     const provincia = provinciaMasCercana(indice, posicion);
     // ADR-0018: el id de zona de una provincia ya no se puede reconstruir

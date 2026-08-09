@@ -776,6 +776,54 @@ input {
   font-size: var(--fs-1);
 }
 
+.lista__cabecera--con-ubicacion {
+  flex-wrap: nowrap;
+}
+
+.lista__ordenacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.08em;
+  min-width: 0;
+}
+
+.lista__ordenacion-opcion {
+  position: relative;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.lista__ordenacion-opcion::before {
+  content: '';
+  position: absolute;
+  inset: 50% -4px auto;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.lista__ordenacion-opcion--activa {
+  color: var(--petrol);
+  font-weight: 800;
+}
+
+.lista__ordenacion-separador {
+  color: var(--hair);
+  font-weight: 500;
+}
+
+.lista__ordenacion-opcion:focus-visible {
+  outline: 2.5px solid var(--signal);
+  outline-offset: 4px;
+}
+
 .lista__titulo {
   text-transform: uppercase;
   font-weight: 650;
@@ -784,10 +832,12 @@ input {
 }
 
 .lista__contador {
+  flex: none;
   font-weight: 650;
 }
 
 .lista__filtro {
+  flex: none;
   position: relative;
   margin-left: 4px;
   /* Píldora más compacta que las pestañas de combustible: comparte familia
@@ -865,6 +915,13 @@ input {
   width: 1.6em;
   flex: none;
   text-align: right;
+}
+
+.fila__orden--distancia {
+  width: 4.5em;
+  font-size: var(--fs-1);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .fila__info {

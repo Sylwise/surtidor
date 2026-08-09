@@ -39,7 +39,7 @@ esté publicada.
 | RF-14 | M | Al pulsar un marcador se abre la ficha de esa estación y el mapa se centra en ella. |
 | RF-15 | M | Las estaciones cerradas se muestran atenuadas, no se ocultan, salvo que el filtro esté activo. |
 | RF-16 | M | Los marcadores nunca se solapan de forma ilegible. Por debajo del zoom 11 las estaciones se agrupan mostrando cuántas son y el precio mínimo del grupo; por encima, la detección de colisiones oculta las etiquetas que se pisarían. |
-| RF-17 | S | Botón de "mi ubicación" que centra el mapa. Solo se pide permiso al pulsarlo. |
+| RF-17 | S | Botón de "mi ubicación" que centra el mapa con zoom mínimo 13 y muestra la posición aproximada del usuario con un punto propio. Solo se pide permiso al pulsarlo. |
 | RF-18 | M | La estación más barata visible gana siempre la detección de colisiones: su etiqueta jamás queda oculta por otra. |
 | RF-19 | M | Al cargar una zona, el mapa encuadra sus estaciones con `fitBounds` y un 8 % de margen. Nunca centro y zoom fijos. |
 
@@ -47,13 +47,13 @@ esté publicada.
 
 | ID | Prioridad | Requisito |
 |---|---|---|
-| RF-20 | M | Lista de estaciones ordenada de menor a mayor precio del combustible seleccionado. |
+| RF-20 | M | La lista se ordena inicialmente de menor a mayor precio del combustible seleccionado. Tras conceder ubicación puede ordenarse por cercanía y volver a precio sin solicitarla de nuevo. |
 | RF-21 | M | La lista y el mapa están sincronizados: seleccionar en una resalta en el otro. |
 | RF-22 | M | La ficha muestra rótulo, dirección, municipio, horario declarado y los cuatro combustibles con su precio. |
 | RF-23 | M | Un combustible que la estación no vende se muestra como "no vende", nunca como 0,000 ni en blanco. |
 | RF-24 | M | La ficha indica el puesto de la estación dentro de la zona para el combustible seleccionado, y su provincia cuando la zona abarca varias. |
 | RF-25 | M | La ficha calcula el ahorro en euros respecto a la estación más cara de la zona, según el tamaño de depósito indicado. |
-| RF-26 | S | Ordenar la lista por distancia cuando hay geolocalización concedida. |
+| RF-26 | S | Al conceder geolocalización, la lista se ordena por distancia geográfica y muestra la distancia aproximada en cada fila. Un control permite volver al orden por precio y recuperar cercanía sin pedir ubicación de nuevo durante la misma carga. |
 | RF-29 | M | La ficha indica de qué lado de la carretera está la estación, a partir del campo `Margen` (`D`, `I`, `N`). |
 | RF-27 | M | Botón de "cómo llegar" que abre la aplicación de mapas del dispositivo. En Android, esquema `geo:` para que salga el selector del sistema y se respete la app de cada uno. Enlace universal de Google Maps como opción por defecto, con Waze y Apple Maps como alternativas secundarias. |
 | RF-28 | M | Los enlaces externos llevan `rel="noopener noreferrer"` y abren en pestaña nueva. |
@@ -230,7 +230,7 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |
 | V2-11 | Publicar los JSON normalizados como datos abiertos, con su documentación. |
 | V2-12 | Combustibles adicionales, empezando por gasóleo B. |
-| V2-13 | Ordenar por distancia con geolocalización concedida. |
+| V2-13 | **Completado.** Ordenar por distancia geográfica con geolocalización concedida y mostrar la posición aproximada del usuario en el mapa. La posición y el modo de orden son efímeros: no se persisten ni salen del dispositivo. |
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-17 | ~~Estado personalizado con `?zonas=NN,NN`.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |

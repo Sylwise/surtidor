@@ -13,6 +13,7 @@ import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
+import { compararPorDistancia, distanciaKm, formatearDistancia } from '../logica/cercania.ts';
 import type { Precios } from '../../scripts/lib/tipos.ts';
 
 export interface EnlaceMunicipio {
@@ -47,13 +48,37 @@ function crearAviso(texto: string): HTMLParagraphElement {
 // docs/05-diseno.md#Los-dos-estados-de-la-hoja). Reutiliza el aspecto de
 // pestaña de Controles.ts (misma familia visual de píldora) en vez de crear
 // un componente de chip aparte.
-function crearCabecera(soloAbiertas: boolean, contador: number): HTMLDivElement {
+function crearCabecera(estado: EstadoApp, contador: number): HTMLDivElement {
   const cabecera = document.createElement('div');
   cabecera.className = 'lista__cabecera';
+  cabecera.classList.toggle('lista__cabecera--con-ubicacion', Boolean(estado.ubicacionUsuario));
 
   const titulo = document.createElement('h2');
   titulo.className = 'lista__titulo';
-  titulo.textContent = 'Más baratas';
+  if (estado.ubicacionUsuario) {
+    titulo.classList.add('lista__ordenacion');
+    titulo.setAttribute('aria-label', 'Orden de las estaciones');
+    const opcionesOrden = [['precio', 'Baratas'], ['distancia', 'Cercanas']] as const;
+    for (const [indice, [valor, texto]] of opcionesOrden.entries()) {
+      if (indice > 0) {
+        const separador = document.createElement('span');
+        separador.className = 'lista__ordenacion-separador';
+        separador.setAttribute('aria-hidden', 'true');
+        separador.textContent = '/';
+        titulo.append(separador);
+      }
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'lista__ordenacion-opcion';
+      boton.classList.toggle('lista__ordenacion-opcion--activa', estado.ordenLista === valor);
+      boton.setAttribute('aria-pressed', String(estado.ordenLista === valor));
+      boton.textContent = texto;
+      boton.addEventListener('click', () => actualizarEstado({ ordenLista: valor }));
+      titulo.append(boton);
+    }
+  } else {
+    titulo.textContent = 'Más baratas';
+  }
 
   const contadorEl = document.createElement('span');
   contadorEl.className = 'lista__contador';
@@ -62,11 +87,11 @@ function crearCabecera(soloAbiertas: boolean, contador: number): HTMLDivElement 
   const filtro = document.createElement('button');
   filtro.type = 'button';
   filtro.className = 'controles__pestana lista__filtro';
-  filtro.classList.toggle('controles__pestana--activa', soloAbiertas);
-  filtro.setAttribute('aria-pressed', String(soloAbiertas));
+  filtro.classList.toggle('controles__pestana--activa', estado.soloAbiertas);
+  filtro.setAttribute('aria-pressed', String(estado.soloAbiertas));
   filtro.setAttribute('aria-label', 'Filtrar solo estaciones abiertas ahora');
   filtro.textContent = 'Abiertas';
-  filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !soloAbiertas }));
+  filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !estado.soloAbiertas }));
 
   cabecera.append(titulo, document.createTextNode(' · '), contadorEl, document.createTextNode(' · '), filtro);
   return cabecera;
@@ -199,7 +224,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
 
     // RF-42: ninguna estación de la zona vende el combustible elegido.
     if (ordenadas.length === 0) {
-      contenedor.append(crearCabecera(estado.soloAbiertas, 0));
+      contenedor.append(crearCabecera(estado, 0));
       const nombreZona = estado.zonaNombre || 'esta zona';
       contenedor.append(
         crearAviso(`Ninguna estación de ${nombreZona} vende ${ETIQUETA[estado.combustible].toLowerCase()}.`)
@@ -209,11 +234,15 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
       return;
     }
 
-    const visibles = estado.soloAbiertas
+    const visiblesPorApertura = estado.soloAbiertas
       ? ordenadas.filter((f) => estaAbierta(f.estacion.horario, new Date()))
       : ordenadas;
+    const visibles = estado.ordenLista === 'distancia' && estado.ubicacionUsuario
+      ? [...visiblesPorApertura].sort((a, b) =>
+          compararPorDistancia(estado.ubicacionUsuario!, a.estacion, b.estacion))
+      : visiblesPorApertura;
 
-    contenedor.append(crearCabecera(estado.soloAbiertas, visibles.length));
+    contenedor.append(crearCabecera(estado, visibles.length));
 
     // Filtro sin resultados.
     if (visibles.length === 0) {
@@ -246,7 +275,12 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
 
       const orden = document.createElement('span');
       orden.className = 'fila__orden';
-      orden.textContent = String(puesto);
+      if (estado.ordenLista === 'distancia' && estado.ubicacionUsuario) {
+        orden.classList.add('fila__orden--distancia');
+        orden.textContent = formatearDistancia(distanciaKm(estado.ubicacionUsuario, estacion));
+      } else {
+        orden.textContent = String(puesto);
+      }
 
       const info = document.createElement('span');
       info.className = 'fila__info';

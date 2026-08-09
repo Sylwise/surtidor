@@ -319,3 +319,19 @@
 .control-ubicacion__aviso[hidden] {
   display: none;
 }
+
+/* V2-13: posición concedida por el usuario. La diana enlaza visualmente con
+   el botón que la activa, pero no pulsa ni representa un radio de precisión. */
+.marcador-ubicacion {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background:
+    linear-gradient(#2879d0, #2879d0) center top / 2px 5px no-repeat,
+    linear-gradient(#2879d0, #2879d0) center bottom / 2px 5px no-repeat,
+    linear-gradient(#2879d0, #2879d0) left center / 5px 2px no-repeat,
+    linear-gradient(#2879d0, #2879d0) right center / 5px 2px no-repeat,
+    radial-gradient(circle, #2879d0 0 5px, var(--paper) 5.5px 8px, rgba(22, 50, 59, 0.4) 8.5px 9.5px, transparent 10px);
+  filter: drop-shadow(0 1px 1px rgba(22, 50, 59, 0.22));
+}

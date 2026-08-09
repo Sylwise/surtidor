@@ -198,7 +198,11 @@ ficha**, y arrastrar los controles de uno al otro es lo que hace que en 730 px d
 alto no quepa nada.
 
 **Estado de lista.** Cabecera de la hoja con las pestañas de combustible.
-Debajo, la cabecera de la lista: `MÁS BARATAS · 72 · [Abiertas]`. Luego las filas.
+Debajo, la cabecera de la lista: `MÁS BARATAS · 72 · [Abiertas]`. Tras conceder
+ubicación, el propio título se convierte en selector:
+`BARATAS / CERCANAS`. La opción activa usa `--petrol` y mayor peso; la
+otra queda en `--muted`. No añade cajas, subrayados ni una segunda fila de
+controles. Luego las filas.
 
 **El filtro de abiertas no tiene fila propia.** Es una píldora en la cabecera de
 la lista, junto al contador que modifica. Una fila entera para un interruptor son
@@ -339,9 +343,17 @@ Ver ADR-0021 y ADR-0022.
 
 ### Lista
 
-Número de orden en mono a la izquierda, rótulo y municipio en el centro, precio
-en píldora de color a la derecha. La píldora usa la misma banda que el marcador,
-para que lista y mapa hablen el mismo idioma cromático.
+En el orden inicial, número de puesto por precio en mono a la izquierda, rótulo
+y dirección en el centro, precio en píldora de color a la derecha. La píldora
+usa la misma banda que el marcador, para que lista y mapa hablen el mismo idioma
+cromático.
+
+Al pulsar «Mi ubicación», el mapa centra con zoom mínimo 13, la posición de la
+izquierda se sustituye por la distancia geográfica aproximada y las filas se
+ordenan de menor a mayor distancia. No se presenta como ruta ni tiempo de conducción. La posición del
+usuario aparece en el mapa como una diana estática —centro azul, aro claro y
+cuatro marcas cardinales—, sin pulso, halo de precisión ficticio ni participación en racimos y colisiones. La
+posición y el modo de orden viven solo en memoria durante esa carga.
 
 ### Selector de combustible
 
