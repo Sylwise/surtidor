@@ -112,3 +112,25 @@ Las dos correcciones que harían viable la idea, por si vuelve a proponerse:
 
 Ninguna de las dos se aborda ahora: el coste son dos rondas de diseño más y
 una reescritura del hito, y hay funciones más baratas y mejores esperando.
+
+## Precisión de V2-18 · 2026-08-09
+
+La vista nacional entra por debajo de zoom 6,5 y sale al alcanzar zoom 7. La
+histéresis conserva el modo anterior entre ambos valores; son constantes
+ajustables después de probarlas en navegador real, no una razón para derivar la
+zona de la cámara.
+
+Pulsar una pastilla provincial sí selecciona esa provincia como zona, actualiza
+la URL por RF-88, carga su único JSON y encuadra sus estaciones. Es una elección
+explícita de la persona, igual que pulsar una fila del selector territorial, y
+por tanto no recupera la carga automática por vista descartada en este ADR.
+Alejar, acercar o desplazar sin pulsar no modifica nunca la zona cargada.
+
+El centroide de V2-18 se calcula sobre todas las estaciones **públicas** con
+coordenadas válidas, no sobre las restringidas ni solo sobre quienes vendan el
+combustible activo. Sustituye para V2-18 el «tal cual» mencionado en las
+consecuencias de este ADR: el cálculo matemático es el mismo, pero se precisa el
+conjunto porque la vista representa las estaciones utilizables por el público.
+
+Los agregados nacionales se sirven en un resumen de build y no mediante la
+carga de 52 provincias. Ver ADR-0022.

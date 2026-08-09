@@ -176,9 +176,9 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 | RNF-10 | M | Contenido útil en pantalla en menos de 1 s con conexión 4G. |
 | RNF-11 | M | El JavaScript inicial pesa menos de 150 KB comprimido, sin contar MapLibre, que se carga aparte y después. |
 | RNF-12 | M | El JSON de una provincia pesa menos de 100 KB comprimido. El de la provincia más grande marca el listón. |
-| RNF-15 | M | Una zona completa no supera los 300 KB comprimidos de datos. Por encima, se sirve un resumen con solo coordenadas y el combustible elegido. |
-| RNF-13 | M | El navegador nunca descarga los datos de provincias fuera de la zona mostrada. Un fichero ya descargado se reutiliza entre zonas que lo compartan. |
-| RNF-14 | S | El mapa mantiene 30 fps al desplazarlo con 400 marcadores en pantalla. |
+| RNF-15 | M | Una zona completa no supera los 300 KB comprimidos de datos de estaciones. Por encima, se sirve un resumen con solo coordenadas y el combustible elegido. El resumen nacional de V2-18 no es una zona ni contiene estaciones: tiene un presupuesto propio de 10 KB comprimidos. |
+| RNF-13 | M | El navegador nunca descarga datos de estaciones de provincias fuera de la zona mostrada. Un fichero ya descargado se reutiliza entre zonas que lo compartan. V2-18 puede descargar un único resumen nacional de build con nombre, centroide y agregados por provincia, nunca los 52 ficheros provinciales. |
+| RNF-14 | S | El mapa mantiene 30 fps al desplazarlo con 400 marcadores en pantalla y con las 52 pastillas provinciales de V2-18. |
 
 ### Accesibilidad y compatibilidad
 
@@ -234,7 +234,52 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-17 | ~~Estado personalizado con `?zonas=NN,NN`.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
-| V2-18 | Vista nacional: por debajo de un nivel de zoom las estaciones se sustituyen por una pastilla por provincia con su nombre y el precio medio del combustible elegido, en el centroide de sus estaciones. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
+| V2-18 | Vista nacional: por debajo de zoom 6,5 las estaciones se sustituyen por pastillas provinciales neutras con nombre, precio medio del combustible elegido y número de estaciones de la media, ancladas al centroide de las estaciones públicas. La vista vuelve a racimos o estaciones al alcanzar zoom 7. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md) y [ADR-0022](adr/0022-resumen-nacional-de-build.md). |
+
+### Detalle verificable de V2-18
+
+- **V2-18.1.** La entrada en la vista nacional ocurre por debajo de zoom 6,5 y
+  la salida al alcanzar zoom 7. La franja de histéresis conserva el modo
+  anterior para impedir alternancias. Los dos valores son constantes ajustables
+  después de probarlos en navegador real; nunca se deducen del encuadre ni
+  cambian la zona cargada.
+- **V2-18.2.** Cada pastilla muestra el nombre oficial verbatim, la media simple
+  del combustible activo y «{n} estación/estaciones». Solo entran estaciones
+  públicas que venden ese combustible: `null` no suma ni divide y nunca es cero.
+- **V2-18.3.** Si ninguna estación pública de la provincia vende el combustible,
+  la pastilla dice «No vende {combustible} · 0 estaciones» y no muestra un precio
+  ni un color que lo sugiera.
+- **V2-18.4.** Las pastillas son cromáticamente neutras. ADR-0003 no se extiende
+  a una escala nacional y Canarias, Ceuta y Melilla se muestran en el mapa en su
+  posición geográfica real.
+- **V2-18.5.** El centroide es la media de las coordenadas de todas las estaciones
+  públicas de la provincia, con independencia del combustible y del filtro de
+  abiertas. Puede caer en el mar en territorios insulares: representa al
+  conjunto, no una estación ni una capital.
+- **V2-18.6.** Pulsar una pastilla es una elección territorial explícita:
+  selecciona la provincia como zona, actualiza la URL y la aplicación por el
+  flujo de RF-88, carga solo su JSON y encuadra sus estaciones. Desplazar o
+  ampliar el mapa sin pulsarla nunca cambia la zona.
+- **V2-18.7.** El filtro «Solo abiertas» no modifica las medias ni sus `n`. El
+  selector territorial conserva la zona cargada mientras se observa el resumen
+  nacional.
+- **V2-18.8.** Las pastillas que colisionan pueden ocultarse. Ganan, en este
+  orden: la que tiene foco, las provincias con dato de menor media y las
+  provincias sin dato; los empates se resuelven por identificador oficial. El
+  resultado es determinista y no cambia por el orden de recorrido.
+- **V2-18.9.** Cada provincia conserva el mismo nodo del DOM identificado por su
+  ID oficial al desplazar, cambiar de combustible y entrar de nuevo en la vista.
+  Un gesto no regenera las 52 pastillas ni intercambia identidades.
+- **V2-18.10.** Cada pastilla visible es un botón operable con teclado, con foco
+  visible, área mínima de 44 × 44 px y etiqueta accesible que anuncia nombre,
+  combustible, media, `n` y la acción. Una pastilla oculta por colisión no entra
+  en el orden de tabulación.
+- **V2-18.11.** `prefers-reduced-motion` elimina animaciones y convierte el
+  acercamiento en un salto inmediato. El cambio de combustible nunca mueve el
+  centroide.
+- **V2-18.12.** La vista usa un resumen nacional generado en el build y de menos
+  de 10 KB comprimidos. Nunca descarga los 52 JSON provinciales. Si el resumen o
+  MapLibre falla, la lista, ficha, filtros y cambio de zona siguen funcionando.
 
 ## Requisitos de la v3
 

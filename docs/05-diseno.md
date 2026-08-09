@@ -272,6 +272,67 @@ Estados:
 - **cerrada** — opacidad 42 %, nunca oculta
 - **seleccionada** — contorno de 2,5 px en `--petrol`
 
+### Pastilla provincial · vista nacional
+
+Por debajo de zoom 6,5 el mapa sustituye estaciones y racimos por el resumen
+nacional. Al alcanzar zoom 7 vuelven los racimos o estaciones de la zona que ya
+estaba cargada. Entre ambos valores se conserva el modo anterior: esa histéresis
+evita que un `fitBounds` o un gesto pequeño haga alternar las dos vistas. Los
+umbrales son constantes de producto ajustables después de probarlos en 360 px y
+escritorio.
+
+La pastilla provincial es neutra: no usa `--p1` a `--p5`, `--mejor` ni
+`--signal`. Una escala nacional contradiría el ámbito de comparación de
+ADR-0003 y mezclaría realidades fiscales que no deben codificarse con el mismo
+color. El precio sigue siendo el dato principal por tamaño y tipografía, no por
+tono.
+
+```
+┌────────────────────┐
+│ ARABA/ALAVA        │  ← nombre oficial verbatim
+│ 1,547 €/L          │  ← mono, tabular, cifra principal
+│ 84 estaciones      │  ← origen visible de la media
+└────────────────────┘
+         │              ← puede alargarse si la colisión desplaza el cartel
+```
+
+La media es simple por estación pública. Solo cuentan las que venden el
+combustible; `null` nunca es cero. El filtro de abiertas no modifica ni la media
+ni su `n`. Si `n` es cero, la segunda y tercera líneas se sustituyen por «No
+vende {combustible} · 0 estaciones»: no se usa un guion que parezca una carga
+pendiente ni un color de precio.
+
+El ancla es la media de las coordenadas de todas las estaciones públicas de la
+provincia, no solo de las que venden el combustible. Por eso no se mueve al
+cambiar de producto. En provincias insulares puede caer en el mar o entre
+islas: representa al conjunto provincial y no finge ser una estación, una
+capital ni el centro de una geometría administrativa. Canarias, Ceuta y Melilla
+se muestran en su posición geográfica real, sin inset.
+
+Pulsar selecciona esa provincia como zona mediante el mismo flujo explícito que
+el selector territorial: actualiza URL, lista y ficha, carga solo su JSON y
+encuadra sus estaciones. Alejar, acercar o desplazar sin pulsar no cambia nunca
+la zona cargada. El selector sigue mostrando esa zona mientras el mapa enseña
+el resumen nacional.
+
+Las 52 pastillas no caben simultáneamente en 360 px. La detección de colisiones
+puede ocultarlas con un orden determinista: foco primero; después provincias con
+dato, de menor a mayor media; finalmente provincias sin dato; los empates por ID
+oficial. Una pastilla oculta sale también del recorrido de teclado. Cuando baste
+un desplazamiento visual corto para resolver una colisión, el poste conserva el
+ancla en el centroide.
+
+Cada pastilla visible es un botón de al menos 44 × 44 px. Su etiqueta accesible
+dice, por ejemplo, «ARABA/ALAVA. Precio medio de gasolina 95: 1,547 euros por
+litro, calculado sobre 84 estaciones. Pulsar para abrir la provincia». Con cero
+datos anuncia que ninguna estación vende el combustible. El orden de tabulación
+es estable por catálogo, no por precio.
+
+Cada provincia se identifica por su ID oficial y conserva el mismo nodo del DOM
+al desplazar el mapa o cambiar de combustible. Entrar y salir del modo oculta y
+muestra registros; no recicla una pastilla por su índice ni reconstruye las 52.
+Ver ADR-0021 y ADR-0022.
+
 ### Lista
 
 Número de orden en mono a la izquierda, rótulo y municipio en el centro, precio
@@ -422,6 +483,8 @@ Poco y con motivo.
 - Nada más. Ni entradas escalonadas, ni parallax, ni marcadores que reboten.
 - `prefers-reduced-motion: reduce` desactiva todo, incluido el `flyTo`, que pasa
   a `jumpTo`.
+- La vista nacional no anima la entrada de sus 52 pastillas. Cambiar combustible
+  actualiza texto en los mismos nodos y nunca mueve sus centroides.
 
 ## Suelo de calidad
 
@@ -587,6 +650,7 @@ Las funciones de la v2 tienen sitio asignado desde ya, para que nadie improvise:
 | Función | Estrato |
 |---|---|
 | Páginas editoriales automáticas | Fuera de la aplicación |
+| Vista nacional por provincias | Mapa, sustituyendo estaciones y racimos por debajo del umbral; no añade controles |
 | Tendencia respecto a ayer | 2, junto al precio |
 | "¿Lleno hoy o el martes?" | Página de zona, fuera de la aplicación de mapa |
 | Perfil de vehículo | 3 |

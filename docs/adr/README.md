@@ -30,6 +30,7 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0019](0019-paginas-editoriales-sin-aplicacion.md) | Las páginas editoriales viven fuera de la aplicación | aceptado |
 | [0020](0020-navegacion-en-paneles-dentro-de-la-aplicacion.md) | Los enlaces de portada viven en paneles dentro de la aplicación | aceptado |
 | [0021](0021-racimos-estables-al-desplazar-el-mapa.md) | Racimos estables al desplazar el mapa | aceptado |
+| [0022](0022-resumen-nacional-de-build.md) | La vista nacional usa un resumen generado en el build | aceptado |
 
 ## Plantilla
 

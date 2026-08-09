@@ -81,3 +81,21 @@ poblada** (RNF-14). Si eso ocurre, se escribe un ADR nuevo que supersede a este.
 - **Ocultar las caras cuando hay aglomeración.** Esconde datos que el usuario no
   ha pedido esconder. La agrupación es honesta; el filtrado silencioso no.
 - **Dejar el solapamiento.** No es una opción: rompe la función del producto.
+
+## Extensión para V2-18 · 2026-08-09
+
+La vista nacional añade un tercer tipo de marcador DOM, la pastilla provincial,
+pero no lo mezcla con estaciones o racimos. Los modos son excluyentes: por
+debajo del umbral nacional se ocultan estaciones y racimos; al salir se ocultan
+las provincias y vuelve el camino existente de agrupación por debajo de zoom 11
+y colisiones por encima.
+
+Las pastillas provinciales reutilizan la resolución propia de colisiones con un
+orden específico y estable documentado en ADR-0021. Las que pierden pueden
+ocultarse: en 360 px no caben 52 nombres oficiales, medias y recuentos sin
+solaparse. Esta ocultación afecta solo al mapa; las 52 provincias siguen
+disponibles como enlaces en el selector territorial de ADR-0020.
+
+Se mantienen como botones reales, con foco visible, etiqueta accesible y área
+de pulsación mínima de 44 × 44 px. No se cambia a una capa `symbol` ni se añade
+una dependencia.

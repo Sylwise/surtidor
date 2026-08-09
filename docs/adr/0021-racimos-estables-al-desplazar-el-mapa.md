@@ -69,3 +69,22 @@ del DOM mientras sobreviva el racimo.
   racimo de golpe.
 - **Recalcular durante cada fotograma.** No resuelve la inestabilidad de la
   rejilla y contradice la decisión de fluidez de ADR-0006.
+
+## Extensión a las pastillas provinciales · 2026-08-09
+
+V2-18 aplica el mismo principio de identidad estable a la vista nacional. Cada
+pastilla se identifica por el ID oficial de su provincia, no por el índice del
+resultado, su media, el combustible activo ni la posición que gane después de
+resolver colisiones.
+
+Las 52 entradas viven en un registro propio. Desplazar el mapa, cambiar de
+combustible o volver a entrar en la vista nacional actualiza u oculta los mismos
+nodos del DOM; no los regenera ni permite que una pastilla pase a representar
+otra provincia. Solo se destruyen al desmontar el mapa o al cambiar el propio
+catálogo de provincias.
+
+La colisión es determinista: gana primero la pastilla que conserva el foco,
+después las provincias con dato de menor media, después las provincias sin dato,
+y los empates se resuelven por ID oficial. Una pastilla oculta queda fuera del
+orden de tabulación. Como en los racimos, la disposición se recalcula al terminar
+el gesto y nunca en cada fotograma.
