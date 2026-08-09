@@ -72,9 +72,11 @@ const editoriales = [
           <ul>
             {editoriales.map((editorial) => (
               <li>
-                <a href={editorial.href} aria-current={ruta === editorial.href ? 'page' : undefined}>
-                  {editorial.nombre}
-                </a>
+                {ruta === editorial.href ? (
+                  <span class="editorial-pie__actual" aria-current="page">{editorial.nombre}</span>
+                ) : (
+                  <a href={editorial.href}>{editorial.nombre}</a>
+                )}
               </li>
             ))}
           </ul>
