@@ -1,0 +1,54 @@
+---
+import '../estilos/tokens.css';
+import '../estilos/editorial.css';
+import marcaSvg from '../assets/marca.svg?raw';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  ruta: string;
+  imagenCompartir?: string;
+}
+
+const {
+  titulo,
+  descripcion,
+  ruta,
+  imagenCompartir = '/og/predeterminada.png',
+} = Astro.props;
+const canonical = new URL(ruta, Astro.site);
+const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#16323B" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:image" content={imagenAbsoluta} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <header class="editorial-cabecera">
+      <a class="editorial-marca" href="/" aria-label="Surtidor, volver a la portada">
+        <span class="editorial-marca__icono" aria-hidden="true" set:html={marcaSvg} />
+        <span>Surtidor</span>
+      </a>
+      <span class="editorial-seccion">Hoy</span>
+    </header>
+    <main class="editorial-documento">
+      <slot />
+    </main>
+  </body>
+</html>

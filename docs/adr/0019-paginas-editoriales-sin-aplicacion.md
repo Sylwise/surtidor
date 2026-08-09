@@ -41,6 +41,17 @@ empatado, mientras que el volumen vendido favorece al diésel por el kilometraje
 y el transporte profesional. Ninguna de las dos medidas justifica convertir
 solo uno en representante de todos los lectores.
 
+Los rankings largos enseñan de entrada las diez primeras posiciones. El resto
+permanece en el HTML servido dentro de un `<details>` nativo, sin JavaScript y
+sin repetir el top 10. No se elimina información para acortar visualmente la
+página. Las tablas de Canarias, Ceuta y Melilla se muestran completas porque
+solo contienen cuatro territorios.
+
+La metodología conserva siempre visible una línea con las reglas esenciales.
+La explicación completa vive en otro `<details>` nativo: quien solo busca la
+respuesta no tiene que atravesarla y quien necesita comprobar el cálculo la
+encuentra en el mismo documento.
+
 Toda cifra agregada muestra el número de estaciones sobre el que se calcula y
 enlaza a la página de municipio o zona de la que sale. No se enlaza a una
 estación concreta porque no existe URL de estación: el ADR-0007 detiene la

@@ -162,7 +162,11 @@ export function calcularAgregadosEditoriales(
 }
 
 export async function leerAgregadosEditoriales(
-  directorioDatos = join(import.meta.dirname, '..', '..', 'public', 'data'),
+  // Astro empaqueta los módulos de prerender en dist/.prerender/chunks antes
+  // de ejecutarlos: import.meta.dirname apuntaría allí durante el build.
+  // Los comandos del proyecto se ejecutan desde la raíz, así que cwd es el
+  // mismo ancla estable que usan las páginas estáticas existentes.
+  directorioDatos = join(process.cwd(), 'public', 'data'),
 ): Promise<AgregadosEditoriales> {
   const indice = JSON.parse(await readFile(join(directorioDatos, 'indice.json'), 'utf8')) as Indice;
   const datosPorProvincia = await Promise.all(

@@ -22,6 +22,9 @@ const indice = JSON.parse(
   readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8'),
 ) as Indice;
 const zonasOrdenadas = [...indice.zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+const editoriales = [
+  { href: '/hoy/provincias-mas-baratas/', nombre: 'Provincias más baratas de España hoy' },
+];
 // La portada no tiene zona fija en el build (RF-49: se resuelve en el
 // cliente) y, sobre todo, un precio de una gasolinera a 500 km sería
 // engañoso en una página que no habla de ningún sitio concreto. Usa la
@@ -86,6 +89,20 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
     </div>
 
     <section class="enlaces-territorio" aria-label="Todas las provincias y comunidades autónomas">
+      <div class="enlaces-bloque">
+        <h2 class="enlaces-bloque__titulo micro">HOY</h2>
+        <ul class="enlaces-bloque__filas">
+          {editoriales.map((editorial) => (
+            <li>
+              <a href={editorial.href} class="enlaces-bloque__fila">
+                <span class="enlaces-bloque__info">
+                  <span class="enlaces-bloque__nombre">{editorial.nombre}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
       {ORDEN_TIPOS.map((tipo) => {
         const deEsteTipo = zonasOrdenadas.filter((zona) => zona.tipo === tipo);
         if (deEsteTipo.length === 0) return null;

@@ -1,0 +1,207 @@
+---
+import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
+import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
+import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+
+const ruta = '/hoy/provincias-mas-baratas/';
+const titulo = 'Provincias más baratas de España hoy · Surtidor';
+const descripcion =
+  'Ranking actualizado de precios medios de Gasolina 95, Diésel, Gasolina 98 y Diésel premium por provincia.';
+const agregados = await leerAgregadosEditoriales();
+const provinciasGenerales = agregados.zonas.general.filter((zona) => zona.tipo === 'provincia');
+const provinciasFiscales = agregados.zonas.canariasCeutaMelilla.filter(
+  (zona) => zona.tipo === 'provincia',
+);
+
+function ranking(provincias: AgregadoZona[], combustible: ClavePrecio) {
+  return ordenarRanking(
+    provincias,
+    (provincia) => provincia.combustibles[combustible].media,
+    (provincia) => provincia.nombre,
+  );
+}
+
+const rankingsGenerales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(provinciasGenerales, combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const rankingsFiscales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(provinciasFiscales, combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const lideres = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    rankingsGenerales[combustible].find(({ elemento }) =>
+      elemento.combustibles[combustible].media !== null,
+    )?.elemento ?? null,
+  ]),
+) as Record<ClavePrecio, AgregadoZona | null>;
+---
+
+<DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
+  <header class="editorial-intro">
+    <p class="editorial-eyebrow">Precios de hoy</p>
+    <h1 class="editorial-titulo">Las provincias más baratas para repostar</h1>
+    <p class="editorial-entradilla">
+      Comparamos la media de cada provincia por combustible. Una provincia barata no es una
+      estación aislada: es el precio medio de todas las estaciones que venden ese producto.
+    </p>
+    <p class="editorial-actualizado">
+      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
+    </p>
+  </header>
+
+  <section class="editorial-resumen" aria-label="Provincias con menor media por combustible">
+    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+      const lider = lideres[combustible];
+      const resumen = lider?.combustibles[combustible] ?? null;
+      return (
+        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
+          <strong class="editorial-tarjeta__precio">
+            {resumen?.media === null || resumen === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
+          </strong>
+          {lider && (
+            <a class="editorial-tarjeta__zona" href={`/${lider.id}/`}>
+              {lider.nombre}
+            </a>
+          )}
+          {resumen && (
+            <span class="editorial-tarjeta__muestra">
+              Media calculada sobre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
+            </span>
+          )}
+        </article>
+      );
+    })}
+  </section>
+
+  <section class="editorial-metodo" aria-label="Metodología">
+    <p class="editorial-metodo__resumen">
+      <strong>Media simple por estación</strong> · solo las que venden el combustible · sin
+      ponderar por volumen.
+    </p>
+    <details class="editorial-detalles editorial-detalles--metodo">
+      <summary>Cómo se calcula</summary>
+      <div class="editorial-detalles__contenido">
+        <p>
+          Es una media simple por estación, sin ponderar por volumen de venta porque ese dato no
+          existe en la fuente. Una estación que no vende un combustible queda fuera de su media:
+          nunca cuenta como cero. La columna «Estaciones» muestra el tamaño exacto de cada cálculo.
+        </p>
+        <p>
+          Canarias, Ceuta y Melilla se presentan aparte porque su fiscalidad de carburantes es
+          distinta. No se comparan como si fueran provincias más baratas dentro del mismo mercado.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  {ORDEN_COMBUSTIBLES.map((combustible) => (
+    <section class="editorial-combustible" id={combustible}>
+      <h2>{ETIQUETA[combustible]}</h2>
+      <p>Precio medio provincial, de menor a mayor, calculado con tres decimales.</p>
+
+      <div class="editorial-tabla-wrap">
+        <table class="editorial-tabla">
+          <thead>
+            <tr>
+              <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+              <th scope="col">Provincia</th>
+              <th scope="col" class="editorial-tabla__numero">Media</th>
+              <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rankingsGenerales[combustible].slice(0, 10).map(({ elemento: provincia, posicion }) => {
+              const resumen = provincia.combustibles[combustible];
+              return (
+                <tr>
+                  <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+                  <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                  <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
+                    {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
+                  </td>
+                  <td class="editorial-tabla__numero editorial-tabla__estaciones">
+                    {resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {rankingsGenerales[combustible].length > 10 && (
+        <details class="editorial-detalles editorial-detalles--ranking">
+          <summary>Ver las {rankingsGenerales[combustible].length} provincias</summary>
+          <div class="editorial-tabla-wrap">
+            <table class="editorial-tabla" aria-label={`Resto del ranking de ${ETIQUETA[combustible]}`}>
+              <thead>
+                <tr>
+                  <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+                  <th scope="col">Provincia</th>
+                  <th scope="col" class="editorial-tabla__numero">Media</th>
+                  <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankingsGenerales[combustible].slice(10).map(({ elemento: provincia, posicion }) => {
+                  const resumen = provincia.combustibles[combustible];
+                  return (
+                    <tr>
+                      <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+                      <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                      <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
+                        {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
+                      </td>
+                      <td class="editorial-tabla__numero editorial-tabla__estaciones">
+                        {resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
+      <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
+        <h3>Canarias, Ceuta y Melilla</h3>
+        <p>Tabla separada por su régimen fiscal distinto en los carburantes.</p>
+        <div class="editorial-tabla-wrap">
+          <table class="editorial-tabla">
+            <thead>
+              <tr>
+                <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+                <th scope="col">Provincia</th>
+                <th scope="col" class="editorial-tabla__numero">Media</th>
+                <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rankingsFiscales[combustible].map(({ elemento: provincia, posicion }) => {
+                const resumen = provincia.combustibles[combustible];
+                return (
+                  <tr>
+                    <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+                    <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                    <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
+                      {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
+                    </td>
+                    <td class="editorial-tabla__numero editorial-tabla__estaciones">
+                      {resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </section>
+  ))}
+</DocumentoEditorial>

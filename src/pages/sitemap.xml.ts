@@ -10,6 +10,10 @@ import type { APIRoute } from 'astro';
 import { generarSlug } from '../../scripts/lib/slug.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type Indice, type IndiceMunicipios } from '../../scripts/lib/tipos.ts';
 
+// RF-105: las editoriales se dan de alta a mano. Solo entran cuando existe
+// su página; no se anuncian rutas futuras que todavía devolverían 404.
+const RUTAS_EDITORIALES = ['/hoy/provincias-mas-baratas/'];
+
 function escaparXml(texto: string): string {
   return texto
     .replace(/&/g, '&amp;')
@@ -38,7 +42,7 @@ export const GET: APIRoute = ({ site }) => {
   // para las 1000 y pico URLs sin tener que leer cada JSON de provincia.
   const lastmod = indice.actualizado;
 
-  const rutas: string[] = ['/', ...indice.zonas.map((zona) => `/${zona.id}/`)];
+  const rutas: string[] = ['/', ...RUTAS_EDITORIALES, ...indice.zonas.map((zona) => `/${zona.id}/`)];
 
   for (const municipio of indiceMunicipios.municipios) {
     if (municipio.estaciones < MINIMO_ESTACIONES_MUNICIPIO) continue;
