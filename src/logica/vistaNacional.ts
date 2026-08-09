@@ -1,7 +1,7 @@
 import type { ClavePrecio, ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
 
-export const ZOOM_ENTRADA_NACIONAL = 6.5;
-export const ZOOM_SALIDA_NACIONAL = 7;
+export const ZOOM_ENTRADA_NACIONAL = 8;
+export const ZOOM_SALIDA_NACIONAL = 8.5;
 const TIEMPO_ESPERA_RESUMEN_MS = 8000;
 const COMBUSTIBLES: readonly ClavePrecio[] = [
   'gasolina95e5',

@@ -11,7 +11,14 @@
 // filtro se mantiene igual: cuesta cero y protege el día que eso cambie.
 
 import type { EstacionZona } from './zona.ts';
+import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
 export function estacionesVisibles(estaciones: EstacionZona[]): EstacionZona[] {
   return estaciones.filter((estacion) => estacion.tipoVenta === 'P');
+}
+
+/** Estaciones que pueden representarse para el combustible activo. `null`
+ * significa que no lo venden: no genera marcador ni entra en un racimo. */
+export function estacionesQueVenden(estaciones: EstacionZona[], combustible: ClavePrecio): EstacionZona[] {
+  return estaciones.filter((estacion) => estacion.precios[combustible] !== null);
 }

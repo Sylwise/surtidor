@@ -708,10 +708,12 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   // V2-18: una pulsación sobre la pastilla es una elección territorial
   // explícita. El mapa aporta solo el ID provincial; este componente lo
   // resuelve contra el índice y reutiliza el flujo de RF-88.
-  function alElegirProvincia(idProvincia: string): void {
-    if (!indice) return;
+  function alElegirProvincia(idProvincia: string): boolean {
+    if (!indice) return false;
     const zona = zonaDeProvincia(indice, idProvincia);
-    if (zona) actualizarEstado({ zonaId: zona.id });
+    if (!zona || zona.id === obtenerEstado().zonaId) return false;
+    actualizarEstado({ zonaId: zona.id });
+    return true;
   }
 
   // import() dinámico para que MapLibre entre en su propio chunk, aparte

@@ -174,6 +174,10 @@ Reglas:
 - **Hoja inferior con tres posiciones**, arrastrable con puntos de anclaje:
   asomada (~110 px: solo el asa, los controles y la estación más barata), media
   (55 % de la altura) y completa (90 %).
+- **La posición inicial es asomada.** Conserva visible el centro del mapa y la
+  respuesta cartográfica; combustible, filtro y estación más barata siguen a un
+  toque. Pulsar el asa abre la posición media y seleccionar una estación abre la
+  completa. La posición es transitoria y no se guarda entre visitas.
 - **El selector de combustible y el filtro viven en la cabecera de la hoja**, y
   son visibles en las tres posiciones. Nunca se cortan. Son lo que más se toca.
 - **La ficha de estación se apila encima de la lista**, dentro de la hoja, no la
@@ -274,8 +278,8 @@ Estados:
 
 ### Pastilla provincial · vista nacional
 
-Por debajo de zoom 6,5 el mapa sustituye estaciones y racimos por el resumen
-nacional. Al alcanzar zoom 7 vuelven los racimos o estaciones de la zona que ya
+Por debajo de zoom 8 el mapa sustituye estaciones y racimos por el resumen
+nacional. Al alcanzar zoom 8,5 vuelven los racimos o estaciones de la zona que ya
 estaba cargada. Entre ambos valores se conserva el modo anterior: esa histéresis
 evita que un `fitBounds` o un gesto pequeño haga alternar las dos vistas. Los
 umbrales son constantes de producto ajustables después de probarlos en 360 px y
@@ -341,7 +345,15 @@ para que lista y mapa hablen el mismo idioma cromático.
 
 ### Selector de combustible
 
-Pestañas, nunca desplegable. Cuatro opciones caben. Un toque, no dos.
+Grupo de cuatro botones, nunca desplegable. Cada opción es un rectángulo compacto
+con `--radio`, separado 4 px del siguiente: conserva la lectura de elección
+exclusiva sin parecer una barra de navegación. La activa lleva fondo `--petrol`,
+texto claro y ningún adorno adicional. En móvil el grupo ocupa todo el ancho
+disponible y reparte el espacio; en escritorio conserva un ancho compacto. Un
+toque, no dos.
+
+El filtro «Abiertas» sigue siendo una píldora redonda independiente porque es
+una activación binaria, no otra opción del grupo.
 
 ### Selector de zona
 

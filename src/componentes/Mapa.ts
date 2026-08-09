@@ -29,11 +29,12 @@ import {
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
-import { estacionesVisibles } from '../logica/visibilidad.ts';
+import { estacionesQueVenden, estacionesVisibles } from '../logica/visibilidad.ts';
 import {
   cargarResumenNacional,
   compararProvincias,
   modoMapaParaZoom,
+  ZOOM_SALIDA_NACIONAL,
   type ModoMapa,
 } from '../logica/vistaNacional.ts';
 import type { EstacionZona } from '../logica/zona.ts';
@@ -57,6 +58,26 @@ const UMBRAL_ZOOM_RACIMOS = 11;
 // actual (ADR-0021).
 const RADIO_RACIMO_PX = 64;
 const TAMANO_TILE_PX = 512;
+
+// En la vista nacional las etiquetas locales compiten con el nombre de las
+// provincias. Se conservan países, agua, costas y toda la geometría; solo se
+// apaga el texto operativo que vuelve a ser útil al acercarse.
+const CAPAS_OCULTAS_EN_VISTA_NACIONAL = [
+  'waterway_line_label',
+  'highway-name-path',
+  'highway-name-minor',
+  'highway-name-major',
+  'highway-shield-non-us',
+  'highway-shield-us-interstate',
+  'road_shield_us',
+  'airport',
+  'label_other',
+  'label_village',
+  'label_town',
+  'label_state',
+  'label_city',
+  'label_city_capital',
+] as const;
 
 // Tamaño aproximado del cartel para la detección de colisiones. No hace
 // falta el ancho exacto de cada texto (ver src/logica/colisiones.ts): estos
@@ -261,7 +282,7 @@ class ControlUbicacion implements IControl {
 export function montarMapa(
   contenedor: HTMLElement,
   alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void,
-  alElegirProvincia?: (idProvincia: string) => void,
+  alElegirProvincia?: (idProvincia: string) => boolean,
 ): () => void {
   let mapa: MapaLibre | null = null;
   let cargado = false;
@@ -274,7 +295,13 @@ export function montarMapa(
   const provinciaMarkers = new Map<string, EntradaProvincia>();
   let resumenNacional: ResumenNacional | null = null;
   let modoMapa: ModoMapa = 'zona';
+  let modoEtiquetasAplicado: ModoMapa | null = null;
   let provinciaConFoco: string | null = null;
+  // Pulsar una provincia ya coloca la cámara en el umbral de salida nacional. El primer cambio de
+  // estaciones que llega después pertenece a esa elección: si fitBounds
+  // intentase encajar la provincia completa en un móvil, podría alejar otra
+  // vez por debajo del umbral de entrada y devolver al usuario a la vista nacional.
+  let omitirSiguienteEncuadrePorProvincia = false;
   let estacionAnterior: string | null = obtenerEstado().estacionId;
   let firmaEstacionesAnterior: string | null = null;
   // Snapshot del último render(), para que moveend/zoomend puedan recalcular
@@ -539,6 +566,10 @@ export function montarMapa(
     const boton = document.createElement('button');
     boton.type = 'button';
     boton.className = 'marcador-provincia';
+    // Se crea antes de que el resumen y el estilo puedan haber terminado de
+    // coordinarse. Oculto evita un fotograma de 52 carteles vacíos; la
+    // disposición nacional lo muestra solo después de rellenarlo.
+    boton.hidden = true;
 
     const cartel = document.createElement('span');
     cartel.className = 'marcador-provincia__cartel';
@@ -579,9 +610,11 @@ export function montarMapa(
       evento.stopPropagation();
       // La respuesta visual no espera a que termine la carga territorial:
       // salimos de la vista nacional en el acto y el flujo de RF-88 hará
-      // después el fitBounds exacto sobre las estaciones descargadas.
-      saltarOVolar([provincia.centro.lon, provincia.centro.lat], 7);
-      alElegirProvincia?.(provincia.id);
+      // después la carga. Ese primer resultado no vuelve a ejecutar
+      // fitBounds: se conserva este acercamiento para que las estaciones
+      // aparezcan con una sola pulsación también en móvil.
+      omitirSiguienteEncuadrePorProvincia = alElegirProvincia?.(provincia.id) ?? false;
+      saltarOVolar([provincia.centro.lon, provincia.centro.lat], ZOOM_SALIDA_NACIONAL);
     });
 
     if (mapa) entrada.marker.addTo(mapa);
@@ -641,6 +674,17 @@ export function montarMapa(
     for (const [id, entrada] of provinciaMarkers) entrada.boton.hidden = !visibles.has(id);
   }
 
+  function actualizarEtiquetasBase(modo: ModoMapa): void {
+    if (!mapa || modoEtiquetasAplicado === modo) return;
+    const visibilidad = modo === 'nacional' ? 'none' : 'visible';
+    for (const idCapa of CAPAS_OCULTAS_EN_VISTA_NACIONAL) {
+      // El estilo remoto puede evolucionar. La ausencia de una etiqueta no
+      // debe convertir un retoque visual en un fallo total del mapa.
+      if (mapa.getLayer(idCapa)) mapa.setLayoutProperty(idCapa, 'visibility', visibilidad);
+    }
+    modoEtiquetasAplicado = modo;
+  }
+
   /** Recalcula qué se ve como marcador individual, qué se agrupa en racimo
    *  y qué se oculta por colisión (ADR-0006). Se llama al terminar cada
    *  gesto del mapa (moveend/zoomend) y tras cada render por cambio de
@@ -650,9 +694,11 @@ export function montarMapa(
     const zoomActual = mapa.getZoom();
     modoMapa = modoMapaParaZoom(zoomActual, modoMapa);
     if (modoMapa === 'nacional' && resumenNacional) {
+      actualizarEtiquetasBase('nacional');
       recalcularVistaNacional();
       return;
     }
+    actualizarEtiquetasBase('zona');
     for (const entrada of provinciaMarkers.values()) entrada.boton.hidden = true;
 
     const proyectadas = ultimasVisibles.map((estacion) => {
@@ -735,12 +781,14 @@ export function montarMapa(
     // RF-48: las estaciones sin venta al público se excluyen, igual que en
     // la lista y la ficha. RF-15: cerradas atenuadas pero visibles, salvo
     // que el filtro de solo abiertas esté activo (entonces, igual que en la
-    // lista, no se enseñan). Además, solo las que tienen coordenadas de
-    // verdad: ver tieneCoordenadas.
+    // lista, no se enseñan). Una estación que no vende el combustible activo
+    // tampoco genera marcador ni entra en racimos o colisiones. Además, solo
+    // las que tienen coordenadas de verdad: ver tieneCoordenadas.
     const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
-    const visibles = (
+    const visiblesPorApertura = (
       estado.soloAbiertas ? visiblesTipoVenta.filter((e) => estaAbierta(e.horario, new Date())) : visiblesTipoVenta
-    ).filter(tieneCoordenadas);
+    );
+    const visibles = estacionesQueVenden(visiblesPorApertura, estado.combustible).filter(tieneCoordenadas);
 
     const idsVisibles = new Set(visibles.map((e) => e.id));
     for (const [id, entrada] of marcadores) {
@@ -773,7 +821,11 @@ export function montarMapa(
       .join(',');
     if (firma !== firmaEstacionesAnterior) {
       firmaEstacionesAnterior = firma;
-      encuadrarTodas(visibles);
+      if (omitirSiguienteEncuadrePorProvincia) {
+        omitirSiguienteEncuadrePorProvincia = false;
+      } else {
+        encuadrarTodas(visibles);
+      }
     }
 
     // RF-14 / RF-21: centrado en la estación seleccionada, sea cual sea el

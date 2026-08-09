@@ -300,10 +300,12 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
           actualizarEstado({ zonaId: zona.id });
         }
 
-        function alElegirProvincia(idProvincia: string): void {
-          if (!indice) return;
+        function alElegirProvincia(idProvincia: string): boolean {
+          if (!indice) return false;
           const zona = zonaDeProvincia(indice, idProvincia);
-          if (zona) actualizarEstado({ zonaId: zona.id });
+          if (!zona || zona.id === obtenerEstado().zonaId) return false;
+          actualizarEstado({ zonaId: zona.id });
+          return true;
         }
 
         // El mapa se importa dinámicamente: MapLibre pesa bastante más que el

@@ -182,7 +182,8 @@
   align-items: flex-start;
   gap: 1px;
   padding: 6px 9px;
-  border: 1.5px solid var(--hair);
+  overflow: hidden;
+  border: 1.5px solid var(--petrol);
   border-radius: 4px;
   background: var(--paper);
   color: var(--petrol);
@@ -190,9 +191,14 @@
 }
 
 .marcador-provincia__nombre {
-  max-width: 180px;
+  width: calc(100% + 18px);
+  max-width: calc(180px + 18px);
+  margin: -6px -9px 3px;
+  padding: 4px 8px;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: var(--petrol);
+  color: var(--paper);
   font-family: var(--sans);
   font-size: var(--fs-1);
   font-weight: 700;

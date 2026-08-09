@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { estacionesVisibles } from './visibilidad.ts';
+import { estacionesQueVenden, estacionesVisibles } from './visibilidad.ts';
 import type { EstacionZona } from './zona.ts';
 
 function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
@@ -60,4 +60,17 @@ test('en una lista mixta, solo sobreviven las de venta al público', () => {
 
 test('sin estaciones, no hay nada visible', () => {
   assert.deepEqual(estacionesVisibles([]), []);
+});
+
+test('solo se representan estaciones que venden el combustible seleccionado', () => {
+  const estaciones = [
+    estacion({ id: 'vende-95' }),
+    estacion({
+      id: 'solo-diesel',
+      precios: { gasolina95e5: null, gasoleoA: 1.489, gasolina98e5: null, gasoleoPremium: null },
+    }),
+  ];
+
+  assert.deepEqual(estacionesQueVenden(estaciones, 'gasolina95e5').map((e) => e.id), ['vende-95']);
+  assert.deepEqual(estacionesQueVenden(estaciones, 'gasoleoA').map((e) => e.id), ['vende-95', 'solo-diesel']);
 });

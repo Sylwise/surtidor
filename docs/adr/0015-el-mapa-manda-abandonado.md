@@ -115,7 +115,7 @@ una reescritura del hito, y hay funciones más baratas y mejores esperando.
 
 ## Precisión de V2-18 · 2026-08-09
 
-La vista nacional entra por debajo de zoom 6,5 y sale al alcanzar zoom 7. La
+La vista nacional entra por debajo de zoom 8 y sale al alcanzar zoom 8,5. La
 histéresis conserva el modo anterior entre ambos valores; son constantes
 ajustables después de probarlas en navegador real, no una razón para derivar la
 zona de la cámara.

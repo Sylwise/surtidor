@@ -192,8 +192,8 @@ una pastilla por provincia con su precio medio, en el centro de sus
 gasolineras. Es la vista que responde a "dónde está barato", que es lo único
 que se puede preguntar cuando cabe España entera en la pantalla. Ver
 [ADR-0015](adr/0015-el-mapa-manda-abandonado.md) y
-[ADR-0022](adr/0022-resumen-nacional-de-build.md). Entra por debajo de zoom 6,5
-y sale al alcanzar 7; usa un resumen de build menor de 10 KB comprimidos, no los
+[ADR-0022](adr/0022-resumen-nacional-de-build.md). Entra por debajo de zoom 8
+y sale al alcanzar 8,5; usa un resumen de build menor de 10 KB comprimidos, no los
 52 ficheros provinciales. Las pastillas son neutras, muestran siempre la media y
 su número de estaciones, conservan identidad por provincia y al pulsarlas
 seleccionan explícitamente esa zona y encuadran sus estaciones. Canarias, Ceuta

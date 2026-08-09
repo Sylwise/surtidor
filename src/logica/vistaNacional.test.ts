@@ -19,14 +19,14 @@ function provincia(id: string, media: number | null): ProvinciaNacional {
 }
 
 describe('modoMapaParaZoom', () => {
-  it('entra por debajo de 6,5 y sale al alcanzar 7', () => {
-    assert.equal(modoMapaParaZoom(6.49, 'zona'), 'nacional');
-    assert.equal(modoMapaParaZoom(7, 'nacional'), 'zona');
+  it('entra por debajo de 8 y sale al alcanzar 8,5', () => {
+    assert.equal(modoMapaParaZoom(7.99, 'zona'), 'nacional');
+    assert.equal(modoMapaParaZoom(8.5, 'nacional'), 'zona');
   });
 
   it('conserva el modo anterior dentro de la histéresis', () => {
-    assert.equal(modoMapaParaZoom(6.75, 'nacional'), 'nacional');
-    assert.equal(modoMapaParaZoom(6.75, 'zona'), 'zona');
+    assert.equal(modoMapaParaZoom(8.25, 'nacional'), 'nacional');
+    assert.equal(modoMapaParaZoom(8.25, 'zona'), 'zona');
   });
 });
 

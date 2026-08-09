@@ -58,7 +58,7 @@ function prefiereMovimientoReducido(): boolean {
  * Devuelve una función de limpieza.
  */
 export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTMLElement): () => void {
-  let estado: EstadoHoja = 'media';
+  let estado: EstadoHoja = 'colapsada';
   let arrastrando = false;
   let seMovio = false;
   let inicioY = 0;
@@ -199,7 +199,11 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
   }
   mapa.addEventListener('click', alTocarMapa);
 
-  aplicar('media', false);
+  // El mapa reserva desde el primer encuadre el espacio de la hoja asomada.
+  // Empezar a media altura ocultaba su centro bajo un panel del 55 % y
+  // obligaba a alejar el mapa para compensarlo. Los controles y la estación
+  // más barata siguen visibles; un toque en el asa abre el estado medio.
+  aplicar('colapsada', false);
 
   return () => {
     cancelarSuscripcion();

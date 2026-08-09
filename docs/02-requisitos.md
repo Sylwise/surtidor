@@ -234,12 +234,12 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-17 | ~~Estado personalizado con `?zonas=NN,NN`.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
-| V2-18 | Vista nacional: por debajo de zoom 6,5 las estaciones se sustituyen por pastillas provinciales neutras con nombre, precio medio del combustible elegido y número de estaciones de la media, ancladas al centroide de las estaciones públicas. La vista vuelve a racimos o estaciones al alcanzar zoom 7. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md) y [ADR-0022](adr/0022-resumen-nacional-de-build.md). |
+| V2-18 | Vista nacional: por debajo de zoom 8 las estaciones se sustituyen por pastillas provinciales neutras con nombre, precio medio del combustible elegido y número de estaciones de la media, ancladas al centroide de las estaciones públicas. La vista vuelve a racimos o estaciones al alcanzar zoom 8,5. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md) y [ADR-0022](adr/0022-resumen-nacional-de-build.md). |
 
 ### Detalle verificable de V2-18
 
-- **V2-18.1.** La entrada en la vista nacional ocurre por debajo de zoom 6,5 y
-  la salida al alcanzar zoom 7. La franja de histéresis conserva el modo
+- **V2-18.1.** La entrada en la vista nacional ocurre por debajo de zoom 8 y
+  la salida al alcanzar zoom 8,5. La franja de histéresis conserva el modo
   anterior para impedir alternancias. Los dos valores son constantes ajustables
   después de probarlos en navegador real; nunca se deducen del encuadre ni
   cambian la zona cargada.
