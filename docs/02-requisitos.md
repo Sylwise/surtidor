@@ -227,7 +227,7 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-06 | Comparar en euros por 100 km además de en euros por litro. |
 | V2-08 | Detección de precio congelado: estaciones que llevan días sin actualizar. |
 | V2-09 | Favoritos fijados arriba, en `localStorage`. |
-| V2-10 | Páginas editoriales automáticas: provincias más baratas, estación más barata del país. |
+| V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |
 | V2-11 | Publicar los JSON normalizados como datos abiertos, con su documentación. |
 | V2-12 | Combustibles adicionales, empezando por gasóleo B. |
 | V2-13 | Ordenar por distancia con geolocalización concedida. |

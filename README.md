@@ -18,6 +18,10 @@ cada municipio, en zona y en vecinos, sigue al combustible seleccionado
 (RF-94). Las URLs de zona llevan el nombre, no el identificador (RF-95,
 RF-96) — [ADR-0018](docs/adr/0018-urls-de-zona-por-nombre.md).
 
+**V2 en curso:** V2-10 completado. Las seis páginas editoriales bajo `/hoy/`,
+sus agregados, enlazado interno, sitemap e imágenes de compartición están
+publicados (RF-97 a RF-107, ADR-0019 y ADR-0020).
+
 Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
 El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna
 estación `R` en toda España. Entra con el gasóleo B. El detalle, en

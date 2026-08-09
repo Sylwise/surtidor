@@ -168,10 +168,10 @@ Telegram, muestra la tarjeta con el precio.
 
 ---
 
-# V2 · Ya pensado, esperando
+# V2 · Ya pensado, en curso
 
-Nada de esto entra hasta que la v1 esté publicada y con gente usándola. El orden
-es de valor aparente, y la gente lo va a reordenar.
+La v1 ya está publicada. El orden es de valor aparente y la gente lo va a
+reordenar. V2-10 está terminado; el resto sigue en espera.
 
 **Coste del desvío.** Si la barata está a 9 km, ese desvío gasta gasolina.
 Ahorro neto = ahorro bruto − (km extra × consumo × precio). Con 20 litros y tres
@@ -215,9 +215,9 @@ ministerio. Publicarlos como API abierta documentada no cuesta un euro más y tr
 enlaces desde repositorios y foros técnicos, que es el tipo de enlace que Google
 valora.
 
-**Páginas editoriales automáticas.** "Las provincias más baratas de España hoy",
-"la gasolinera más barata del país ahora mismo". Se generan solas con los datos
-que ya hay, se actualizan cada dos horas, cero mantenimiento, e imanes de enlaces.
+**Páginas editoriales automáticas — V2-10, terminado.** Seis documentos bajo
+`/hoy/`, generados con los datos de cada build, enlazados desde la aplicación y
+con imagen de compartición propia. Ver RF-97 a RF-107 y ADR-0019.
 
 ---
 
