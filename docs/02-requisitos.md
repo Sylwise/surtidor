@@ -70,7 +70,7 @@ esté publicada.
 | RF-86 | M | El rótulo se muestra verbatim; la dirección y el municipio se pasan a caja de título; la provincia, verbatim. |
 | RF-87 | M | El lado de la vía se dice "A la derecha de la vía" o "A la izquierda de la vía". Con `Margen` a `N` no se muestra nada. |
 | RF-88 | M | Estando en una página de zona, elegir otra zona no recarga el documento: se cargan sus datos, el mapa vuela sin reconstruirse y la dirección cambia con `pushState` a la página real de esa zona. La tabla de precios servida y el `<title>` se actualizan en la misma operación. Atrás y adelante del navegador devuelven a la zona anterior. Desde una página de municipio, elegir zona sigue siendo navegación completa. Ver [ADR-0016](adr/0016-cambio-de-zona-sin-recarga.md). |
-| RF-89 | M | La lista de estaciones es el contenido servido: el HTML del build contiene las estaciones ordenadas por los cuatro combustibles, con rótulo, dirección y precio en cada fila, y las pastillas eligen cuál se muestra. No hay tabla ni sección alguna por debajo del mapa. Los enlaces a otros municipios cierran la lista como pastillas con el precio mínimo. Ver `docs/05-diseno.md`, sección "La lista es el contenido". |
+| RF-89 | M | En las páginas de aplicación, la lista de estaciones es el contenido servido: el HTML del build contiene las estaciones ordenadas por los cuatro combustibles, con rótulo, dirección y precio en cada fila, y las pastillas eligen cuál se muestra. No hay tabla ni sección alguna por debajo del mapa. Los enlaces a otros municipios cierran la lista como pastillas con el precio mínimo. Los documentos editoriales quedan fuera de esta restricción y se desplazan por definición. Ver `docs/05-diseno.md`, sección "La lista es el contenido", y [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md). |
 | RF-90 | M | En una página de municipio, la aplicación muestra únicamente las estaciones de ese municipio, no las de la provincia. Un enlace lleva a la página de la provincia. |
 | RF-91 | M | La portada contiene, en el HTML servido, enlaces `<a href>` reales a las 52 provincias y las 19 comunidades autónomas. Ver [ADR-0017](adr/0017-jerarquia-de-enlaces.md). |
 | RF-92 | M | Cada página de zona contiene, en el HTML servido, enlaces `<a href>` reales a todos sus municipios con página propia. Ver [ADR-0017](adr/0017-jerarquia-de-enlaces.md). |
@@ -141,6 +141,21 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 | RF-95 | M | Las páginas de zona se sirven en el slug del nombre de la zona. Las comunidades autónomas cuyo slug colisiona con el de una provincia van bajo `/comunidad/{slug}/`; la provincia conserva el nombre limpio. Ver [ADR-0018](adr/0018-urls-de-zona-por-nombre.md). |
 | RF-96 | M | Las 71 URLs de zona anteriores responden con 301 hacia la nueva, mediante reglas exactas generadas en `public/_redirects`. Nunca un comodín. Ver [ADR-0018](adr/0018-urls-de-zona-por-nombre.md). |
 
+### Páginas editoriales (v2)
+
+| ID | Prioridad | Requisito |
+|---|---|---|
+| RF-97 | V2 | `/hoy/provincias-mas-baratas/` responde en una sola página qué provincias tienen menor precio medio para cada uno de los cuatro combustibles. No se generan cuatro variantes por combustible. Canarias, Ceuta y Melilla no entran en los rankings nacionales y aparecen en una tabla aparte. |
+| RF-98 | V2 | `/hoy/cuanto-te-juegas/` muestra, por provincia y combustible, la diferencia entre la estación más barata y la media de la provincia, expresada en euros para un depósito de 50 litros, y responde cuánto se pierde por no comparar. Canarias, Ceuta y Melilla no entran en los rankings nacionales y aparecen en una tabla aparte. |
+| RF-99 | V2 | `/hoy/marcas-mas-baratas/` muestra la media por rótulo y combustible, junto al número de estaciones de cada rótulo, como comparación no geográfica. El ámbito analizado es península y Baleares; solo entran rótulos con un mínimo de 100 estaciones en ese ámbito. La página dice en texto visible que el umbral es 100 y cuántas estaciones quedan fuera del ranking; con los datos actuales entran 12 rótulos y quedan fuera unas 4.900 de las 10.993 estaciones. La página ordena rótulos, no empresas ni grupos empresariales: lo escrito en el cartel, de acuerdo con «el precio de pantalla es el precio del cartel» de `docs/05-diseno.md`. MOEVE y CEPSA aparecen por separado porque hoy son dos carteles distintos en la calle, aunque sean la misma compañía en pleno cambio de marca; PETRONOR y CAMPSA aparecen separados de REPSOL por el mismo motivo. La propia página lo explica en una línea para dejar claro que es deliberado. No existe una tabla de equivalencias entre marcas: exigiría trabajo recurrente y cambiaría cada pocos meses conforme avance el cambio de marca. Los rótulos se agrupan por coincidencia literal después de recortar espacios al principio y al final; no se normalizan mayúsculas ni tildes, porque los datos actuales no presentan variantes por ninguna de las dos. Canarias, Ceuta y Melilla quedan fuera del cálculo nacional y aparecen en una tabla aparte. |
+| RF-100 | V2 | `/hoy/capitales-de-provincia/` compara la media de las 52 capitales de provincia y enlaza a las 52 páginas de municipio. Una tabla fija escrita a mano una sola vez contiene los 52 nombres y los empareja verbatim contra el catálogo del ministerio, conforme a RF-76. Si un nombre no casa, el build falla e indica cuál no ha encontrado; nunca omite una capital en silencio. Canarias, Ceuta y Melilla no entran en los rankings nacionales y aparecen en una tabla aparte. |
+| RF-101 | V2 | `/hoy/la-mas-barata-de-espana/` muestra, para cada combustible, el mínimo nacional y el mínimo de cada comunidad, con enlace a la página del municipio de origen. Canarias, Ceuta y Melilla no entran en el ranking nacional y aparecen en una tabla aparte. |
+| RF-102 | V2 | `/hoy/canarias-ceuta-melilla/` contiene sus rankings separados y la explicación de su régimen fiscal. **[PENDIENTE DE TEXTO: el propietario escribirá aquí el único párrafo fijo redactado a mano.]** |
+| RF-103 | V2 | Todas las editoriales usan una plantilla de documento HTML y CSS, sin mapa, `AppInteractiva`, MapLibre, hoja ni selector; se desplazan y se regeneran enteras en cada build. Toda media es simple por estación y combustible, excluye del divisor los valores `null` y nunca los convierte en cero. Toda cifra agregada muestra el número de estaciones sobre el que se calcula y enlaza a la página de municipio o zona de origen. Los rankings comparan los precios con los tres decimales del ministerio; los empatados comparten posición y se ordenan alfabéticamente. Ver [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md). |
+| RF-104 | V2 | Cada editorial enlaza hacia páginas de zona o municipio y la portada contiene un enlace HTML real a cada editorial. Ninguna depende solo del sitemap. Ver [ADR-0017](adr/0017-jerarquia-de-enlaces.md) y [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md). |
+| RF-105 | V2 | Las seis rutas editoriales bajo `/hoy/` figuran en `sitemap.xml`; su array de rutas se mantiene a mano en `src/pages/sitemap.xml.ts`. |
+| RF-106 | V2 | Las seis editoriales comparten una única plantilla de `og:image`, generada en el build, con el título de la página y su cifra de cabecera. Cada página tiene su imagen propia, pero no un diseño propio. Estas imágenes son distintas de las indexadas por zona o municipio de RF-66. |
+
 ---
 
 ## Requisitos no funcionales
@@ -206,11 +221,9 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 |---|---|
 | V2-01 | Resumen histórico diario por provincia, generado en el build desde `EstacionesTerrestresHist`. Unos pocos KB al día. |
 | V2-02 | Flecha de tendencia en la ficha: sube o baja respecto a ayer. |
-| V2-03 | "¿Lleno hoy o el martes?": día de la semana de media más barato en esa provincia, con la ventana temporal usada. |
 | V2-04 | Perfil de vehículo: consumo en L/100 km y combustible habitual, en `localStorage`. |
 | V2-05 | Coste del desvío: ahorro neto tras descontar el combustible de llegar hasta allí. Requiere V2-04 y geolocalización. |
 | V2-06 | Comparar en euros por 100 km además de en euros por litro. |
-| V2-07 | Filtro por carretera principal, con la distancia de cada estación a cada vía precalculada en el build. |
 | V2-08 | Detección de precio congelado: estaciones que llevan días sin actualizar. |
 | V2-09 | Favoritos fijados arriba, en `localStorage`. |
 | V2-10 | Páginas editoriales automáticas: provincias más baratas, estación más barata del país. |
@@ -218,10 +231,20 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-12 | Combustibles adicionales, empezando por gasóleo B. |
 | V2-13 | Ordenar por distancia con geolocalización concedida. |
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
-| V2-15 | Puntos de recarga eléctrica. |
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-17 | ~~Estado personalizado con `?zonas=NN,NN`.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-18 | Vista nacional: por debajo de un nivel de zoom las estaciones se sustituyen por una pastilla por provincia con su nombre y el precio medio del combustible elegido, en el centroide de sus estaciones. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
+
+## Requisitos de la v3
+
+Los identificadores se conservan al mover de versión: son permanentes y no se
+renumeran ni se reutilizan.
+
+| ID | Requisito |
+|---|---|
+| V2-03 | "¿Lleno hoy o el martes?": día de la semana de media más barato en esa provincia, con la ventana temporal usada. |
+| V2-07 | Filtro por carretera principal, con la distancia de cada estación a cada vía precalculada en el build. |
+| V2-15 | Puntos de recarga eléctrica. |
 
 ## Fuera de alcance permanente
 

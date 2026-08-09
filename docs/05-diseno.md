@@ -343,9 +343,11 @@ una tabla repetía las mismas estaciones con más columnas. Y colgaba de un
 mapa que ocupa toda la pantalla, así que el usuario no tenía forma de saber
 que existía salvo desplazándose por accidente.
 
-**La página mide una pantalla.** Nada cuelga por debajo del mapa. En
-escritorio no hay desplazamiento de documento; en móvil, la hoja es la única
-superficie que se desplaza.
+**La página de aplicación mide una pantalla.** Nada cuelga por debajo del mapa
+en las páginas de zona o municipio. En escritorio no hay desplazamiento de
+documento; en móvil, la hoja es la única superficie que se desplaza. Los
+documentos editoriales viven fuera de la aplicación y se desplazan por
+definición; ver [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md).
 
 **Las cuatro listas se generan en el build.** El HTML servido contiene las
 estaciones ordenadas por cada uno de los cuatro combustibles. Las pastillas
@@ -559,6 +561,7 @@ Las funciones de la v2 tienen sitio asignado desde ya, para que nadie improvise:
 
 | Función | Estrato |
 |---|---|
+| Páginas editoriales automáticas | Fuera de la aplicación |
 | Tendencia respecto a ayer | 2, junto al precio |
 | "¿Lleno hoy o el martes?" | Página de zona, fuera de la aplicación de mapa |
 | Perfil de vehículo | 3 |
