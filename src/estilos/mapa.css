@@ -154,6 +154,77 @@
   line-height: 1;
 }
 
+/* ---------- Provincia · vista nacional (V2-18, ADR-0022) ---------- */
+
+.marcador-provincia {
+  min-width: 116px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--petrol);
+  cursor: pointer;
+  font: inherit;
+  transform-origin: bottom center;
+}
+
+.marcador-provincia[hidden] {
+  display: none;
+}
+
+.marcador-provincia__cartel {
+  min-width: 116px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 6px 9px;
+  border: 1.5px solid var(--hair);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--petrol);
+  white-space: nowrap;
+}
+
+.marcador-provincia__nombre {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--sans);
+  font-size: var(--fs-1);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.marcador-provincia__precio {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-3);
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.marcador-provincia__cuenta {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: var(--fs-1);
+  line-height: 1.2;
+}
+
+.marcador-provincia__poste {
+  width: 1.5px;
+  height: 9px;
+  background: var(--petrol);
+}
+
+.marcador-provincia:focus-visible .marcador-provincia__cartel {
+  outline: 2.5px solid var(--petrol);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .marcador__cartel {
     transition-duration: 130ms;

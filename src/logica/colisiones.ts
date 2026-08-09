@@ -71,7 +71,10 @@ export function resolverColisiones(
   cajaPorDefecto: DimensionesCartel = CAJA_CARTEL_POR_DEFECTO,
   margen: number = MARGEN_PX
 ): Set<string> {
-  const ordenados = [...puntos].sort((a, b) => (a.precio ?? Infinity) - (b.precio ?? Infinity));
+  const ordenados = [...puntos].sort((a, b) => {
+    const diferencia = (a.precio ?? Infinity) - (b.precio ?? Infinity);
+    return Number.isNaN(diferencia) || diferencia === 0 ? a.id.localeCompare(b.id) : diferencia;
+  });
   const colocadas: Caja[] = [];
   const visibles = new Set<string>();
 

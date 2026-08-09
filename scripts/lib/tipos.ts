@@ -91,3 +91,22 @@ export interface Indice {
   provincias: ResumenProvincia[];
   zonas: Zona[];
 }
+
+export interface MediaProvinciaNacional {
+  media: number | null;
+  n: number;
+}
+
+export interface ProvinciaNacional {
+  id: string;
+  nombre: string;
+  centro: { lat: number; lon: number };
+  combustibles: Record<ClavePrecio, MediaProvinciaNacional>;
+}
+
+/** Resumen ligero que consume exclusivamente la vista nacional de V2-18. */
+export interface ResumenNacional {
+  actualizado: string;
+  mock?: true;
+  provincias: ProvinciaNacional[];
+}

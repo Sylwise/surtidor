@@ -12,6 +12,7 @@ dist/
 # cambia cada dos horas. Ejecuta uno de los dos comandos antes de `npm run dev`.
 public/data/indice.json
 public/data/provincias/*.json
+public/data/resumen-nacional.json
 
 # 71 reglas de redirección 301 (RF-96, ADR-0018), generadas por el mismo
 # npm run data:fetch / data:mock a partir del catálogo de zonas: se genera,

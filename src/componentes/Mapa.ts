@@ -30,7 +30,14 @@ import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { formatearPrecio } from '../logica/formato.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
+import {
+  cargarResumenNacional,
+  compararProvincias,
+  modoMapaParaZoom,
+  type ModoMapa,
+} from '../logica/vistaNacional.ts';
 import type { EstacionZona } from '../logica/zona.ts';
+import type { ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
 
 const ESTILO_TILES = 'https://tiles.openfreemap.org/styles/positron';
 // Centro y zoom antes de que lleguen las estaciones: España peninsular vista
@@ -74,6 +81,15 @@ interface EntradaRacimo {
   cuenta: HTMLSpanElement;
   /** Ids de las estaciones que representa este racimo. */
   ids: string[];
+}
+
+interface EntradaProvincia {
+  marker: Marker;
+  boton: HTMLButtonElement;
+  nombre: HTMLSpanElement;
+  precio: HTMLSpanElement;
+  cuenta: HTMLSpanElement;
+  provincia: ProvinciaNacional;
 }
 
 /** Descarta estaciones con coordenadas ausentes que la fuente representa
@@ -245,6 +261,7 @@ class ControlUbicacion implements IControl {
 export function montarMapa(
   contenedor: HTMLElement,
   alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void,
+  alElegirProvincia?: (idProvincia: string) => void,
 ): () => void {
   let mapa: MapaLibre | null = null;
   let cargado = false;
@@ -254,6 +271,10 @@ export function montarMapa(
   let observador: ResizeObserver | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
   const racimoMarkers = new Map<string, EntradaRacimo>();
+  const provinciaMarkers = new Map<string, EntradaProvincia>();
+  let resumenNacional: ResumenNacional | null = null;
+  let modoMapa: ModoMapa = 'zona';
+  let provinciaConFoco: string | null = null;
   let estacionAnterior: string | null = obtenerEstado().estacionId;
   let firmaEstacionesAnterior: string | null = null;
   // Snapshot del último render(), para que moveend/zoomend puedan recalcular
@@ -272,6 +293,8 @@ export function montarMapa(
     marcadores.clear();
     for (const entrada of racimoMarkers.values()) entrada.marker.remove();
     racimoMarkers.clear();
+    for (const entrada of provinciaMarkers.values()) entrada.marker.remove();
+    provinciaMarkers.clear();
     try {
       mapa?.remove();
     } catch {
@@ -512,6 +535,112 @@ export function montarMapa(
     return entrada;
   }
 
+  function crearMarcadorProvincia(provincia: ProvinciaNacional): EntradaProvincia {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'marcador-provincia';
+
+    const cartel = document.createElement('span');
+    cartel.className = 'marcador-provincia__cartel';
+    const nombre = document.createElement('span');
+    nombre.className = 'marcador-provincia__nombre';
+    const precio = document.createElement('span');
+    precio.className = 'marcador-provincia__precio';
+    const cuenta = document.createElement('span');
+    cuenta.className = 'marcador-provincia__cuenta';
+    const poste = document.createElement('span');
+    poste.className = 'marcador-provincia__poste';
+    cartel.append(nombre, precio, cuenta);
+    boton.append(cartel, poste);
+
+    const entrada: EntradaProvincia = {
+      marker: new Marker({ element: boton, anchor: 'bottom' }).setLngLat([
+        provincia.centro.lon,
+        provincia.centro.lat,
+      ]),
+      boton,
+      nombre,
+      precio,
+      cuenta,
+      provincia,
+    };
+
+    boton.addEventListener('focus', () => {
+      provinciaConFoco = provincia.id;
+      recalcularDisposicion();
+    });
+    boton.addEventListener('blur', () => {
+      if (provinciaConFoco === provincia.id) {
+        provinciaConFoco = null;
+        recalcularDisposicion();
+      }
+    });
+    boton.addEventListener('click', (evento) => {
+      evento.stopPropagation();
+      // La respuesta visual no espera a que termine la carga territorial:
+      // salimos de la vista nacional en el acto y el flujo de RF-88 hará
+      // después el fitBounds exacto sobre las estaciones descargadas.
+      saltarOVolar([provincia.centro.lon, provincia.centro.lat], 7);
+      alElegirProvincia?.(provincia.id);
+    });
+
+    if (mapa) entrada.marker.addTo(mapa);
+    return entrada;
+  }
+
+  function actualizarProvincia(entrada: EntradaProvincia, estado: EstadoApp): void {
+    const { media, n } = entrada.provincia.combustibles[estado.combustible];
+    const combustible = ETIQUETA[estado.combustible].toLowerCase();
+    entrada.nombre.textContent = entrada.provincia.nombre;
+    if (media === null) {
+      entrada.precio.textContent = `No vende ${ETIQUETA[estado.combustible]}`;
+      entrada.cuenta.textContent = '0 estaciones';
+      entrada.boton.setAttribute(
+        'aria-label',
+        `${entrada.provincia.nombre}. Ninguna estación vende ${combustible}. Pulsa para abrir la provincia.`,
+      );
+      return;
+    }
+
+    const textoPrecio = formatearPrecio(media);
+    entrada.precio.textContent = `${textoPrecio} €/L`;
+    entrada.cuenta.textContent = `${n} ${n === 1 ? 'estación' : 'estaciones'}`;
+    entrada.boton.setAttribute(
+      'aria-label',
+      `${entrada.provincia.nombre}. Precio medio de ${combustible}: ${textoPrecio} euros por litro, ` +
+        `calculado sobre ${n} ${n === 1 ? 'estación' : 'estaciones'}. Pulsa para abrir la provincia.`,
+    );
+  }
+
+  function recalcularVistaNacional(): void {
+    if (!mapa || !resumenNacional) return;
+    for (const entrada of marcadores.values()) entrada.boton.hidden = true;
+    for (const entrada of racimoMarkers.values()) entrada.boton.hidden = true;
+
+    const ordenadas = [...resumenNacional.provincias].sort((a, b) =>
+      compararProvincias(a, b, ultimoEstado.combustible, provinciaConFoco),
+    );
+    const puntos: PuntoColision[] = [];
+    for (const [prioridad, provincia] of ordenadas.entries()) {
+      const entrada = provinciaMarkers.get(provincia.id);
+      if (!entrada) continue;
+      entrada.boton.hidden = false;
+      actualizarProvincia(entrada, ultimoEstado);
+      const punto = mapa.project([provincia.centro.lon, provincia.centro.lat]);
+      puntos.push({
+        id: provincia.id,
+        x: punto.x,
+        y: punto.y,
+        precio: prioridad,
+        ancho: Math.max(entrada.boton.offsetWidth, 116),
+        alto: Math.max(entrada.boton.offsetHeight, 64),
+      });
+    }
+
+    const visibles = resolverColisiones(puntos, { ancho: 116, alto: 64 }, 5);
+    for (const [id, entrada] of provinciaMarkers) entrada.boton.hidden = !visibles.has(id);
+  }
+
   /** Recalcula qué se ve como marcador individual, qué se agrupa en racimo
    *  y qué se oculta por colisión (ADR-0006). Se llama al terminar cada
    *  gesto del mapa (moveend/zoomend) y tras cada render por cambio de
@@ -519,6 +648,12 @@ export function montarMapa(
   function recalcularDisposicion(): void {
     if (!mapa || fallido || !cargado) return;
     const zoomActual = mapa.getZoom();
+    modoMapa = modoMapaParaZoom(zoomActual, modoMapa);
+    if (modoMapa === 'nacional' && resumenNacional) {
+      recalcularVistaNacional();
+      return;
+    }
+    for (const entrada of provinciaMarkers.values()) entrada.boton.hidden = true;
 
     const proyectadas = ultimasVisibles.map((estacion) => {
       const punto = mapa!.project([estacion.lon, estacion.lat]);
@@ -701,6 +836,7 @@ export function montarMapa(
     mapa.on('load', () => {
       cargado = true;
       if (vigilante) clearTimeout(vigilante);
+      modoMapa = modoMapaParaZoom(mapa!.getZoom(), 'zona');
       render(obtenerEstado());
     });
 
@@ -738,6 +874,16 @@ export function montarMapa(
 
   cancelarSuscripcion = suscribir(render);
 
+  void cargarResumenNacional().then((resumen) => {
+    if (!resumen || !mapa || fallido) return;
+    resumenNacional = resumen;
+    for (const provincia of resumen.provincias) {
+      if (provinciaMarkers.has(provincia.id)) continue;
+      provinciaMarkers.set(provincia.id, crearMarcadorProvincia(provincia));
+    }
+    recalcularDisposicion();
+  });
+
   return () => {
     cancelarSuscripcion();
     if (vigilante) clearTimeout(vigilante);
@@ -746,6 +892,8 @@ export function montarMapa(
     marcadores.clear();
     for (const entrada of racimoMarkers.values()) entrada.marker.remove();
     racimoMarkers.clear();
+    for (const entrada of provinciaMarkers.values()) entrada.marker.remove();
+    provinciaMarkers.clear();
     try {
       mapa?.remove();
     } catch {

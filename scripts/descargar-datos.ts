@@ -19,6 +19,7 @@ import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
 import { comprobarSlugsUnicos, generarSlug, idZonaComunidad } from './lib/slug.ts';
 import { generarRedirects, type ParRedirect } from './lib/redirecciones.ts';
+import { calcularResumenNacional } from './lib/resumen-nacional.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
 const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
@@ -221,6 +222,7 @@ async function main(): Promise<void> {
     zonas: [...zonasProvincia, ...zonasCcaa],
   };
   const indiceMunicipios: IndiceMunicipios = { actualizado, municipios };
+  const resumenNacional = calcularResumenNacional(datosPorProvincia, actualizado);
 
   console.log('Escribiendo ficheros…');
   await Promise.all(
@@ -229,6 +231,7 @@ async function main(): Promise<void> {
     ),
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
+  await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'resumen-nacional.json'), resumenNacional);
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
   // RF-96/ADR-0018: 71 reglas 301 exactas, nunca un comodín (ver el porqué
   // en scripts/lib/redirecciones.ts).

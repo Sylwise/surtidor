@@ -300,6 +300,12 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
           actualizarEstado({ zonaId: zona.id });
         }
 
+        function alElegirProvincia(idProvincia: string): void {
+          if (!indice) return;
+          const zona = zonaDeProvincia(indice, idProvincia);
+          if (zona) actualizarEstado({ zonaId: zona.id });
+        }
+
         // El mapa se importa dinámicamente: MapLibre pesa bastante más que el
         // resto del bundle inicial, y RNF-11 solo cuenta el JS de antes de
         // MapLibre. Con import() dinámico, MapLibre entra en su propio chunk y
@@ -309,7 +315,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         // explica el fallo y el resto de la aplicación sigue intacta; Mapa.ts
         // ya gestiona por su cuenta cualquier fallo de MapLibre o de los tiles.
         import('../componentes/Mapa.ts')
-          .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion))
+          .then(({ montarMapa }) => montarMapa(contenedorMapa, alEncontrarUbicacion, alElegirProvincia))
           .catch(() => {
             contenedorMapa.innerHTML = '';
             contenedorMapa.removeAttribute('style');

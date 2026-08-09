@@ -10,6 +10,7 @@ import { escribirJsonAtomico, escribirTextoAtomico } from './lib/escritura.ts';
 import { construirMunicipios } from './lib/municipios.ts';
 import { generarSlug, idZonaComunidad } from './lib/slug.ts';
 import { generarRedirects, type ParRedirect } from './lib/redirecciones.ts';
+import { calcularResumenNacional } from './lib/resumen-nacional.ts';
 import type { MunicipioCatalogo } from './lib/miteco.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Estacion, type Indice, type IndiceMunicipios, type Precios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
@@ -254,6 +255,7 @@ async function main(): Promise<void> {
     zonas: [...zonasProvincia, ...zonasCcaa],
   };
   const indiceMunicipios: IndiceMunicipios = { actualizado, municipios };
+  const resumenNacional = calcularResumenNacional(datosPorProvincia, actualizado, true);
 
   await Promise.all(
     datosPorProvincia.map((datos) =>
@@ -261,6 +263,7 @@ async function main(): Promise<void> {
     ),
   );
   await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'indice.json'), indice);
+  await escribirJsonAtomico(join(DIRECTORIO_DATOS, 'resumen-nacional.json'), resumenNacional);
   await escribirJsonAtomico(join(DIRECTORIO_BUILD, 'municipios.json'), indiceMunicipios);
   await escribirTextoAtomico(
     join(DIRECTORIO_PUBLIC, '_redirects'),
