@@ -16,6 +16,7 @@ export function ordenarRanking<T>(
   elementos: readonly T[],
   valorDe: (elemento: T) => number | null,
   nombreDe: (elemento: T) => string,
+  direccion: 'ascendente' | 'descendente' = 'ascendente',
 ): FilaRanking<T>[] {
   const ordenados = [...elementos].sort((a, b) => {
     const valorA = valorDe(a);
@@ -25,7 +26,8 @@ export function ordenarRanking<T>(
     if (valorB === null) return -1;
 
     const diferencia = aTresDecimales(valorA) - aTresDecimales(valorB);
-    return diferencia || nombreDe(a).localeCompare(nombreDe(b), 'es');
+    const diferenciaOrdenada = direccion === 'ascendente' ? diferencia : -diferencia;
+    return diferenciaOrdenada || nombreDe(a).localeCompare(nombreDe(b), 'es');
   });
 
   let valorAnterior: number | null = null;

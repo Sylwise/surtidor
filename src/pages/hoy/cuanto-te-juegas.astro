@@ -1,0 +1,221 @@
+---
+import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
+import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
+import { calcularCostePorNoComparar } from '../../../scripts/lib/cuanto-te-juegas.ts';
+import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { formatearEuros, formatearFechaHora } from '../../logica/formato.ts';
+import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+
+const ruta = '/hoy/cuanto-te-juegas/';
+const titulo = 'Cuánto puedes ahorrar al llenar el depósito · Surtidor';
+const descripcion =
+  'Cuánto ahorras al llenar 50 litros en la gasolinera más barata frente al precio medio de cada provincia.';
+const agregados = await leerAgregadosEditoriales();
+const provinciasGenerales = agregados.zonas.general.filter((zona) => zona.tipo === 'provincia');
+const provinciasFiscales = agregados.zonas.canariasCeutaMelilla.filter(
+  (zona) => zona.tipo === 'provincia',
+);
+
+function coste(provincia: AgregadoZona, combustible: ClavePrecio): number | null {
+  return calcularCostePorNoComparar(provincia.combustibles[combustible]);
+}
+
+function ranking(provincias: AgregadoZona[], combustible: ClavePrecio) {
+  return ordenarRanking(
+    provincias,
+    (provincia) => coste(provincia, combustible),
+    (provincia) => provincia.nombre,
+    'descendente',
+  );
+}
+
+const rankingsGenerales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(provinciasGenerales, combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const rankingsFiscales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(provinciasFiscales, combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const lideres = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    rankingsGenerales[combustible].find(({ elemento }) => coste(elemento, combustible) !== null)
+      ?.elemento ?? null,
+  ]),
+) as Record<ClavePrecio, AgregadoZona | null>;
+---
+
+<DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
+  <header class="editorial-intro">
+    <p class="editorial-eyebrow">Precios de hoy</p>
+    <h1 class="editorial-titulo">Cuánto puedes ahorrar al llenar el depósito</h1>
+    <p class="editorial-entradilla">
+      Llenar 50 litros en la gasolinera más barata de tu provincia puede costar bastante menos que
+      hacerlo al precio medio. Este es el ahorro posible para cada combustible.
+    </p>
+    <p class="editorial-actualizado">
+      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
+    </p>
+  </header>
+
+  <section class="editorial-resumen" aria-label="Mayor ahorro posible por depósito y combustible">
+    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+      const lider = lideres[combustible];
+      const diferencia = lider ? coste(lider, combustible) : null;
+      const resumen = lider?.combustibles[combustible] ?? null;
+      return (
+        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
+          <strong class="editorial-tarjeta__precio">
+            {diferencia === null ? 'sin datos' : formatearEuros(diferencia)}
+          </strong>
+          {lider && (
+            <a class="editorial-tarjeta__zona" href={`/${lider.id}/`}>
+              {lider.nombre}
+            </a>
+          )}
+          {resumen && (
+            <span class="editorial-tarjeta__muestra">
+              Calculado sobre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
+            </span>
+          )}
+        </article>
+      );
+    })}
+  </section>
+
+  <section class="editorial-metodo" aria-label="Metodología">
+    <p class="editorial-metodo__resumen">
+      <strong>Ahorro frente al precio medio</strong> · depósito de 50 litros · solo estaciones que
+      venden el combustible.
+    </p>
+    <details class="editorial-detalles editorial-detalles--metodo">
+      <summary>Cómo se calcula</summary>
+      <div class="editorial-detalles__contenido">
+        <p>
+          Restamos el precio mínimo a la media simple de la provincia y multiplicamos la diferencia
+          por 50 litros. La media no se pondera por volumen de venta. Una estación que no vende el
+          combustible queda fuera del cálculo y nunca cuenta como cero.
+        </p>
+        <p>
+          La cifra expresa cuánto se ahorra al elegir la estación más barata frente a pagar el
+          precio medio. Es una referencia para 50 litros, no presupone que todas las personas llenen
+          siempre un depósito completo.
+        </p>
+        <p>
+          Canarias, Ceuta y Melilla se presentan aparte porque su fiscalidad de carburantes es
+          distinta. No se comparan como si pertenecieran al mismo mercado.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  {ORDEN_COMBUSTIBLES.map((combustible) => (
+    <section class="editorial-combustible" id={combustible}>
+      <h2>{ETIQUETA[combustible]}</h2>
+      <p>Provincias donde más puedes ahorrar frente al precio medio al llenar 50 litros.</p>
+
+      <div class="editorial-tabla-wrap">
+        <table class="editorial-tabla">
+          <thead>
+            <tr>
+              <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+              <th scope="col">Provincia</th>
+              <th scope="col" class="editorial-tabla__numero">Ahorro 50 L</th>
+              <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rankingsGenerales[combustible].slice(0, 10).map(({ elemento: provincia, posicion }) => {
+              const diferencia = coste(provincia, combustible);
+              const { n } = provincia.combustibles[combustible];
+              return (
+                <tr>
+                  <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+                  <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                  <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
+                    {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
+                  </td>
+                  <td class="editorial-tabla__numero editorial-tabla__estaciones">
+                    {n}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {rankingsGenerales[combustible].length > 10 && (
+        <details class="editorial-detalles editorial-detalles--ranking">
+          <summary>Ver las {rankingsGenerales[combustible].length} provincias</summary>
+          <div class="editorial-tabla-wrap">
+            <table class="editorial-tabla" aria-label={`Resto del ranking de ${ETIQUETA[combustible]}`}>
+              <thead>
+                <tr>
+                  <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+                  <th scope="col">Provincia</th>
+                  <th scope="col" class="editorial-tabla__numero">Ahorro 50 L</th>
+                  <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankingsGenerales[combustible].slice(10).map(({ elemento: provincia, posicion }) => {
+                  const diferencia = coste(provincia, combustible);
+                  const { n } = provincia.combustibles[combustible];
+                  return (
+                    <tr>
+                      <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+                      <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                      <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
+                        {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
+                      </td>
+                      <td class="editorial-tabla__numero editorial-tabla__estaciones">
+                        {n}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
+      <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
+        <h3>Canarias, Ceuta y Melilla</h3>
+        <p>Tabla separada por su régimen fiscal distinto en los carburantes.</p>
+        <div class="editorial-tabla-wrap">
+          <table class="editorial-tabla">
+            <thead>
+              <tr>
+                <th scope="col" class="editorial-tabla__posicion">Pos.</th>
+                <th scope="col">Provincia</th>
+                <th scope="col" class="editorial-tabla__numero">Ahorro 50 L</th>
+                <th scope="col" class="editorial-tabla__numero">Estaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rankingsFiscales[combustible].map(({ elemento: provincia, posicion }) => {
+                const diferencia = coste(provincia, combustible);
+                const { n } = provincia.combustibles[combustible];
+                return (
+                  <tr>
+                    <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
+                    <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                    <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
+                      {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
+                    </td>
+                    <td class="editorial-tabla__numero editorial-tabla__estaciones">
+                      {n}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </section>
+  ))}
+</DocumentoEditorial>

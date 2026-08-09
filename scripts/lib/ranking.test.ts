@@ -51,4 +51,26 @@ describe('ordenarRanking', () => {
       ],
     );
   });
+
+  it('puede ordenar de mayor a menor sin alterar los empates', () => {
+    const filas = ordenarRanking<Ejemplo>(
+      [
+        { nombre: 'Zamora', valor: 2.2014 },
+        { nombre: 'Álava', valor: 2.2011 },
+        { nombre: 'Burgos', valor: 1.9 },
+      ],
+      (elemento) => elemento.valor,
+      (elemento) => elemento.nombre,
+      'descendente',
+    );
+
+    assert.deepEqual(
+      filas.map(({ elemento, posicion }) => [elemento.nombre, posicion]),
+      [
+        ['Álava', 1],
+        ['Zamora', 1],
+        ['Burgos', 3],
+      ],
+    );
+  });
 });
