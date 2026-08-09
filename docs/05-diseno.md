@@ -351,8 +351,8 @@ cromático.
 Al pulsar «Mi ubicación», el mapa centra con zoom mínimo 13, la posición de la
 izquierda se sustituye por la distancia geográfica aproximada y las filas se
 ordenan de menor a mayor distancia. No se presenta como ruta ni tiempo de conducción. La posición del
-usuario aparece en el mapa como una diana estática —centro azul, aro claro y
-cuatro marcas cardinales—, sin pulso, halo de precisión ficticio ni participación en racimos y colisiones. La
+usuario aparece en el mapa como un punto azul compacto con aro claro, sin pulso,
+sombra decorativa, halo de precisión ficticio ni participación en racimos y colisiones. La
 posición y el modo de orden viven solo en memoria durante esa carga.
 
 ### Selector de combustible
