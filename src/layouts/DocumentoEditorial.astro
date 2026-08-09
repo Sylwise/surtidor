@@ -18,6 +18,11 @@ const {
 } = Astro.props;
 const canonical = new URL(ruta, Astro.site);
 const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
+const editoriales = [
+  { href: '/hoy/provincias-mas-baratas/', nombre: 'Provincias más baratas' },
+  { href: '/hoy/cuanto-te-juegas/', nombre: 'Ahorro por depósito' },
+  { href: '/hoy/marcas-mas-baratas/', nombre: 'Marcas más baratas' },
+];
 ---
 
 <html lang="es">
@@ -50,5 +55,31 @@ const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
     <main class="editorial-documento">
       <slot />
     </main>
+    <footer class="editorial-pie">
+      <div class="editorial-pie__interior">
+        <div class="editorial-pie__proyecto">
+          <a class="editorial-pie__marca" href="/">
+            <span class="editorial-marca__icono" aria-hidden="true" set:html={marcaSvg} />
+            <span>Surtidor</span>
+          </a>
+          <p>Precios de carburantes de España, sin anuncios ni registro.</p>
+          <p class="editorial-pie__fuente">
+            Datos oficiales del Ministerio para la Transición Ecológica y el Reto Demográfico.
+          </p>
+        </div>
+        <nav class="editorial-pie__navegacion" aria-label="Páginas editoriales">
+          <span>Hoy</span>
+          <ul>
+            {editoriales.map((editorial) => (
+              <li>
+                <a href={editorial.href} aria-current={ruta === editorial.href ? 'page' : undefined}>
+                  {editorial.nombre}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </footer>
   </body>
 </html>

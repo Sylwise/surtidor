@@ -349,6 +349,12 @@ documento; en móvil, la hoja es la única superficie que se desplaza. Los
 documentos editoriales viven fuera de la aplicación y se desplazan por
 definición; ver [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md).
 
+El «no hay pie de página» se limita también a la aplicación. Los documentos
+editoriales terminan en un pie compartido, compacto y claramente separado del
+contenido. Identifica el proyecto y la fuente de datos y ofrece navegación a la
+portada y a las demás editoriales publicadas; no repite rankings ni funciona
+como un segundo sitemap. Ver RF-107.
+
 **Las cuatro listas se generan en el build.** El HTML servido contiene las
 estaciones ordenadas por cada uno de los cuatro combustibles. Las pastillas
 de combustible eligen cuál se muestra; las otras tres siguen en el documento.

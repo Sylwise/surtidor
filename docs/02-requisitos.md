@@ -155,6 +155,7 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 | RF-104 | V2 | Cada editorial enlaza hacia páginas de zona o municipio y la portada contiene un enlace HTML real a cada editorial. Ninguna depende solo del sitemap. Ver [ADR-0017](adr/0017-jerarquia-de-enlaces.md) y [ADR-0019](adr/0019-paginas-editoriales-sin-aplicacion.md). |
 | RF-105 | V2 | Las seis rutas editoriales bajo `/hoy/` figuran en `sitemap.xml`; su array de rutas se mantiene a mano en `src/pages/sitemap.xml.ts`. |
 | RF-106 | V2 | Las seis editoriales comparten una única plantilla de `og:image`, generada en el build, con el título de la página y dos cifras de cabecera al mismo nivel: Gasolina 95 y Diésel. Gasolina 98 y Diésel premium permanecen en la página, pero no entran en la imagen. Cada página tiene su imagen propia, pero no un diseño propio. Estas imágenes son distintas de las indexadas por zona o municipio de RF-66. |
+| RF-107 | V2 | Los documentos editoriales terminan en un pie compartido que identifica Surtidor y la fuente oficial de los datos, enlaza a la portada y a todas las editoriales ya publicadas. Es HTML y CSS, forma parte de la plantilla de documento y no se añade a las páginas de aplicación de zona o municipio. |
 
 ---
 
