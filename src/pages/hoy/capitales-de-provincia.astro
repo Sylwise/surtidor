@@ -1,0 +1,134 @@
+---
+import TablaCapitalesEditorial from '../../componentes/TablaCapitalesEditorial.astro';
+import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
+import { leerAgregadosCapitales, type AgregadoCapital } from '../../../scripts/lib/capitales.ts';
+import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+
+const ruta = '/hoy/capitales-de-provincia/';
+const titulo = 'Capitales de provincia con gasolina más barata hoy · Surtidor';
+const descripcion =
+  'Ranking actualizado del precio medio de gasolina y diésel en las 52 capitales de provincia de España.';
+const agregados = await leerAgregadosCapitales();
+
+function ranking(capitales: AgregadoCapital[], combustible: ClavePrecio) {
+  return ordenarRanking(
+    capitales,
+    (capital) => capital.combustibles[combustible].media,
+    (capital) => capital.nombre,
+  );
+}
+
+const rankingsGenerales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(agregados.general, combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const rankingsFiscales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    ranking(agregados.canariasCeutaMelilla, combustible),
+  ]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const lideres = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    rankingsGenerales[combustible].find(
+      ({ elemento }) => elemento.combustibles[combustible].media !== null,
+    )?.elemento ?? null,
+  ]),
+) as Record<ClavePrecio, AgregadoCapital | null>;
+---
+
+<DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
+  <header class="editorial-intro">
+    <p class="editorial-eyebrow">Precios de hoy</p>
+    <h1 class="editorial-titulo">Qué capitales tienen el combustible más barato</h1>
+    <p class="editorial-entradilla">
+      Comparamos el precio medio de las estaciones de las 52 capitales de provincia. Cada nombre
+      lleva directamente a las gasolineras de esa ciudad.
+    </p>
+    <p class="editorial-actualizado">
+      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
+    </p>
+  </header>
+
+  <section class="editorial-resumen" aria-label="Capital con menor media por combustible">
+    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+      const lider = lideres[combustible];
+      const resumen = lider?.combustibles[combustible] ?? null;
+      return (
+        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
+          <strong class="editorial-tarjeta__precio">
+            {resumen?.media === null || resumen === null ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}
+          </strong>
+          {lider && <a class="editorial-tarjeta__zona" href={lider.href}>{lider.nombre}</a>}
+          {resumen && (
+            <span class="editorial-tarjeta__muestra">
+              Media calculada sobre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
+            </span>
+          )}
+        </article>
+      );
+    })}
+  </section>
+
+  <section class="editorial-metodo" aria-label="Metodología">
+    <p class="editorial-metodo__resumen">
+      <strong>Media simple por estación pública</strong> · 52 capitales · solo las estaciones que
+      venden el combustible.
+    </p>
+    <details class="editorial-detalles editorial-detalles--metodo">
+      <summary>Cómo se calcula</summary>
+      <div class="editorial-detalles__contenido">
+        <p>
+          Calculamos la media simple de las estaciones públicas de cada capital, sin ponderar por
+          volumen de venta. Una estación que no vende un combustible queda fuera de su media y nunca
+          cuenta como cero. La columna «Estaciones» muestra la muestra exacta de cada cálculo.
+        </p>
+        <p>
+          La lista de 52 capitales es fija y sus nombres se comprueban literalmente contra el
+          catálogo del ministerio en cada build. Si uno deja de coincidir, la publicación falla en
+          vez de omitir la ciudad.
+        </p>
+        <p>
+          Las Palmas de Gran Canaria, Santa Cruz de Tenerife, Ceuta y Melilla aparecen aparte por su
+          régimen fiscal distinto en los carburantes.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  {ORDEN_COMBUSTIBLES.map((combustible) => (
+    <section class="editorial-combustible" id={combustible}>
+      <h2>{ETIQUETA[combustible]}</h2>
+      <p>Precio medio de cada capital, de menor a mayor, calculado con tres decimales.</p>
+
+      <TablaCapitalesEditorial
+        filas={rankingsGenerales[combustible].slice(0, 10)}
+        combustible={combustible}
+      />
+
+      {rankingsGenerales[combustible].length > 10 && (
+        <details class="editorial-detalles editorial-detalles--ranking">
+          <summary>Ver las {rankingsGenerales[combustible].length} capitales</summary>
+          <TablaCapitalesEditorial
+            filas={rankingsGenerales[combustible].slice(10)}
+            combustible={combustible}
+            etiqueta={`Resto del ranking de ${ETIQUETA[combustible]}`}
+          />
+        </details>
+      )}
+
+      <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
+        <h3>Canarias, Ceuta y Melilla</h3>
+        <p>Capitales separadas por su régimen fiscal distinto en los carburantes.</p>
+        <TablaCapitalesEditorial
+          filas={rankingsFiscales[combustible]}
+          combustible={combustible}
+        />
+      </aside>
+    </section>
+  ))}
+</DocumentoEditorial>

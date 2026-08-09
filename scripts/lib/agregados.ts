@@ -74,7 +74,7 @@ function acumularEstacion(
   }
 }
 
-function resumirCombustibles(estaciones: readonly Estacion[]): Record<ClavePrecio, ResumenCombustible> {
+export function resumirCombustibles(estaciones: readonly Estacion[]): Record<ClavePrecio, ResumenCombustible> {
   const acumuladores = acumuladoresVacios();
   for (const estacion of estaciones) acumularEstacion(acumuladores, estacion);
 
