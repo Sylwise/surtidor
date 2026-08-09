@@ -33,6 +33,14 @@ mínimo ni una media ponderada. No hay datos de volumen de venta con los que
 ponderarla. Para cada combustible se calcula solo sobre las estaciones que lo
 venden: una estación sin ese producto vale `null`, nunca cero.
 
+La cabecera de cada editorial muestra los cuatro combustibles. Gasolina 95 y
+Diésel comparten la jerarquía principal; Gasolina 98 y Diésel premium tienen
+jerarquía secundaria, pero nunca se ocultan. No se elige un único combustible
+representativo: el parque de turismos de gasolina y diésel está prácticamente
+empatado, mientras que el volumen vendido favorece al diésel por el kilometraje
+y el transporte profesional. Ninguna de las dos medidas justifica convertir
+solo uno en representante de todos los lectores.
+
 Toda cifra agregada muestra el número de estaciones sobre el que se calcula y
 enlaza a la página de municipio o zona de la que sale. No se enlaza a una
 estación concreta porque no existe URL de estación: el ADR-0007 detiene la
@@ -89,8 +97,10 @@ Las rutas editoriales se tienen que dar de alta en `src/pages/sitemap.xml.ts`.
 El array de rutas se arma a mano.
 
 Cada editorial necesita una `og:image` propia. Las seis comparten una única
-plantilla, con el título de la página y su cifra de cabecera; no se diseña una
-por editorial. RF-66 hoy solo cubre zona y municipio, y
+plantilla, con el título de la página y dos cifras al mismo nivel: Gasolina 95
+y Diésel. Gasolina 98 y Diésel premium siguen visibles en el documento, pero no
+entran en la imagen. No se diseña una imagen distinta por editorial. RF-66 hoy
+solo cubre zona y municipio, y
 `scripts/generar-imagenes-compartir.ts` indexa las imágenes por identificador
 de zona; ese contrato no cubre documentos editoriales.
 
