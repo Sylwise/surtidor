@@ -52,11 +52,14 @@ La explicación completa vive en otro `<details>` nativo: quien solo busca la
 respuesta no tiene que atravesarla y quien necesita comprobar el cálculo la
 encuentra en el mismo documento.
 
-Toda cifra agregada muestra el número de estaciones sobre el que se calcula y
-enlaza a la página de municipio o zona de la que sale. No se enlaza a una
-estación concreta porque no existe URL de estación: el ADR-0007 detiene la
-jerarquía de páginas en el municipio. La media no está en ningún cartel y ese
-origen visible es necesario para que el número sea comprobable.
+Toda cifra agregada muestra el número de estaciones sobre el que se calcula.
+Cuando tiene un origen geográfico único, enlaza a la página de municipio o zona
+de la que sale. Un agregado no geográfico, como la media nacional por rótulo,
+muestra en su lugar el ámbito analizado y la metodología: no se le atribuye un
+enlace territorial falso. No se enlaza a una estación concreta porque no existe
+URL de estación: el ADR-0007 detiene la jerarquía de páginas en el municipio.
+La media no está en ningún cartel y ese origen visible es necesario para que el
+número sea comprobable.
 
 Los rankings comparan los precios con los tres decimales que publica el
 ministerio. Los resultados empatados comparten posición y, dentro de ella, se
@@ -117,8 +120,9 @@ de zona; ese contrato no cubre documentos editoriales.
 
 La portada crece con enlaces a todas las editoriales y cada documento abre
 caminos hacia páginas más concretas de zona o municipio. Las cifras agregadas
-requieren acompañar siempre el tamaño de la muestra y el enlace a la página de
-municipio o zona de origen.
+requieren acompañar siempre el tamaño de la muestra; las de origen geográfico
+único añaden el enlace a su página de municipio o zona, y las no geográficas
+identifican expresamente su ámbito y metodología.
 
 ## Alternativas descartadas
 

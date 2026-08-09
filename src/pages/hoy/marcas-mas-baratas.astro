@@ -1,0 +1,170 @@
+---
+import TablaRotulosEditorial from '../../componentes/TablaRotulosEditorial.astro';
+import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
+import { leerAgregadosEditoriales, type AgregadoRotulo } from '../../../scripts/lib/agregados.ts';
+import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
+import {
+  rotulosQueVenden,
+  seleccionarRotulos,
+  UMBRAL_ESTACIONES_ROTULO,
+} from '../../../scripts/lib/rotulos.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+
+const ruta = '/hoy/marcas-mas-baratas/';
+const titulo = 'Marcas de gasolineras más baratas de España hoy · Surtidor';
+const descripcion =
+  'Precio medio por rótulo para gasolina y diésel en península y Baleares, comparado entre marcas con al menos 100 estaciones.';
+const agregados = await leerAgregadosEditoriales();
+const seleccion = seleccionarRotulos(agregados.rotulos.general);
+const provincias = agregados.zonas.general
+  .filter((zona) => zona.tipo === 'provincia')
+  .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+function ranking(rotulos: AgregadoRotulo[], combustible: ClavePrecio) {
+  return ordenarRanking(
+    rotulosQueVenden(rotulos, combustible),
+    (rotulo) => rotulo.combustibles[combustible].media,
+    (rotulo) => rotulo.rotulo,
+  );
+}
+
+const rankingsGenerales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(seleccion.incluidos, combustible)]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const rankingsFiscales = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    ranking(agregados.rotulos.canariasCeutaMelilla, combustible),
+  ]),
+) as Record<ClavePrecio, ReturnType<typeof ranking>>;
+const lideres = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((combustible) => [
+    combustible,
+    rankingsGenerales[combustible].find(
+      ({ elemento }) => elemento.combustibles[combustible].media !== null,
+    )?.elemento ?? null,
+  ]),
+) as Record<ClavePrecio, AgregadoRotulo | null>;
+
+const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
+---
+
+<DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
+  <header class="editorial-intro">
+    <p class="editorial-eyebrow">Precios de hoy</p>
+    <h1 class="editorial-titulo">Qué marcas tienen los precios más bajos</h1>
+    <p class="editorial-entradilla">
+      Comparamos lo que pone en el cartel de cada estación. Es un ranking de rótulos, no de
+      empresas: la media muestra qué nombres ofrecen hoy precios más bajos en península y Baleares.
+    </p>
+    <p class="editorial-actualizado">
+      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
+    </p>
+  </header>
+
+  <section class="editorial-resumen" aria-label="Rótulo con menor media por combustible">
+    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+      const lider = lideres[combustible];
+      const resumen = lider?.combustibles[combustible] ?? null;
+      return (
+        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
+          <strong class="editorial-tarjeta__precio">
+            {resumen?.media === null || resumen === null ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}
+          </strong>
+          {lider && <span class="editorial-tarjeta__zona">{lider.rotulo}</span>}
+          {resumen && (
+            <span class="editorial-tarjeta__muestra">
+              Media calculada sobre {numero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}
+            </span>
+          )}
+        </article>
+      );
+    })}
+  </section>
+
+  <section class="editorial-metodo" aria-label="Metodología">
+    <p class="editorial-metodo__resumen">
+      <strong>Ámbito: península y Baleares</strong> · mínimo {UMBRAL_ESTACIONES_ROTULO} estaciones
+      por rótulo · media simple por estación.
+    </p>
+    <p class="editorial-metodo__cobertura">
+      Entran {seleccion.incluidos.length} rótulos. Quedan fuera {numero(seleccion.estacionesFuera)}
+      de las {numero(seleccion.estacionesTotales)} estaciones porque sus rótulos no alcanzan el
+      umbral. El ranking no oculta esa parte del mercado.
+    </p>
+    <details class="editorial-detalles editorial-detalles--metodo">
+      <summary>Cómo se calcula</summary>
+      <div class="editorial-detalles__contenido">
+        <p>
+          Para cada combustible calculamos la media simple de las estaciones del rótulo que lo
+          venden. Un valor ausente queda fuera del divisor y nunca cuenta como cero. La columna
+          «Estaciones» muestra la muestra exacta de cada media.
+        </p>
+        <p>
+          Solo se recortan los espacios al principio y al final del rótulo. No se normalizan
+          mayúsculas ni tildes y no se mantiene una tabla de equivalencias entre marcas.
+        </p>
+        <p>
+          Canarias, Ceuta y Melilla no forman parte del cálculo nacional y aparecen aparte por su
+          régimen fiscal distinto en los carburantes.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <p class="editorial-aclaracion">
+    MOEVE y CEPSA aparecen por separado porque hoy son carteles distintos, aunque pertenezcan a la
+    misma compañía. PETRONOR, CAMPSA y REPSOL se mantienen separados por el mismo motivo.
+  </p>
+
+  {ORDEN_COMBUSTIBLES.map((combustible) => {
+    const fiscales = rankingsFiscales[combustible];
+    return (
+      <section class="editorial-combustible" id={combustible}>
+        <h2>{ETIQUETA[combustible]}</h2>
+        <p>Precio medio por rótulo, de menor a mayor, calculado con tres decimales.</p>
+
+        <TablaRotulosEditorial
+          filas={rankingsGenerales[combustible]}
+          combustible={combustible}
+        />
+
+        <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
+          <h3>Canarias, Ceuta y Melilla</h3>
+          <p>Ranking separado por su régimen fiscal distinto en los carburantes.</p>
+          <TablaRotulosEditorial filas={fiscales.slice(0, 10)} combustible={combustible} />
+          {fiscales.length > 10 && (
+            <details class="editorial-detalles editorial-detalles--ranking">
+              <summary>Ver los {fiscales.length} rótulos</summary>
+              <TablaRotulosEditorial
+                filas={fiscales.slice(10)}
+                combustible={combustible}
+                etiqueta={`Resto de rótulos de ${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}
+              />
+            </details>
+          )}
+        </aside>
+      </section>
+    );
+  })}
+
+  <section class="editorial-territorios" aria-label="Precios por provincia">
+    <details>
+      <summary>
+        <span>Consultar precios por provincia</span>
+        <small>{provincias.length} provincias</small>
+      </summary>
+      <div class="editorial-territorios__contenido">
+        <p>El ranking compara rótulos a escala nacional. Para decidir dónde repostar, consulta las estaciones de tu provincia.</p>
+        <ul>
+          {provincias.map((provincia) => (
+            <li><a href={`/${provincia.id}/`}>{provincia.nombre}</a></li>
+          ))}
+        </ul>
+      </div>
+    </details>
+  </section>
+</DocumentoEditorial>

@@ -15,6 +15,7 @@ import { MINIMO_ESTACIONES_MUNICIPIO, type Indice, type IndiceMunicipios } from 
 const RUTAS_EDITORIALES = [
   '/hoy/provincias-mas-baratas/',
   '/hoy/cuanto-te-juegas/',
+  '/hoy/marcas-mas-baratas/',
 ];
 
 function escaparXml(texto: string): string {
