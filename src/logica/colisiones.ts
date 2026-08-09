@@ -1,8 +1,7 @@
 // Agrupación en racimos y detección de colisiones de los marcadores del
-// mapa (ADR-0006, RF-16, RF-18). Funciones puras sobre coordenadas de
-// pantalla ya proyectadas: no tocan MapLibre ni el DOM, para que sean
-// triviales de probar. src/componentes/Mapa.ts las llama al terminar cada
-// gesto del mapa (moveend/zoomend), nunca en cada fotograma.
+// mapa (ADR-0006, ADR-0021, RF-16, RF-18). No tocan MapLibre ni el DOM,
+// para que sean triviales de probar. src/componentes/Mapa.ts las llama al
+// terminar cada gesto del mapa (moveend/zoomend), nunca en cada fotograma.
 
 export interface PuntoColision {
   id: string;
@@ -88,9 +87,14 @@ export function resolverColisiones(
 
 export interface PuntoAgrupable {
   id: string;
-  /** Coordenadas de pantalla en píxeles. */
+  /** Coordenadas de pantalla en píxeles, usadas para colocar el centroide. */
   x: number;
   y: number;
+  /** Coordenadas globales del mapa en píxeles para el zoom actual. La rejilla
+   *  se ancla a estas coordenadas y no se desplaza con la pantalla
+   *  (ADR-0021). */
+  rejillaX: number;
+  rejillaY: number;
   precio: number | null;
 }
 
@@ -105,17 +109,17 @@ export interface Racimo {
 }
 
 /**
- * Agrupación por racimos (ADR-0006, RF-16): reparte los puntos en una
- * rejilla de celdas de `radioPx` píxeles de lado y agrupa los que caen en la
- * misma celda. Una celda con una sola estación no es un racimo: esa
- * estación se pinta como marcador individual, no como grupo de uno.
+ * Agrupación por racimos (ADR-0006, ADR-0021, RF-16): reparte los puntos en
+ * una rejilla global de celdas de `radioPx` píxeles de lado y agrupa los que
+ * caen en la misma celda. Una celda con una sola estación no es un racimo:
+ * esa estación se pinta como marcador individual, no como grupo de uno.
  */
 export function agruparEnRacimos(puntos: PuntoAgrupable[], radioPx: number): Racimo[] {
   if (radioPx <= 0) throw new Error('radioPx debe ser mayor que 0');
 
   const celdas = new Map<string, PuntoAgrupable[]>();
   for (const punto of puntos) {
-    const clave = `${Math.floor(punto.x / radioPx)},${Math.floor(punto.y / radioPx)}`;
+    const clave = `${Math.floor(punto.rejillaX / radioPx)},${Math.floor(punto.rejillaY / radioPx)}`;
     const grupo = celdas.get(clave);
     if (grupo) grupo.push(punto);
     else celdas.set(clave, [punto]);
@@ -128,11 +132,17 @@ export function agruparEnRacimos(puntos: PuntoAgrupable[], radioPx: number): Rac
     racimos.push({
       x: grupo.reduce((suma, p) => suma + p.x, 0) / grupo.length,
       y: grupo.reduce((suma, p) => suma + p.y, 0) / grupo.length,
-      ids: grupo.map((p) => p.id),
+      ids: grupo.map((p) => p.id).sort(),
       precioMinimo: precios.length > 0 ? Math.min(...precios) : null,
     });
   }
   return racimos;
+}
+
+/** Identidad estable de un racimo (ADR-0021), independiente del orden en que
+ *  hayan llegado sus estaciones. */
+export function claveRacimo(ids: string[]): string {
+  return JSON.stringify([...ids].sort());
 }
 
 /** Ids de todas las estaciones repartidas en algún racimo, para que quien

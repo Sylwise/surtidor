@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { agruparEnRacimos, idsAgrupados, resolverColisiones } from './colisiones.ts';
+import { agruparEnRacimos, claveRacimo, idsAgrupados, resolverColisiones } from './colisiones.ts';
+
+function punto(id: string, x: number, y: number, precio: number | null) {
+  return { id, x, y, rejillaX: x, rejillaY: y, precio };
+}
 
 describe('resolverColisiones', () => {
   it('mantiene visibles dos puntos que no se solapan', () => {
@@ -74,9 +78,9 @@ describe('agruparEnRacimos', () => {
   it('agrupa puntos cercanos en un solo racimo con el precio mínimo', () => {
     const racimos = agruparEnRacimos(
       [
-        { id: 'a', x: 10, y: 10, precio: 1.5 },
-        { id: 'b', x: 15, y: 12, precio: 1.409 },
-        { id: 'c', x: 12, y: 18, precio: 1.6 },
+        punto('a', 10, 10, 1.5),
+        punto('b', 15, 12, 1.409),
+        punto('c', 12, 18, 1.6),
       ],
       60
     );
@@ -86,17 +90,17 @@ describe('agruparEnRacimos', () => {
   });
 
   it('no agrupa una estación sola: no genera un racimo de uno', () => {
-    const racimos = agruparEnRacimos([{ id: 'sola', x: 500, y: 500, precio: 1.5 }], 60);
+    const racimos = agruparEnRacimos([punto('sola', 500, 500, 1.5)], 60);
     assert.equal(racimos.length, 0);
   });
 
   it('separa en racimos distintos los puntos lejos entre sí', () => {
     const racimos = agruparEnRacimos(
       [
-        { id: 'a1', x: 10, y: 10, precio: 1.4 },
-        { id: 'a2', x: 12, y: 14, precio: 1.5 },
-        { id: 'b1', x: 900, y: 900, precio: 1.3 },
-        { id: 'b2', x: 905, y: 902, precio: 1.35 },
+        punto('a1', 10, 10, 1.4),
+        punto('a2', 12, 14, 1.5),
+        punto('b1', 900, 900, 1.3),
+        punto('b2', 905, 902, 1.35),
       ],
       60
     );
@@ -106,8 +110,8 @@ describe('agruparEnRacimos', () => {
   it('el precio mínimo es null si ninguna estación del grupo vende el combustible', () => {
     const racimos = agruparEnRacimos(
       [
-        { id: 'a', x: 0, y: 0, precio: null },
-        { id: 'b', x: 5, y: 5, precio: null },
+        punto('a', 0, 0, null),
+        punto('b', 5, 5, null),
       ],
       60
     );
@@ -118,6 +122,23 @@ describe('agruparEnRacimos', () => {
   it('rechaza un radio no positivo', () => {
     assert.throws(() => agruparEnRacimos([], 0));
     assert.throws(() => agruparEnRacimos([], -10));
+  });
+
+  it('conserva los grupos cuando solo se desplazan las coordenadas de pantalla', () => {
+    const originales = [punto('a', 10, 10, 1.4), punto('b', 15, 12, 1.5)];
+    const desplazados = originales.map((p) => ({ ...p, x: p.x + 347, y: p.y - 91 }));
+
+    const antes = agruparEnRacimos(originales, 60).map((r) => claveRacimo(r.ids));
+    const despues = agruparEnRacimos(desplazados, 60).map((r) => claveRacimo(r.ids));
+
+    assert.deepEqual(despues, antes);
+  });
+});
+
+describe('claveRacimo', () => {
+  it('depende de los miembros y no de su orden de entrada', () => {
+    assert.equal(claveRacimo(['b', 'a', 'c']), claveRacimo(['c', 'b', 'a']));
+    assert.notEqual(claveRacimo(['a', 'b']), claveRacimo(['a', 'c']));
   });
 });
 

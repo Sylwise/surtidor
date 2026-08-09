@@ -13,13 +13,14 @@
 // disposición (qué se agrupa en racimo, qué se oculta por colisión) se
 // recalcula en moveend/zoomend, nunca en cada fotograma del arrastre.
 
-import { Map as MapaLibre, Marker, type IControl } from 'maplibre-gl';
+import { Map as MapaLibre, Marker, MercatorCoordinate, type IControl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import '../estilos/mapa.css';
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, preciosDeCombustible, type Escala } from '../logica/escala.ts';
 import {
   agruparEnRacimos,
+  claveRacimo,
   idsAgrupados,
   resolverColisiones,
   type PuntoColision,
@@ -45,8 +46,10 @@ const TIEMPO_ESPERA_MS = 10000;
 // vez de mostrarse una a una. Con datos reales, es donde el racimo de
 // Vitoria-Gasteiz deja de caber sin solaparse.
 const UMBRAL_ZOOM_RACIMOS = 11;
-// Lado de la celda de la rejilla de agrupación, en píxeles de pantalla.
+// Lado de la celda de la rejilla global de agrupación, en píxeles al zoom
+// actual (ADR-0021).
 const RADIO_RACIMO_PX = 64;
+const TAMANO_TILE_PX = 512;
 
 // Tamaño aproximado del cartel para la detección de colisiones. No hace
 // falta el ancho exacto de cada texto (ver src/logica/colisiones.ts): estos
@@ -69,9 +72,7 @@ interface EntradaRacimo {
   boton: HTMLButtonElement;
   precioSpan: HTMLSpanElement;
   cuenta: HTMLSpanElement;
-  /** Ids de las estaciones que representa ahora mismo este hueco del pool.
-   *  Mutable: el mismo marcador del DOM se reutiliza para racimos distintos
-   *  entre un recálculo y el siguiente. */
+  /** Ids de las estaciones que representa este racimo. */
   ids: string[];
 }
 
@@ -252,7 +253,7 @@ export function montarMapa(
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
-  const racimoMarkers: EntradaRacimo[] = [];
+  const racimoMarkers = new Map<string, EntradaRacimo>();
   let estacionAnterior: string | null = obtenerEstado().estacionId;
   let firmaEstacionesAnterior: string | null = null;
   // Snapshot del último render(), para que moveend/zoomend puedan recalcular
@@ -269,8 +270,8 @@ export function montarMapa(
     cancelarSuscripcion();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
-    for (const entrada of racimoMarkers) entrada.marker.remove();
-    racimoMarkers.length = 0;
+    for (const entrada of racimoMarkers.values()) entrada.marker.remove();
+    racimoMarkers.clear();
     try {
       mapa?.remove();
     } catch {
@@ -521,7 +522,16 @@ export function montarMapa(
 
     const proyectadas = ultimasVisibles.map((estacion) => {
       const punto = mapa!.project([estacion.lon, estacion.lat]);
-      return { id: estacion.id, x: punto.x, y: punto.y, precio: estacion.precios[ultimoEstado.combustible] };
+      const mercator = MercatorCoordinate.fromLngLat([estacion.lon, estacion.lat]);
+      const tamanoMundo = TAMANO_TILE_PX * 2 ** zoomActual;
+      return {
+        id: estacion.id,
+        x: punto.x,
+        y: punto.y,
+        rejillaX: mercator.x * tamanoMundo,
+        rejillaY: mercator.y * tamanoMundo,
+        precio: estacion.precios[ultimoEstado.combustible],
+      };
     });
 
     const racimos: Racimo[] = zoomActual < UMBRAL_ZOOM_RACIMOS ? agruparEnRacimos(proyectadas, RADIO_RACIMO_PX) : [];
@@ -533,10 +543,10 @@ export function montarMapa(
       const destacada = p.precio !== null && ultimaEscala.esMasBarata(p.precio);
       puntosColision.push({ id: p.id, x: p.x, y: p.y, precio: p.precio, ...(destacada ? CAJA_DESTACADA : CAJA_NORMAL) });
     }
-    const clavesRacimo = racimos.map((_, indice) => `racimo-${indice}`);
-    racimos.forEach((racimo, indice) => {
-      puntosColision.push({ id: clavesRacimo[indice]!, x: racimo.x, y: racimo.y, precio: racimo.precioMinimo, ...CAJA_DESTACADA });
-    });
+    const racimosPorClave = new Map(racimos.map((racimo) => [claveRacimo(racimo.ids), racimo]));
+    for (const [clave, racimo] of racimosPorClave) {
+      puntosColision.push({ id: clave, x: racimo.x, y: racimo.y, precio: racimo.precioMinimo, ...CAJA_DESTACADA });
+    }
 
     const visibles = resolverColisiones(puntosColision);
 
@@ -544,10 +554,18 @@ export function montarMapa(
       entrada.boton.hidden = idsEnRacimo.has(id) || !visibles.has(id);
     }
 
-    while (racimoMarkers.length < racimos.length) racimoMarkers.push(crearMarcadorRacimo());
+    for (const [clave, entrada] of racimoMarkers) {
+      if (racimosPorClave.has(clave)) continue;
+      entrada.marker.remove();
+      racimoMarkers.delete(clave);
+    }
 
-    racimos.forEach((racimo, indice) => {
-      const entrada = racimoMarkers[indice]!;
+    for (const [clave, racimo] of racimosPorClave) {
+      let entrada = racimoMarkers.get(clave);
+      if (!entrada) {
+        entrada = crearMarcadorRacimo();
+        racimoMarkers.set(clave, entrada);
+      }
       entrada.ids = racimo.ids;
       const lngLat = mapa!.unproject([racimo.x, racimo.y]);
       entrada.marker.setLngLat(lngLat);
@@ -572,11 +590,7 @@ export function montarMapa(
           ? `${racimo.ids.length} estaciones agrupadas, sin dato de ${ETIQUETA[ultimoEstado.combustible].toLowerCase()}. Pulsa para acercar.`
           : `${racimo.ids.length} estaciones agrupadas, desde ${textoPrecio} euros. Pulsa para acercar.`
       );
-      entrada.boton.hidden = !visibles.has(clavesRacimo[indice]!);
-    });
-    for (let i = racimos.length; i < racimoMarkers.length; i++) {
-      racimoMarkers[i]!.boton.hidden = true;
-      racimoMarkers[i]!.ids = [];
+      entrada.boton.hidden = !visibles.has(clave);
     }
   }
 
@@ -730,8 +744,8 @@ export function montarMapa(
     observador?.disconnect();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
-    for (const entrada of racimoMarkers) entrada.marker.remove();
-    racimoMarkers.length = 0;
+    for (const entrada of racimoMarkers.values()) entrada.marker.remove();
+    racimoMarkers.clear();
     try {
       mapa?.remove();
     } catch {
