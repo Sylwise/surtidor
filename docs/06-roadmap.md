@@ -171,7 +171,7 @@ Telegram, muestra la tarjeta con el precio.
 # V2 · Ya pensado, en curso
 
 La v1 ya está publicada. El orden es de valor aparente y la gente lo va a
-reordenar. V2-10 está terminado; el resto sigue en espera.
+reordenar. V2-10 y V2-18 están terminados; el resto sigue en espera.
 
 **Coste del desvío.** Si la barata está a 9 km, ese desvío gasta gasolina.
 Ahorro neto = ahorro bruto − (km extra × consumo × precio). Con 20 litros y tres
@@ -187,9 +187,9 @@ euros por 100 km, que es la unidad real de lo que cuesta conducir.
 
 **Ordenar por distancia** con geolocalización concedida (RF-26).
 
-**Vista nacional por provincias.** Al alejar el zoom, las estaciones dan paso a
-una pastilla por provincia con su precio medio, en el centro de sus
-gasolineras. Es la vista que responde a "dónde está barato", que es lo único
+**Vista nacional por provincias — V2-18, terminada.** Al alejar el zoom, las
+estaciones dan paso a una pastilla por provincia con su precio medio, en el
+centro de sus gasolineras. Es la vista que responde a "dónde está barato", que es lo único
 que se puede preguntar cuando cabe España entera en la pantalla. Ver
 [ADR-0015](adr/0015-el-mapa-manda-abandonado.md) y
 [ADR-0022](adr/0022-resumen-nacional-de-build.md). Entra por debajo de zoom 8
@@ -199,11 +199,12 @@ su número de estaciones, conservan identidad por provincia y al pulsarlas
 seleccionan explícitamente esa zona y encuadran sus estaciones. Canarias, Ceuta
 y Melilla permanecen en el mapa en su posición real.
 
-**V2-18 termina cuando:** están probados la media con `null`, la provincia sin
-datos, los cuatro combustibles, la histéresis alrededor de ambos umbrales, las
-colisiones estables al desplazar, la reutilización de nodos DOM, la selección de
-zona al pulsar, teclado y movimiento reducido; el resumen cumple su presupuesto
-y tanto su fallo como el de MapLibre dejan operativa la aplicación sin mapa.
+V2-18 está publicada con pruebas para la media con `null`, la provincia sin
+datos, los cuatro combustibles y la histéresis alrededor de ambos umbrales. Las
+colisiones son estables al desplazar, los nodos DOM se reutilizan y la selección
+de zona funciona por pulsación, teclado y con movimiento reducido. El resumen
+cumple su presupuesto; tanto su fallo como el de MapLibre dejan operativa la
+aplicación sin mapa.
 
 Se intentó además que la vista del mapa decidiera la zona cargada, y se
 abandonó tras implementarlo. El porqué, en el mismo ADR.
