@@ -29,14 +29,14 @@ import { Resvg } from '@resvg/resvg-js';
 import { fusionarProvincias, type EstacionZona } from '../src/logica/zona.ts';
 import { estacionesVisibles } from '../src/logica/visibilidad.ts';
 import { ETIQUETA } from '../src/logica/combustibles.ts';
-import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../src/logica/formato.ts';
+import { cajaDeTitulo, formatearEuros, formatearFechaHora, formatearPrecio } from '../src/logica/formato.ts';
+import { calcularAgregadosEditoriales, type AgregadoZona, type MediaConN } from './lib/agregados.ts';
+import { calcularAgregadosCapitales } from './lib/capitales.ts';
+import { calcularCostePorNoComparar } from './lib/cuanto-te-juegas.ts';
+import { calcularAgregadosMinimos } from './lib/minimos.ts';
+import { rotulosQueVenden, seleccionarRotulos } from './lib/rotulos.ts';
 import { generarSlug } from './lib/slug.ts';
-import {
-  MINIMO_ESTACIONES_MUNICIPIO,
-  type DatosProvincia,
-  type Indice,
-  type IndiceMunicipios,
-} from './lib/tipos.ts';
+import { MINIMO_ESTACIONES_MUNICIPIO, type DatosProvincia, type Indice, type IndiceMunicipios } from './lib/tipos.ts';
 
 const RAIZ = process.cwd();
 const DIR_DATOS = join(RAIZ, 'public', 'data');
@@ -76,6 +76,16 @@ interface Tarjeta {
   precioDiesel: number | null;
   estacionMasBarata: string | null;
   actualizado: string | null;
+}
+
+export interface TarjetaEditorial {
+  rutaSalida: string;
+  titulo: string;
+  gasolina95: string;
+  origenGasolina95: string;
+  diesel: string;
+  origenDiesel: string;
+  actualizado: string;
 }
 
 function escaparXml(texto: string): string {
@@ -141,9 +151,10 @@ const AVANCE_MONO = 0.6;
  *  (COMBUSTIBLE_POR_DEFECTO en src/logica/estado.ts). Verificado con datos
  *  reales: Castilla-La Mancha (2026-08-07) vende diésel a 1,460 y gasolina 95
  *  a 1,465 — el diésel es el héroe ahí. */
-function elegirHeroe(
-  tarjeta: Tarjeta,
-): { clave: 'gasolina95e5' | 'gasoleoA'; precio: number | null } {
+function elegirHeroe(tarjeta: Tarjeta): {
+  clave: 'gasolina95e5' | 'gasoleoA';
+  precio: number | null;
+} {
   const { precioGasolina95, precioDiesel } = tarjeta;
   if (precioGasolina95 === null && precioDiesel === null) return { clave: 'gasolina95e5', precio: null };
   if (precioDiesel === null) return { clave: 'gasolina95e5', precio: precioGasolina95 };
@@ -293,7 +304,14 @@ export function renderizarSvg(tarjeta: Tarjeta): string {
   // columna derecha que dejar vacía con un "no vende" huérfano (encargo del
   // primer rediseño, que sigue en pie).
   const bloqueHeroeSvg = bloquePrecio(
-    xColIzquierda, yEtiquetas, yNumeros, ETIQUETA[heroe.clave], heroe.precio, tamNumeroHeroe, COLOR_MEJOR_TEXTO, 40,
+    xColIzquierda,
+    yEtiquetas,
+    yNumeros,
+    ETIQUETA[heroe.clave],
+    heroe.precio,
+    tamNumeroHeroe,
+    COLOR_MEJOR_TEXTO,
+    40,
   );
   const bloqueSecundarioSvg = hayColumnaSecundaria
     ? bloquePrecio(xColDerecha, yEtiquetas, yNumeros, ETIQUETA[claveSecundaria], precioSecundario, 76, COLOR_PAPEL, 24)
@@ -321,7 +339,11 @@ export function renderizarSvg(tarjeta: Tarjeta): string {
   </svg>`;
 }
 
-let fuentesCargadas: { fontFiles: string[]; loadSystemFonts: false; defaultFontFamily: string } | null = null;
+let fuentesCargadas: {
+  fontFiles: string[];
+  loadSystemFonts: false;
+  defaultFontFamily: string;
+} | null = null;
 function opcionesFuente() {
   if (!fuentesCargadas) {
     fuentesCargadas = {
@@ -335,13 +357,74 @@ function opcionesFuente() {
 
 export function renderizarPng(tarjeta: Tarjeta): Buffer {
   const svg = renderizarSvg(tarjeta);
-  const resvg = new Resvg(svg, { font: opcionesFuente(), background: COLOR_FONDO });
+  const resvg = new Resvg(svg, {
+    font: opcionesFuente(),
+    background: COLOR_FONDO,
+  });
   return resvg.render().asPng();
 }
 
-/** Ruta de la tarjeta genérica: la usa cualquier página que no sea de zona
- *  ni de municipio (la portada, el 404, cualquier otra que exista o llegue a
- *  existir — imagen por defecto, no un caso especial de la raíz). */
+function partirTitulo(texto: string, anchoMaximo = ANCHO_UTIL, tamFuente = 52): string[] {
+  const palabras = texto.split(' ');
+  const lineas: string[] = [];
+  let linea = '';
+  for (const palabra of palabras) {
+    const candidata = linea ? `${linea} ${palabra}` : palabra;
+    if (linea && anchoEstimado(candidata, tamFuente) > anchoMaximo) {
+      lineas.push(linea);
+      linea = palabra;
+    } else {
+      linea = candidata;
+    }
+  }
+  if (linea) lineas.push(linea);
+  if (lineas.length <= 2) return lineas;
+  return [lineas[0], truncarConElipsis(lineas.slice(1).join(' '), anchoMaximo, tamFuente)];
+}
+
+/** RF-106: una única composición para las seis editoriales. Las dos cifras
+ * tienen exactamente el mismo tamaño y peso; ninguna actúa como héroe. */
+export function renderizarSvgEditorial(tarjeta: TarjetaEditorial): string {
+  const lineasTitulo = partirTitulo(tarjeta.titulo);
+  const tituloSvg = lineasTitulo
+    .map(
+      (linea, indice) =>
+        `<text x="${MARGEN}" y="${112 + indice * 61}" font-family="Inter" font-weight="700" font-size="52" fill="${COLOR_PAPEL}">${escaparXml(linea)}</text>`,
+    )
+    .join('\n    ');
+  const yLinea = lineasTitulo.length === 1 ? 168 : 220;
+  const yEtiqueta = yLinea + 68;
+  const yCifra = yEtiqueta + 118;
+  const yOrigen = yCifra + 47;
+  const bloque = (x: number, etiqueta: string, cifra: string, origen: string) => `
+    <text x="${x}" y="${yEtiqueta}" font-family="Inter" font-weight="600" font-size="25" letter-spacing="1.5" fill="${COLOR_MUTED_LIGHT}">${etiqueta.toUpperCase()}</text>
+    <text x="${x}" y="${yCifra}" font-family="JetBrains Mono" font-weight="700" font-size="82" fill="${COLOR_MEJOR_TEXTO}">${escaparXml(cifra)}</text>
+    <text x="${x}" y="${yOrigen}" font-family="Inter" font-weight="600" font-size="26" fill="${COLOR_PAPEL}">${escaparXml(truncarConElipsis(origen, 455, 26))}</text>`;
+  const fecha = `Datos del ${formatearFechaHora(tarjeta.actualizado)}`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${ANCHO}" height="${ALTO}" viewBox="0 0 ${ANCHO} ${ALTO}">
+    <rect width="${ANCHO}" height="${ALTO}" fill="${COLOR_FONDO}" />
+    ${tituloSvg}
+    ${totemCompleto(ANCHO - MARGEN - 53, MARGEN, 1.27)}
+    <line x1="${MARGEN}" y1="${yLinea}" x2="${ANCHO - MARGEN}" y2="${yLinea}" stroke="${COLOR_HAIR_DARK}" stroke-width="1.5" />
+    ${bloque(MARGEN, 'Gasolina 95', tarjeta.gasolina95, tarjeta.origenGasolina95)}
+    ${bloque(650, 'Diésel', tarjeta.diesel, tarjeta.origenDiesel)}
+    <line x1="${MARGEN}" y1="512" x2="${ANCHO - MARGEN}" y2="512" stroke="${COLOR_HAIR_DARK}" stroke-width="1.5" />
+    <text x="${MARGEN}" y="557" font-family="Inter" font-weight="700" font-size="28" fill="${COLOR_SIGNAL}">Surtidor</text>
+    <text x="${ANCHO - MARGEN}" y="557" text-anchor="end" font-family="Inter" font-weight="400" font-size="24" fill="${COLOR_MUTED_LIGHT}">${escaparXml(fecha)}</text>
+  </svg>`;
+}
+
+export function renderizarPngEditorial(tarjeta: TarjetaEditorial): Buffer {
+  const resvg = new Resvg(renderizarSvgEditorial(tarjeta), {
+    font: opcionesFuente(),
+    background: COLOR_FONDO,
+  });
+  return resvg.render().asPng();
+}
+
+/** Ruta de la tarjeta genérica: la usan la portada, el 404 y cualquier página
+ * que no sea zona, municipio ni uno de los seis documentos editoriales. */
 export const RUTA_PREDETERMINADA = join(DIR_SALIDA, 'predeterminada.png');
 
 /**
@@ -398,7 +481,10 @@ export function renderizarSvgPredeterminada(): string {
 
 export function renderizarPngPredeterminada(): Buffer {
   const svg = renderizarSvgPredeterminada();
-  const resvg = new Resvg(svg, { font: opcionesFuente(), background: COLOR_FONDO });
+  const resvg = new Resvg(svg, {
+    font: opcionesFuente(),
+    background: COLOR_FONDO,
+  });
   return resvg.render().asPng();
 }
 
@@ -407,6 +493,122 @@ function escribir(tarjeta: Tarjeta): number {
   mkdirSync(dirname(tarjeta.rutaSalida), { recursive: true });
   writeFileSync(tarjeta.rutaSalida, png);
   return png.length;
+}
+
+function menorMedia<T extends { combustibles: Record<string, MediaConN> }>(
+  elementos: readonly T[],
+  combustible: 'gasolina95e5' | 'gasoleoA',
+  nombre: (elemento: T) => string,
+): { valor: number | null; origen: string } {
+  const ordenados = elementos
+    .filter((elemento) => elemento.combustibles[combustible].media !== null)
+    .sort(
+      (a, b) =>
+        (a.combustibles[combustible].media as number) - (b.combustibles[combustible].media as number) ||
+        nombre(a).localeCompare(nombre(b), 'es'),
+    );
+  const primero = ordenados[0];
+  return primero
+    ? { valor: primero.combustibles[combustible].media, origen: nombre(primero) }
+    : { valor: null, origen: 'Sin origen disponible' };
+}
+
+function mayorCoste(
+  zonas: readonly AgregadoZona[],
+  combustible: 'gasolina95e5' | 'gasoleoA',
+): { valor: number | null; origen: string } {
+  const ordenadas = zonas
+    .map((zona) => ({ zona, coste: calcularCostePorNoComparar(zona.combustibles[combustible]) }))
+    .filter((fila): fila is { zona: AgregadoZona; coste: number } => fila.coste !== null)
+    .sort((a, b) => b.coste - a.coste || a.zona.nombre.localeCompare(b.zona.nombre, 'es'));
+  return ordenadas[0]
+    ? { valor: ordenadas[0].coste, origen: cajaDeTitulo(ordenadas[0].zona.nombre) }
+    : { valor: null, origen: 'Sin origen disponible' };
+}
+
+const cifraPrecio = (valor: number | null) => (valor === null ? 'sin datos' : `${formatearPrecio(valor)} €/L`);
+const cifraEuros = (valor: number | null) => (valor === null ? 'sin datos' : formatearEuros(valor));
+
+export function construirTarjetasEditoriales(): TarjetaEditorial[] {
+  const indice = JSON.parse(readFileSync(join(DIR_DATOS, 'indice.json'), 'utf-8')) as Indice;
+  const indiceMunicipios = JSON.parse(
+    readFileSync(join(RAIZ, 'datos-build', 'municipios.json'), 'utf-8'),
+  ) as IndiceMunicipios;
+  const datos = indice.provincias.map(
+    ({ id }) => JSON.parse(readFileSync(join(DIR_DATOS, 'provincias', `${id}.json`), 'utf-8')) as DatosProvincia,
+  );
+  const agregados = calcularAgregadosEditoriales(datos, indice.zonas, indice.actualizado);
+  const provincias = agregados.zonas.general.filter((zona) => zona.tipo === 'provincia');
+  const fiscales = agregados.zonas.canariasCeutaMelilla.filter((zona) => zona.tipo === 'provincia');
+  const rotulos = seleccionarRotulos(agregados.rotulos.general).incluidos;
+  const capitales = calcularAgregadosCapitales(datos, indiceMunicipios, indice.actualizado).general;
+  const minimos = calcularAgregadosMinimos(datos, indice.zonas, indiceMunicipios, indice.actualizado).nacional;
+  const ruta = (slug: string) => join(DIR_SALIDA, 'hoy', `${slug}.png`);
+  const tarjeta = (
+    slug: string,
+    titulo: string,
+    gasolina95: { cifra: string; origen: string },
+    diesel: { cifra: string; origen: string },
+  ): TarjetaEditorial => ({
+    rutaSalida: ruta(slug),
+    titulo,
+    gasolina95: gasolina95.cifra,
+    origenGasolina95: gasolina95.origen,
+    diesel: diesel.cifra,
+    origenDiesel: diesel.origen,
+    actualizado: indice.actualizado,
+  });
+  const precioConOrigen = (resultado: { valor: number | null; origen: string }) => ({
+    cifra: cifraPrecio(resultado.valor),
+    origen: resultado.origen,
+  });
+  const eurosConOrigen = (resultado: { valor: number | null; origen: string }) => ({
+    cifra: cifraEuros(resultado.valor),
+    origen: resultado.origen,
+  });
+  const origenMinimo = (combustible: 'gasolina95e5' | 'gasoleoA') => ({
+    cifra: cifraPrecio(minimos[combustible].minimo),
+    origen: minimos[combustible].origenes[0]?.municipio ?? 'Sin origen disponible',
+  });
+
+  return [
+    tarjeta(
+      'provincias-mas-baratas',
+      'Las provincias más baratas para repostar',
+      precioConOrigen(menorMedia(provincias, 'gasolina95e5', (zona) => cajaDeTitulo(zona.nombre))),
+      precioConOrigen(menorMedia(provincias, 'gasoleoA', (zona) => cajaDeTitulo(zona.nombre))),
+    ),
+    tarjeta(
+      'cuanto-te-juegas',
+      'Cuánto puedes ahorrar al llenar el depósito',
+      eurosConOrigen(mayorCoste(provincias, 'gasolina95e5')),
+      eurosConOrigen(mayorCoste(provincias, 'gasoleoA')),
+    ),
+    tarjeta(
+      'marcas-mas-baratas',
+      'Qué marcas tienen los precios más bajos',
+      precioConOrigen(menorMedia(rotulosQueVenden(rotulos, 'gasolina95e5'), 'gasolina95e5', (rotulo) => rotulo.rotulo)),
+      precioConOrigen(menorMedia(rotulosQueVenden(rotulos, 'gasoleoA'), 'gasoleoA', (rotulo) => rotulo.rotulo)),
+    ),
+    tarjeta(
+      'capitales-de-provincia',
+      'Qué capitales tienen el combustible más barato',
+      precioConOrigen(menorMedia(capitales, 'gasolina95e5', (capital) => capital.nombre)),
+      precioConOrigen(menorMedia(capitales, 'gasoleoA', (capital) => capital.nombre)),
+    ),
+    tarjeta(
+      'la-mas-barata-de-espana',
+      'Dónde está el combustible más barato de España',
+      origenMinimo('gasolina95e5'),
+      origenMinimo('gasoleoA'),
+    ),
+    tarjeta(
+      'canarias-ceuta-melilla',
+      'Gasolina y diésel en Canarias, Ceuta y Melilla',
+      precioConOrigen(menorMedia(fiscales, 'gasolina95e5', (zona) => cajaDeTitulo(zona.nombre))),
+      precioConOrigen(menorMedia(fiscales, 'gasoleoA', (zona) => cajaDeTitulo(zona.nombre))),
+    ),
+  ];
 }
 
 export function construirTarjetas(): Tarjeta[] {
@@ -484,6 +686,14 @@ function main(): void {
     totalBytes += escribir(tarjeta);
   }
 
+  const editoriales = construirTarjetasEditoriales();
+  for (const tarjeta of editoriales) {
+    const png = renderizarPngEditorial(tarjeta);
+    mkdirSync(dirname(tarjeta.rutaSalida), { recursive: true });
+    writeFileSync(tarjeta.rutaSalida, png);
+    totalBytes += png.length;
+  }
+
   // La tarjeta genérica (portada, 404 y cualquier página que no sea de zona
   // ni de municipio): sin datos, así que no hace falta recalcularla por
   // zona/municipio, pero sí escribirla en cada build para que exista en
@@ -496,7 +706,7 @@ function main(): void {
   const mediaBytes = Math.round(totalBytes / tarjetas.length);
   console.log(
     `Imágenes de compartición: ${tarjetas.length} de ${todas.length} totales ` +
-      `+ 1 genérica (portada/404/por defecto), ${ms} ms (${(ms / tarjetas.length).toFixed(1)} ms/imagen), ` +
+      `+ ${editoriales.length} editoriales + 1 genérica, ${ms} ms (${(ms / (tarjetas.length + editoriales.length)).toFixed(1)} ms/imagen), ` +
       `${mediaBytes} bytes de media, ${(totalBytes / 1024).toFixed(0)} KB en total.`,
   );
   if (Number.isFinite(limite) && limite < todas.length) {
