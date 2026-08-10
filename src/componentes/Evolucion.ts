@@ -26,6 +26,10 @@ function fechaCorta(iso: string): string {
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
+function valorTabla(punto: PuntoEvolucion | undefined): string {
+  return punto?.milesimas == null ? 'Sin dato' : eur(punto.milesimas);
+}
+
 function pintarCambios(
   lista: HTMLElement,
   cambios: CambioEstacion[],
@@ -48,7 +52,12 @@ function pintarCambios(
     identidad.append(rotulo, direccion);
     const cifra = document.createElement('b'); cifra.textContent = `${cambio.diferenciaMilesimas < 0 ? '−' : '+'}${(Math.abs(cambio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts`;
     boton.append(identidad, cifra);
-    boton.addEventListener('click', () => { selector.value = estacion.id; render(); document.querySelector('.evolucion-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    boton.addEventListener('click', () => {
+      selector.value = estacion.id;
+      render();
+      const movimientoReducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.querySelector('.evolucion-panel')?.scrollIntoView({ behavior: movimientoReducido ? 'auto' : 'smooth', block: 'start' });
+    });
     li.append(boton); lista.append(li);
   });
 }
@@ -70,6 +79,9 @@ function tramos(serie: PuntoEvolucion[], x: (i: number) => number, y: (v: number
 
 function dibujarGrafico(svg: SVGSVGElement, estacion: PuntoEvolucion[], municipio: PuntoEvolucion[] | null, provincia: PuntoEvolucion[]): void {
   svg.replaceChildren();
+  const titulo = document.createElementNS(SVG_NS, 'title'); titulo.textContent = 'Evolución diaria del precio';
+  const descripcion = document.createElementNS(SVG_NS, 'desc'); descripcion.textContent = 'La línea destacada representa la estación; las otras líneas, las medias municipal y provincial. Los cortes indican días sin observación.';
+  svg.append(titulo, descripcion);
   const valores = [...estacion, ...(municipio ?? []), ...provincia].flatMap((p) => p.milesimas === null ? [] : [p.milesimas]);
   if (valores.length < 2) return;
   const ancho = 900, alto = 360, izquierda = 58, derecha = 20, arriba = 24, abajo = 42;
@@ -88,6 +100,7 @@ function dibujarGrafico(svg: SVGSVGElement, estacion: PuntoEvolucion[], municipi
     texto.textContent = (valor / 1000).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     svg.append(linea, texto);
   }
+  const unidad = document.createElementNS(SVG_NS, 'text'); unidad.setAttribute('x', '8'); unidad.setAttribute('y', '16'); unidad.setAttribute('class', 'evolucion-grafico__eje'); unidad.textContent = '€/L'; svg.append(unidad);
   [[provincia, 'evolucion-grafico__provincia'], [municipio, 'evolucion-grafico__municipio'], [estacion, 'evolucion-grafico__estacion']].forEach(([serie, clase]) => {
     if (!Array.isArray(serie)) return;
     for (const d of tramos(serie, x, y)) {
@@ -99,6 +112,11 @@ function dibujarGrafico(svg: SVGSVGElement, estacion: PuntoEvolucion[], municipi
     texto.setAttribute('x', String(x(indice))); texto.setAttribute('y', String(alto - 10)); texto.setAttribute('class', 'evolucion-grafico__fecha');
     texto.setAttribute('text-anchor', indice === 0 ? 'start' : 'end'); texto.textContent = fechaCorta(estacion[indice]!.fecha); svg.append(texto);
   });
+  const observados = estacion.map((punto, indice) => ({ punto, indice })).filter((entrada) => entrada.punto.milesimas !== null);
+  for (const entrada of [observados[0], observados.at(-1)]) {
+    if (!entrada || entrada.punto.milesimas === null) continue;
+    const circulo = document.createElementNS(SVG_NS, 'circle'); circulo.setAttribute('cx', String(x(entrada.indice))); circulo.setAttribute('cy', String(y(entrada.punto.milesimas))); circulo.setAttribute('r', '5'); circulo.setAttribute('class', 'evolucion-grafico__punto'); svg.append(circulo);
+  }
 }
 
 export async function montarEvolucion(contenedor: HTMLElement, provinciaId: string): Promise<void> {
@@ -137,7 +155,8 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const cambio = cambioEnPeriodo(serie, periodo);
       const cambioMunicipio = mediaMunicipio ? cambioEnPeriodo(mediaMunicipio, periodo) : null;
       const cambiosMunicipio = cambiosDeEstaciones(historico, clave, periodo, municipioId);
-      const actualMilesimas = [...serie].reverse().find((p) => p.milesimas !== null)?.milesimas ?? null;
+      const precioActual = estacion.precios[clave];
+      const actualMilesimas = precioActual === null ? null : Math.round(precioActual * 1000);
       contenedor.querySelector<HTMLElement>('[data-rotulo]')!.textContent = estacion.rotulo;
       contenedor.querySelector<HTMLElement>('[data-direccion]')!.textContent = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
       contenedor.querySelector<HTMLElement>('[data-precio]')!.textContent = actualMilesimas === null ? 'sin precio' : eur(actualMilesimas);
@@ -149,9 +168,23 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       if (!cambioMunicipio) contexto.textContent = `No hay dos extremos completos para comparar con ${cajaDeTitulo(estacion.municipio)}.`;
       else if (cambioMunicipio.diferenciaMilesimas === 0) contexto.textContent = `La media de ${cajaDeTitulo(estacion.municipio)} se ha mantenido estable en el mismo periodo.`;
       else contexto.textContent = `Mientras tanto, la media de ${cajaDeTitulo(estacion.municipio)} ha ${cambioMunicipio.diferenciaMilesimas < 0 ? 'bajado' : 'subido'} ${(Math.abs(cambioMunicipio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} céntimos.`;
+      const indiceInicio = periodo === 90 ? 0 : Math.max(0, serie.length - 1 - periodo);
+      const tramo = serie.slice(indiceInicio);
+      const observados = tramo.filter((punto) => punto.milesimas !== null);
+      const minimo = observados.reduce<PuntoEvolucion | null>((menor, punto) => menor === null || punto.milesimas! < menor.milesimas! ? punto : menor, null);
+      contenedor.querySelector<HTMLElement>('[data-inicio]')!.textContent = valorTabla(serie[indiceInicio]);
+      contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = minimo ? `${valorTabla(minimo)} · ${fechaCorta(minimo.fecha)}` : 'Sin dato';
+      contenedor.querySelector<HTMLElement>('[data-ultimo]')!.textContent = valorTabla(serie.at(-1));
       const svg = contenedor.querySelector<SVGSVGElement>('svg')!;
-      svg.setAttribute('aria-label', `${ETIQUETA[clave]} en ${estacion.rotulo}: estación frente a media provincial durante 90 días.`);
-      dibujarGrafico(svg, serie, mediaMunicipio, media);
+      svg.setAttribute('aria-label', `${ETIQUETA[clave]} en ${estacion.rotulo}: estación frente a medias municipal y provincial durante ${periodo} días.`);
+      dibujarGrafico(svg, tramo, mediaMunicipio?.slice(indiceInicio) ?? null, media.slice(indiceInicio));
+      const cuerpoTabla = contenedor.querySelector<HTMLTableSectionElement>('[data-tabla]')!;
+      cuerpoTabla.replaceChildren(...historico.fechas.map((fecha, indice) => {
+        const fila = document.createElement('tr');
+        const celdaFecha = document.createElement('th'); celdaFecha.scope = 'row'; celdaFecha.textContent = new Date(`${fecha}T12:00:00Z`).toLocaleDateString('es-ES'); fila.append(celdaFecha);
+        [serie[indice], mediaMunicipio?.[indice], media[indice]].forEach((punto) => { const celda = document.createElement('td'); celda.textContent = valorTabla(punto); fila.append(celda); });
+        return fila;
+      }));
       contenedor.querySelector<HTMLElement>('[data-ranking-ambito]')!.textContent = cajaDeTitulo(estacion.municipio);
       pintarCambios(
         contenedor.querySelector<HTMLElement>('[data-bajadas]')!,

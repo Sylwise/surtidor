@@ -165,6 +165,27 @@ y texto alternativo equivalente. Las gráficas completas muestran puntos o una
 tabla accesible que permita recuperar los valores sin interpretar únicamente la
 forma de una línea.
 
+### Contrato visual de aceptación
+
+En cinco segundos, sin desplazar la página, deben poder leerse: estación y
+municipio, combustible, precio observado más reciente, dirección del cambio y
+periodo. La gráfica demuestra la conclusión; no obliga a descubrirla.
+
+El orden visual es fijo: identidad y precio → conclusión → hitos → gráfica →
+detalle territorial. Los selectores preparan la pregunta y los rankings llegan
+después de responderla. En 360 px ninguna cifra puede quedar truncada ni la
+leyenda depender de pasar el ratón.
+
+Se revisan al menos estos casos reales: provincia pequeña, Barcelona como
+artefacto máximo, municipio con muchas estaciones, estación sin ambos extremos,
+combustible no vendido, serie con huecos y cambio igual a cero. Los estados de
+carga y error conservan navegación y explican qué dato falta.
+
+La gráfica lleva unidad, extremos temporales y líneas diferenciables sin color.
+Una tabla desplegable ofrece las 90 observaciones de estación, municipio y
+provincia. Teclado, lector de pantalla y `prefers-reduced-motion` deben obtener
+la misma conclusión que la representación visual.
+
 ## Navegación y URLs
 
 Cada análisis importante tiene una URL estable y compartible. La URL expresa

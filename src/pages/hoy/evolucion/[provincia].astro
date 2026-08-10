@@ -24,24 +24,30 @@ const titulo = `Evolución del precio en ${nombre} · Surtidor`;
   <body>
     <header class="evolucion-cabecera"><a href="/" class="evolucion-marca"><span set:html={marcaSvg} />Surtidor</a><span>Evolución</span></header>
     <main class="evolucion" data-evolucion data-provincia-id={provinciaId}>
-      <p class="evolucion-estado" data-estado>Cargando 90 días de precios…</p>
+      <header class="evolucion-intro">
+        <p class="evolucion-eyebrow">90 días · {nombre}</p>
+        <h1>Qué ha pasado con el precio</h1>
+        <p>Elige una estación y compárala con las medias de su municipio y provincia. Sin predicciones: solo cierres diarios observados.</p>
+      </header>
+      <section class="evolucion-estado" data-estado role="status"><i aria-hidden="true"></i><span><strong>Preparando la lectura</strong>Cruzando 90 cierres diarios con las estaciones actuales…</span></section>
       <div data-contenido hidden>
-        <header class="evolucion-intro">
-          <p class="evolucion-eyebrow">90 días · {nombre}</p>
-          <h1>Qué ha pasado con el precio</h1>
-          <p>Elige una estación y compárala con la media de su provincia. Sin predicciones: solo cierres diarios observados.</p>
-        </header>
         <section class="evolucion-selectores" aria-label="Estación y combustible">
           <label>Estación<select data-estacion></select></label><label>Combustible<select data-combustible></select></label>
         </section>
         <article class="evolucion-panel">
-          <div class="evolucion-panel__cabecera"><div><p data-direccion></p><h2 data-rotulo></h2></div><strong data-precio></strong></div>
+          <div class="evolucion-panel__cabecera"><div><p data-direccion></p><h2 data-rotulo></h2></div><div class="evolucion-panel__precio"><span>Precio actual</span><strong data-precio></strong></div></div>
           <div class="evolucion-periodos" aria-label="Periodo de comparación"><button data-periodo="7" aria-pressed="false">7 días</button><button data-periodo="30" aria-pressed="true">30 días</button><button data-periodo="90" aria-pressed="false">90 días</button></div>
           <p class="evolucion-conclusion" data-conclusion></p>
           <p class="evolucion-contexto" data-contexto></p>
+          <dl class="evolucion-hitos">
+            <div><dt>Inicio del periodo</dt><dd data-inicio></dd></div>
+            <div><dt>Mínimo observado</dt><dd data-minimo></dd></div>
+            <div><dt>Último cierre</dt><dd data-ultimo></dd></div>
+          </dl>
           <div class="evolucion-leyenda"><span><i class="estacion"></i>Estación</span><span><i class="municipio"></i>Media municipal</span><span><i class="provincia"></i>Media provincial</span></div>
           <svg class="evolucion-grafico" viewBox="0 0 900 360" role="img"></svg>
           <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos se muestran como huecos; no se interpolan.</p>
+          <details class="evolucion-datos"><summary>Consultar las 90 observaciones</summary><div><table><caption>Precio diario en euros por litro</caption><thead><tr><th scope="col">Fecha</th><th scope="col">Estación</th><th scope="col">Municipio</th><th scope="col">Provincia</th></tr></thead><tbody data-tabla></tbody></table></div></details>
         </article>
         <section class="evolucion-ranking" aria-labelledby="titulo-ranking">
           <p class="evolucion-eyebrow">El mismo periodo y combustible</p>
