@@ -13,6 +13,7 @@ import { MINIMO_ESTACIONES_MUNICIPIO, type Indice, type IndiceMunicipios } from 
 // RF-105: las editoriales se dan de alta a mano. Solo entran cuando existe
 // su página; no se anuncian rutas futuras que todavía devolverían 404.
 const RUTAS_EDITORIALES = [
+  '/hoy/evolucion/',
   '/hoy/provincias-mas-baratas/',
   '/hoy/cuanto-te-juegas/',
   '/hoy/marcas-mas-baratas/',
@@ -49,7 +50,12 @@ export const GET: APIRoute = ({ site }) => {
   // para las 1000 y pico URLs sin tener que leer cada JSON de provincia.
   const lastmod = indice.actualizado;
 
-  const rutas: string[] = ['/', ...RUTAS_EDITORIALES, ...indice.zonas.map((zona) => `/${zona.id}/`)];
+  const rutas: string[] = [
+    '/',
+    ...RUTAS_EDITORIALES,
+    ...indice.provincias.map((provincia) => `/hoy/evolucion/${provincia.id}/`),
+    ...indice.zonas.map((zona) => `/${zona.id}/`),
+  ];
 
   for (const municipio of indiceMunicipios.municipios) {
     if (municipio.estaciones < MINIMO_ESTACIONES_MUNICIPIO) continue;

@@ -583,9 +583,9 @@ a sacar otra cosa**, no a apretar más.
 El filtro de abiertas no cuenta porque no es un control global: vive en la
 cabecera de la lista, que es lo que modifica.
 
-**Revelación progresiva.** Las preferencias que se configuran una vez —litros
-habituales, y más adelante el consumo del vehículo— **no viven en la pantalla
-principal**. Viven donde se usan: en la ficha, junto al cálculo que alimentan.
+**Revelación progresiva.** Las preferencias que se configuran una vez, como los
+litros habituales, **no viven en la pantalla principal**. Viven donde se usan:
+en la ficha, junto al cálculo que alimentan.
 
 **Ningún número sin origen visible.** Si se muestra un ahorro, se ve respecto a
 qué. Si se muestra un coste, se ve de cuántos litros sale. Si un día se mostrase
@@ -631,8 +631,9 @@ estación delante: litros a repostar, coste total, ahorro, cómo llegar, lado de
 carretera, horario.
 
 **Estrato 3 — ajustes.** Lo que se configura una vez y luego se olvida: mostrar u
-ocultar las de venta restringida y, si llegan, los favoritos. Se llega desde un único acceso
-discreto en la barra superior.
+ocultar las de venta restringida. Se llega desde un único acceso discreto en la
+barra superior. Favoritos no entra: ADR-0023 descarta una colección cuya
+persistencia no puede garantizarse entre dispositivos.
 
 El error que ya cometimos: el selector de litros estaba en el estrato 1 comiendo
 95 px permanentes cuando pertenece al 2.
@@ -673,8 +674,31 @@ Las funciones de la v2 tienen sitio asignado desde ya, para que nadie improvise:
 |---|---|
 | Páginas editoriales automáticas | Fuera de la aplicación |
 | Vista nacional por provincias | Mapa, sustituyendo estaciones y racimos por debajo del umbral; no añade controles |
-| Tendencia respecto a ayer | 2, junto al precio |
+| Indicio de cambio histórico | 2, junto al precio, siempre con magnitud y periodo |
+| Evolución completa | Hoy, fuera de la aplicación; la ficha solo muestra un indicio compacto |
 | "¿Lleno hoy o el martes?" | Página de zona, fuera de la aplicación de mapa |
 | Filtro por carretera | 1, **sustituyendo** al filtro de abiertas en un menú de filtros |
-| Precio congelado | 2, como distintivo en la ficha |
-| Favoritos | 2 para marcar, lista para ver |
+| Tiempo sin variación observada | 2, como dato neutral en la ficha |
+
+### Lenguaje visual de Evolución
+
+Evolución debe sentirse construida con el mismo sistema que la aplicación, no
+como un producto de analítica incrustado. Reutiliza tokens, tipografía tabular,
+nombres canónicos, radios y reglas de contraste. Su riqueza viene de la
+composición y de la precisión de los datos, no de añadir una paleta o una
+colección de tarjetas nuevas.
+
+Cada página tiene una conclusión y una visualización principales. Magnitud,
+periodo, unidad, ámbito y origen permanecen visibles; el detalle secundario se
+revela después. Una gráfica no se presenta sin la frase que responde ni una
+frase sin acceso a los valores que la sostienen.
+
+El indicio de ficha ocupa jerarquía secundaria debajo o junto al precio activo:
+cambio con signo, magnitud y periodo más «Ver evolución». Puede llevar una
+minigráfica si sobrevive a 360 px sin desplazar las acciones de la ficha. El
+histórico nunca reemplaza el precio actual ni añade un control a la cabecera.
+
+Las líneas, áreas y comparaciones usan color con moderación. Rojo y verde no
+codifican por sí solos subida y bajada; siempre hay signo, cifra o texto. Toda
+animación explica una transición, respeta `prefers-reduced-motion` y puede
+eliminarse sin perder información. Ver [08 · Evolución](08-evolucion.md).

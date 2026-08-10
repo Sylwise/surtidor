@@ -13,6 +13,7 @@ dist/
 public/data/indice.json
 public/data/provincias/*.json
 public/data/resumen-nacional.json
+public/data/historico/
 
 # 71 reglas de redirección 301 (RF-96, ADR-0018), generadas por el mismo
 # npm run data:fetch / data:mock a partir del catálogo de zonas: se genera,
@@ -24,6 +25,11 @@ public/_redirects
 # fuera de public/ para que no se despliegue ni se pueda pedir por fetch —
 # ver IndiceMunicipios en scripts/lib/tipos.ts.
 datos-build/
+
+# Ventana histórica normalizada de trabajo (V2-01). Se reconstruye desde el
+# histórico oficial o desde el artefacto del despliegue anterior; nunca se
+# versionan sus ~100 MB de JSON diarios compactados en el repositorio.
+datos-historicos/
 
 # Imágenes de compartición (RF-66, H11, ver ADR-0011): 1160 PNG generados por
 # scripts/generar-imagenes-compartir.ts a partir de los precios del momento.

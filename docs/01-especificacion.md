@@ -77,11 +77,11 @@ de producto, no actúa como contabilidad de implementación.
 
 | Función | Qué aporta |
 |---|---|
-| Histórico y tendencia | Flecha de subida o bajada respecto a ayer |
+| Evolución e histórico | Análisis contextual de estación, municipio y provincia dentro de Hoy: cambios, gráficas y comparación territorial |
 | "¿Lleno hoy o el martes?" | Patrón semanal por provincia. Nadie más lo cuenta |
 | Filtro por carretera | "Voy por la A-1". Distancias precalculadas en el build |
-| Precio congelado | Señalar las que dejan de actualizar para parecer baratas |
-| Favoritos | Fijar arriba tus tres habituales |
+| Precio sin variación | Indicar desde cuándo no se observa un cambio, sin atribuir intenciones |
+| Favoritos | Descartados: la persistencia local no cumple la continuidad que se espera de un dato personal |
 | Páginas editoriales | "Las provincias más baratas hoy", generadas solas (terminado: V2-10) |
 | API abierta | Publicar nuestros JSON normalizados. Trae enlaces |
 | Gasóleo B y otros | Público pequeño pero muy fiel |
@@ -107,10 +107,27 @@ de producto, no actúa como contabilidad de implementación.
   datos al usuario y conservarlos solo en el navegador. Añaden fricción al uso
   principal y ofrecen una persistencia demasiado frágil para una configuración
   que el usuario esperaría recuperar en otro navegador o dispositivo.
+- **Favoritos.** Tienen la misma limitación de persistencia, pero generan una
+  expectativa todavía más directa de continuidad. Sin cuentas no aparecen en
+  otro navegador o dispositivo y pueden desaparecer al limpiar datos. Ver
+  [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md).
 - **Cualquier cosa que necesite un proceso encendido.** Es el filtro que se
   aplica a toda idea nueva, antes que cualquier otro criterio.
 
 ## Casos de uso
+
+### CU-0 · Entender cómo está cambiando un precio
+
+El usuario abre una ficha, un municipio o una zona y sigue el indicio de
+Evolución dentro de Hoy. Ve primero cuánto ha cambiado el precio, en qué periodo
+y ámbito; después puede contrastarlo con una gráfica y con el nivel territorial
+superior. España es una referencia para explicar el cambio local, no el punto de
+partida obligatorio.
+
+La experiencia usa el contexto de la URL y la entidad abierta. Si se ha
+concedido ubicación puede ofrecer una lectura cercana durante esa sesión, pero
+no necesita crear un perfil, guardar favoritos ni pedir permiso al cargar. Ver
+[08 · Evolución](08-evolucion.md).
 
 ### CU-1 · Consultar mi zona
 

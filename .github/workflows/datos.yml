@@ -6,7 +6,8 @@ name: Datos y despliegue
 # main (cambios de código). Un mismo workflow para los dos casos: no hace
 # falta duplicar nada, el build siempre parte de datos frescos.
 #
-# Regla dura (RF-05): si `npm run data:fetch` falla, el job se detiene ahí.
+# Regla dura (RF-05): si el estado histórico anterior no se valida o si
+# `npm run data:fetch` falla, el job se detiene antes de desplegar.
 # No se llega al paso de build ni de despliegue, así que el sitio publicado
 # anteriormente se queda tal cual.
 #
@@ -21,7 +22,17 @@ on:
     - cron: "0 */2 * * *"
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      reconstruir_historico:
+        description: "Reconstruir explícitamente los 90 días desde el MITECO"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: produccion-surtidor
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -42,6 +53,17 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Recuperar y actualizar la ventana histórica
+        run: |
+          if [ "${{ inputs.reconstruir_historico || false }}" = "true" ]; then
+            npm run preparar:historico -- --reconstruir
+          else
+            npm run preparar:historico
+          fi
+
+      - name: Materializar el histórico por provincia
+        run: npm run materializar:historico -- datos-build/estado-historico.json public/data/historico
+
       - name: Descargar y normalizar los precios del MITECO
         run: npm run data:fetch
 
@@ -52,7 +74,7 @@ jobs:
         run: npm run comprobar:datos
 
       - name: Desplegar a Cloudflare Pages
-        run: npx wrangler pages deploy dist/ --project-name=surtidor
+        run: npx wrangler pages deploy dist/ --project-name=surtidor --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

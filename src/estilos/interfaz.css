@@ -1510,3 +1510,13 @@ input {
   font-weight: 400;
   color: var(--muted);
 }
+.totem__evolucion {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--signal);
+  font-size: var(--fs-3);
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}

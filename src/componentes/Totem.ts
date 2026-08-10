@@ -130,6 +130,10 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const puesto = document.createElement('p');
   puesto.className = 'totem__puesto';
 
+  const enlaceEvolucion = document.createElement('a');
+  enlaceEvolucion.className = 'totem__evolucion';
+  enlaceEvolucion.textContent = 'Ver evolución del precio';
+
   const ahorro = document.createElement('div');
   ahorro.className = 'totem__ahorro';
   const ahorroCifra = document.createElement('p');
@@ -199,7 +203,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   campoLitros.append(botonMenos, campoNumero, botonMas);
   grupoLitros.append(etiquetaLitros, campoLitros);
 
-  lleno.append(cabeceraFicha, direccion, filaMargen, horario, llegar, combustibles, puesto, ahorro, grupoLitros);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, llegar, combustibles, puesto, enlaceEvolucion, ahorro, grupoLitros);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
@@ -226,6 +230,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     // dirección y municipio son prosa y se pasan a caja de título; la
     // provincia, verbatim (RF-76).
     rotulo.textContent = estacion.rotulo;
+    enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?estacion=${encodeURIComponent(estacion.id)}`;
 
     const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
     direccion.textContent = multiProvincia

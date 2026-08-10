@@ -31,6 +31,8 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0020](0020-navegacion-en-paneles-dentro-de-la-aplicacion.md) | Los enlaces de portada viven en paneles dentro de la aplicación | aceptado |
 | [0021](0021-racimos-estables-al-desplazar-el-mapa.md) | Racimos estables al desplazar el mapa | aceptado |
 | [0022](0022-resumen-nacional-de-build.md) | La vista nacional usa un resumen generado en el build | aceptado |
+| [0023](0023-evolucion-contextual-sin-perfil.md) | Evolución usa el contexto actual, no un perfil de usuario | aceptado |
+| [0024](0024-ventana-historica-en-despliegue.md) | La ventana histórica se transporta en el despliegue estático | aceptado |
 
 ## Plantilla
 

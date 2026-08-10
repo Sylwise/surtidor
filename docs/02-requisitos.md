@@ -178,6 +178,7 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 | RNF-11 | M | El JavaScript inicial pesa menos de 150 KB comprimido, sin contar MapLibre, que se carga aparte y después. |
 | RNF-12 | M | El JSON de una provincia pesa menos de 100 KB comprimido. El de la provincia más grande marca el listón. |
 | RNF-15 | M | Una zona completa no supera los 300 KB comprimidos de datos de estaciones. Por encima, se sirve un resumen con solo coordenadas y el combustible elegido. El resumen nacional de V2-18 no es una zona ni contiene estaciones: tiene un presupuesto propio de 10 KB comprimidos. |
+| RNF-16 | M | El histórico que consume el navegador se parte por provincia y ninguna supera 500 KB comprimidos para 90 días. El estado nacional de recuperación no entra en el navegador, pesa menos de 3 MB comprimido y solo lo consume el build. |
 | RNF-13 | M | El navegador nunca descarga datos de estaciones de provincias fuera de la zona mostrada. Un fichero ya descargado se reutiliza entre zonas que lo compartan. V2-18 puede descargar un único resumen nacional de build con nombre, centroide y agregados por provincia, nunca los 52 ficheros provinciales. |
 | RNF-14 | S | El mapa mantiene 30 fps al desplazarlo con 400 marcadores en pantalla y con las 52 pastillas provinciales de V2-18. |
 
@@ -217,17 +218,18 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 La v1 ya está publicada. Estos identificadores se conservan como requisitos de
 la v2; la marca **Completado** o **Descartado** indica su estado actual.
 
-Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
+Ningún requisito activo necesita servidor. Si alguno acaba necesitándolo, se
+descarta; los ya descartados conservan su identificador y el motivo.
 
 | ID | Requisito |
 |---|---|
-| V2-01 | Resumen histórico diario por provincia, generado en el build desde `EstacionesTerrestresHist`. Unos pocos KB al día. |
-| V2-02 | Flecha de tendencia en la ficha: sube o baja respecto a ayer. |
+| V2-01 | Histórico diario normalizado, generado desde `EstacionesTerrestresHist`, que conserva datos suficientes para analizar estación, municipio y provincia. Su almacenamiento, retención e identidad entre días se fijan en un ADR técnico después de medir la fuente real. |
+| V2-02 | **Evolución contextual dentro de Hoy.** Desde estación, municipio o zona muestra magnitud, periodo y comparación territorial; la ficha solo contiene un indicio compacto que enlaza al análisis. Ver RF-108 a RF-117 y [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
 | V2-04 | ~~Perfil de vehículo persistente en `localStorage`.~~ **Descartado:** añade configuración y su persistencia no cruza navegadores o dispositivos. |
 | V2-05 | ~~Coste del desvío basado en el perfil de vehículo.~~ **Descartado** junto con V2-04; una futura estimación sin perfil requeriría una propuesta independiente. |
 | V2-06 | ~~Comparar en euros por 100 km mediante el consumo guardado.~~ **Descartado** junto con V2-04. |
-| V2-08 | Detección de precio congelado: estaciones que llevan días sin actualizar. |
-| V2-09 | Favoritos fijados arriba, en `localStorage`. |
+| V2-08 | Días desde la última variación observada. Se comunica de forma neutral y nunca atribuye a la estación la intención de parecer barata. |
+| V2-09 | ~~Favoritos fijados arriba, en `localStorage`.~~ **Descartado:** se perciben como un dato duradero, pero no cruzan navegadores o dispositivos y pueden desaparecer. Darles continuidad exigiría cuentas y sincronización. Ver [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
 | V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |
 | V2-11 | Publicar los JSON normalizados como datos abiertos, con su documentación. |
 | V2-12 | Combustibles adicionales, empezando por gasóleo B. |
@@ -236,6 +238,21 @@ Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-17 | ~~Estado personalizado con `?zonas=NN,NN`.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
 | V2-18 | **Completado.** Vista nacional: por debajo de zoom 8 las estaciones se sustituyen por pastillas provinciales neutras con nombre, precio medio del combustible elegido y número de estaciones de la media, ancladas al centroide de las estaciones públicas. La vista vuelve a racimos o estaciones al alcanzar zoom 8,5. Ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md) y [ADR-0022](adr/0022-resumen-nacional-de-build.md). |
+
+### Evolución (v2)
+
+| ID | Requisito |
+|---|---|
+| RF-108 | Evolución vive dentro de Hoy, fuera de la aplicación de mapa. Cada documento comienza con una conclusión principal expresada con magnitud, periodo y ámbito, seguida de la visualización y los datos que permiten comprobarla. |
+| RF-109 | La ficha de estación muestra, junto al precio del combustible activo, un indicio compacto con el cambio y su periodo y un enlace HTML real al análisis de esa estación. El precio actual conserva la jerarquía principal y la ficha sigue siendo plenamente útil si el histórico no carga. |
+| RF-110 | La primera entrega calcula cambios observados respecto a hace 1, 7, 30 y 90 días dentro de una ventana móvil de 90 días cerrados. Cuando no exista una observación comparable, lo dice y no sustituye el dato ausente por cero ni por la fecha más cercana sin indicarlo. |
+| RF-111 | La página de estación incluye una gráfica de hasta 90 días y compara el cambio de la estación con el de su municipio y provincia usando el mismo combustible, periodo, agregado y escala. Un día ausente deja un hueco; nunca se prolonga el último valor. |
+| RF-112 | Las páginas de municipio y provincia muestran la evolución de su media y mínimo y las mayores subidas y bajadas del territorio. Toda media excluye `null`, declara su `n` y usa la misma definición que los agregados editoriales existentes. |
+| RF-113 | Evolución parte del contexto más próximo disponible: estación, municipio o zona de la URL y combustible activo. La posición concedida puede producir una lectura efímera de estaciones cercanas, pero no se persiste, no sale del dispositivo y nunca es necesaria para acceder al análisis territorial. |
+| RF-114 | Sin contexto territorial, Hoy ofrece búsqueda o selección explícita. No pide ubicación al cargar ni intenta inferir domicilio, lugares habituales o favoritos. El panorama nacional se ofrece como alternativa y referencia, no como portada obligatoria cuando ya existe contexto local. |
+| RF-115 | «Sin cambios detectados desde hace N días» describe únicamente observaciones. Ningún texto afirma que una estación congela precios, intenta parecer barata o permite predecir el precio futuro. Los patrones semanales quedan fuera de la primera entrega. |
+| RF-116 | Toda visualización tiene periodo, unidad y ámbito visibles, no depende solo del color, respeta `prefers-reduced-motion` y ofrece un equivalente textual o tabular accesible. Las URLs de análisis son estables y compartibles y enlazan de vuelta a la estación o territorio operativo. |
+| RF-117 | Evolución conserva y publica únicamente una ventana móvil de 90 días cerrados, más el precio actual del flujo ordinario. Cada actualización diaria añade ayer y retira el día 91. No acumula un archivo anual propio ni ofrece periodos mayores. |
 
 ### Detalle verificable de V2-18
 

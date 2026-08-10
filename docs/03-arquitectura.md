@@ -96,7 +96,7 @@ en el pull request.
 surtidor/
 ├── README.md · CLAUDE.md · package.json · astro.config.mjs
 ├── docs/
-│   ├── 01-especificacion.md … 07-marca.md
+│   ├── 01-especificacion.md … 09-investigacion-historico-miteco.md
 │   └── adr/
 ├── .github/workflows/datos.yml # descarga, build y despliegue cada 2 h o al hacer push
 ├── scripts/
@@ -292,11 +292,19 @@ Un único workflow, `datos.yml`, con dos disparadores: `schedule` cada dos horas
 y `push` a `main`. Pasos:
 
 1. `npm ci`
-2. `npm run data:fetch` — si falla, **el workflow se detiene aquí**. No se
+2. `npm run preparar:historico` — recupera el estado estático anterior, valida
+   su manifiesto y SHA-256 e incorpora los días que falten, hasta ayer. La
+   reconstrucción de 90 días solo se activa manualmente.
+3. `npm run materializar:historico` — publica el estado comprimido y 52
+   artefactos provinciales; no crea otro despliegue.
+4. `npm run data:fetch` — si falla, **el workflow se detiene aquí**. No se
    despliega nada y el sitio anterior sigue en pie (RF-05).
-3. `npm run build`
-4. `npm run comprobar:datos` — segunda guarda explícita contra datos mock.
-5. `npx wrangler pages deploy dist/ --project-name=surtidor`
+5. `npm run build`
+6. `npm run comprobar:datos` — segunda guarda explícita contra datos mock.
+7. `npx wrangler pages deploy dist/ --project-name=surtidor --branch=main`
+
+El workflow serializa todos los disparadores mediante el grupo de concurrencia
+`produccion-surtidor`. Un `push` y el cron no pueden publicar en orden inverso.
 
 El token de Cloudflare va en los secretos del repositorio. No hay más secretos:
 la API del ministerio es abierta.
@@ -309,7 +317,24 @@ colisiones por encima e identidad estable al desplazar. Ver
 [ADR-0021](adr/0021-racimos-estables-al-desplazar-el-mapa.md).
 
 El sitio usa `surtidor.app`; las URL canónicas se construyen con ese dominio en
-la configuración de Astro. El histórico diario sigue pendiente: el endpoint
-`EstacionesTerrestresHist/{fecha}` existe, pero V2-01 aún no está implementado.
-El estado de ese trabajo vive en [06 · Roadmap](06-roadmap.md), no en este
-documento de arquitectura actual.
+la configuración de Astro.
+
+El histórico diario y Evolución son el siguiente gran hito. El endpoint
+`EstacionesTerrestresHist/{fecha}` existe, no admite CORS y usa claves escapadas,
+pero V2-01 aún no está implementado. La experiencia contextual está decidida en
+[ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md) y especificada en
+[08 · Evolución](08-evolucion.md).
+
+La persistencia histórica no está decidida todavía. Antes de implementar se
+medirán volumen, estabilidad de identificadores, días ausentes y coste de
+reconstrucción. Un ADR posterior fijará granularidad, retención, artefactos
+públicos y rotación entre ejecuciones sin introducir un servidor. La retención
+de producto ya está fijada en una ventana móvil de 90 días cerrados. No se
+añadirá el histórico sin esa decisión: el endpoint disponible no resuelve por
+sí solo identidad, almacenamiento ni presupuesto de descarga.
+
+La primera medición confirma instantáneas diarias al menos desde 2007,
+`IDEESS` único y unos 0,7 MB comprimidos por respuesta reciente. También muestra
+que reconstruir una ventana entera en cada uno de los doce builds diarios sería
+trabajo repetido. Ver
+[09 · Investigación del histórico](09-investigacion-historico-miteco.md).

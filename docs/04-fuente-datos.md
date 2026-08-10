@@ -102,18 +102,25 @@ Se normaliza a `null` y la interfaz lo muestra como "no vende".
 En TypeScript hay que acceder con corchetes, y en cualquier mapeo a un modelo
 propio hay que traducirlos. **Que estos nombres no salgan de `scripts/lib/`.**
 
-### 6. El histórico escapa los caracteres raros
+### 6. El histórico ha usado más de una forma de nombrar campos
 
-El endpoint `EstacionesTerrestresHist` devuelve las mismas claves pero con las
-secuencias escapadas:
+Se observó que `EstacionesTerrestresHist` devolvía claves con secuencias
+escapadas:
 
 ```json
 "Precio_x0020_Gasoleo_x0020_A"
 "Longitud_x0020__x0028_WGS84_x0029_"
 ```
 
-`_x0020_` es un espacio, `_x0028_` y `_x0029_` los paréntesis. El normalizador
-debe aceptar las dos formas.
+`_x0020_` es un espacio, `_x0028_` y `_x0029_` los paréntesis. Sin embargo, las
+muestras reales consultadas el 10 de agosto de 2026, incluidas fechas entre 2007
+y 2026, devolvieron nombres normales como `Precio Gasoleo A` y
+`Longitud (WGS84)`.
+
+El normalizador debe aceptar las dos formas. No se puede asumir que el contrato
+histórico sea idéntico para siempre ni borrar esta diferencia después de una
+sola muestra. Las mediciones completas están en
+[09 · Investigación del histórico](09-investigacion-historico-miteco.md).
 
 ### 7. No se puede pedir una estación por su identificador
 

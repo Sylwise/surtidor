@@ -172,7 +172,8 @@ Telegram, muestra la tarjeta con el precio.
 # V2 · Ya pensado, en curso
 
 La v1 ya está publicada. El orden es de valor aparente y la gente lo va a
-reordenar. V2-10, V2-13 y V2-18 están terminados; el resto sigue en espera.
+reordenar. V2-10, V2-13 y V2-18 están terminados; los demás estados se declaran
+de forma explícita a continuación.
 
 **Perfil de vehículo, coste del desvío y euros por 100 km — descartados.** Pedir
 consumo y combustible habitual añade configuración antes de aportar valor. En
@@ -181,8 +182,10 @@ no cruzan dispositivos o navegadores y desaparecen al limpiar sus datos. V2-04,
 V2-05 y V2-06 se cierran como conjunto; una posible estimación futura sin perfil
 se evaluaría desde cero.
 
-**Favoritos.** Marcar tus tres habituales y verlas fijas arriba. Barato, y es el
-90 % del uso real de un conductor cotidiano.
+**Favoritos — V2-09, descartados.** Una colección de favoritos se percibe como
+un dato personal duradero, pero `localStorage` no cruza navegadores o dispositivos
+y puede desaparecer. Darle continuidad exigiría cuentas y sincronización, ambas
+fuera del proyecto. Ver [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md).
 
 **Ordenar por distancia — V2-13, terminada.** Al pulsar «Mi ubicación», el mapa muestra la
 posición aproximada del usuario y la lista pasa a cercanía con la distancia
@@ -211,11 +214,33 @@ aplicación sin mapa.
 Se intentó además que la vista del mapa decidiera la zona cargada, y se
 abandonó tras implementarlo. El porqué, en el mismo ADR.
 
-**Precio congelado.** Algunas dejan de actualizar para parecer baratas. Con el
-histórico se detecta si lleva días sin moverse y se marca. Genera confianza
-porque nadie más lo cuenta.
+**Evolución e histórico — V2-01, V2-02 y V2-08, siguiente gran hito.** El
+histórico deja de ser una flecha aislada y se convierte en una capacidad común
+dentro de Hoy. Desde una estación, municipio o zona explica cuánto ha cambiado
+el precio, durante qué periodo y si el movimiento también ocurre en su entorno.
 
-**Tendencia respecto a ayer.** Flecha arriba o abajo, del endpoint histórico.
+**En curso:** están terminados el contrato de 90 días, la recuperación entre
+despliegues, los artefactos provinciales y el primer corte visible estación ↔
+media provincial. Faltan el contexto municipal, los rankings territoriales y
+el refinamiento de la miniseñal dentro de la ficha.
+La ficha ofrece un indicio compacto junto al precio; el análisis completo vive
+fuera de la aplicación de mapa.
+
+La primera entrega incluye cambios a 1, 7, 30 y 90 días, gráfica de 90 días por
+estación, comparación con municipio y provincia, evolución de media y mínimo y
+mayores subidas y bajadas del territorio. V2-08 se expresa de forma neutral como
+«sin cambios detectados desde hace N días»: los datos no permiten atribuir una
+intención a la estación.
+
+La experiencia es contextual, no personalizada. Parte de la URL, la ficha, el
+combustible y, si se ha concedido, una ubicación efímera. No guarda lugares
+habituales ni necesita permiso de ubicación. Ver
+[08 · Evolución](08-evolucion.md) y
+[ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md).
+
+La ventana es móvil y está limitada a 90 días cerrados. No se conserva ni se
+publica un histórico anual: Evolución aporta certidumbre sobre cambios recientes,
+no sirve estudios de mercado.
 
 **Más combustibles.** Gasóleo B (agrícola, con demanda real en Álava rural y mal
 atendido), GLP, GNC. El normalizador ya no debe romperse con campos nuevos.
@@ -241,7 +266,8 @@ con imagen de compartición propia. Ver RF-97 a RF-107 y ADR-0019.
 **Cuándo repostar.** Todo lo anterior responde a "dónde"; nada a "cuándo". Con un
 resumen diario guardado por provincia —unos pocos kilobytes al día— se puede
 decir *"en los últimos seis meses el martes ha sido de media 2,1 céntimos más
-barato en Álava"*. Nadie da ese dato y se comparte solo.
+barato en Álava"*. Antes de entrar debe demostrarse que el patrón es estable,
+declarar la ventana y el tamaño de muestra y evitar presentarlo como predicción.
 
 **Filtro por carretera.** "Voy de Vitoria a Burgos, dónde reposto." La ruta de
 verdad es cara; el atajo es **precalcular en el build la distancia de cada
@@ -287,10 +313,9 @@ Se anotan para no perderlas. Son un registro fechado, no una descripción del
 estado actual; antes de promover una hay que contrastarla de nuevo con el código
 y los requisitos vigentes.
 
-**Dependen del resumen histórico (V2-01) y salen casi solas una vez exista:**
+**Forman parte del diseño de Evolución y se priorizarán después de su primera
+entrega:**
 
-- Gráficas de evolución del precio de los últimos 30 días, generadas en el
-  build.
 - "¿Está barato ahora?": situar el precio actual frente a su propia media
   histórica, en porcentaje.
 - Cambios desde ayer o desde la semana pasada, en céntimos, mostrando el
@@ -323,6 +348,6 @@ y los requisitos vigentes.
   guarda combustible junto a zona y litros.
 - Indicador de frescura del dato. **Ya implementado:** la interfaz muestra la
   hora y avisa cuando los datos superan seis horas.
-- Detección de estaciones anómalas: precios inusualmente bajos, cambios
-  desproporcionados, estaciones sin actualizar. Se solapa con el precio
-  congelado (V2-08).
+- Detección de precios anómalos. Los cambios y la falta de variación ya forman
+  parte de Evolución; cualquier alerta adicional necesitará una regla explicable
+  y no atribuirá intenciones.

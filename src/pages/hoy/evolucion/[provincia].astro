@@ -1,0 +1,54 @@
+---
+import '../../../estilos/tokens.css';
+import '../../../estilos/evolucion.css';
+import marcaSvg from '../../../assets/marca.svg?raw';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import type { Indice } from '../../../../scripts/lib/tipos.ts';
+
+export function getStaticPaths() {
+  const indice = JSON.parse(readFileSync(join(process.cwd(), 'public/data/indice.json'), 'utf8')) as Indice;
+  return indice.provincias.map((provincia) => ({ params: { provincia: provincia.id }, props: { nombre: provincia.nombre } }));
+}
+const provinciaId = Astro.params.provincia!;
+const { nombre } = Astro.props as { nombre: string };
+const titulo = `Evolución del precio en ${nombre} · Surtidor`;
+---
+<html lang="es">
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title><meta name="description" content={`Consulta 90 días de evolución de precios de carburante en ${nombre}.`} />
+    <link rel="canonical" href={new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" /><meta name="theme-color" content="#16323B" />
+  </head>
+  <body>
+    <header class="evolucion-cabecera"><a href="/" class="evolucion-marca"><span set:html={marcaSvg} />Surtidor</a><span>Evolución</span></header>
+    <main class="evolucion" data-evolucion data-provincia-id={provinciaId}>
+      <p class="evolucion-estado" data-estado>Cargando 90 días de precios…</p>
+      <div data-contenido hidden>
+        <header class="evolucion-intro">
+          <p class="evolucion-eyebrow">90 días · {nombre}</p>
+          <h1>Qué ha pasado con el precio</h1>
+          <p>Elige una estación y compárala con la media de su provincia. Sin predicciones: solo cierres diarios observados.</p>
+        </header>
+        <section class="evolucion-selectores" aria-label="Estación y combustible">
+          <label>Estación<select data-estacion></select></label><label>Combustible<select data-combustible></select></label>
+        </section>
+        <article class="evolucion-panel">
+          <div class="evolucion-panel__cabecera"><div><p data-direccion></p><h2 data-rotulo></h2></div><strong data-precio></strong></div>
+          <div class="evolucion-periodos" aria-label="Periodo de comparación"><button data-periodo="7" aria-pressed="false">7 días</button><button data-periodo="30" aria-pressed="true">30 días</button><button data-periodo="90" aria-pressed="false">90 días</button></div>
+          <p class="evolucion-conclusion" data-conclusion></p>
+          <div class="evolucion-leyenda"><span><i class="estacion"></i>Estación</span><span><i class="provincia"></i>Media provincial</span></div>
+          <svg class="evolucion-grafico" viewBox="0 0 900 360" role="img"></svg>
+          <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos se muestran como huecos; no se interpolan.</p>
+        </article>
+      </div>
+    </main>
+    <script>
+      import { montarEvolucion } from '../../../componentes/Evolucion.ts';
+      const raiz = document.querySelector<HTMLElement>('[data-evolucion]');
+      const provinciaId = raiz?.dataset.provinciaId;
+      if (raiz && provinciaId) montarEvolucion(raiz, provinciaId);
+    </script>
+  </body>
+</html>

@@ -12,6 +12,20 @@ export async function escribirJsonAtomico(ruta: string, datos: unknown): Promise
   await rename(rutaTemporal, ruta);
 }
 
+export async function escribirJsonCompactoAtomico(ruta: string, datos: unknown): Promise<void> {
+  await mkdir(dirname(ruta), { recursive: true });
+  const rutaTemporal = `${ruta}.tmp-${process.pid}`;
+  await writeFile(rutaTemporal, JSON.stringify(datos) + '\n', 'utf-8');
+  await rename(rutaTemporal, ruta);
+}
+
+export async function escribirBufferAtomico(ruta: string, datos: Uint8Array): Promise<void> {
+  await mkdir(dirname(ruta), { recursive: true });
+  const rutaTemporal = `${ruta}.tmp-${process.pid}`;
+  await writeFile(rutaTemporal, datos);
+  await rename(rutaTemporal, ruta);
+}
+
 /** Igual que `escribirJsonAtomico`, para ficheros de texto plano —
  *  `public/_redirects` (H10, segunda mitad), que Cloudflare Pages lee tal
  *  cual de la raíz del despliegue y no es JSON. */
