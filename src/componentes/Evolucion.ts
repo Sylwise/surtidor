@@ -41,9 +41,9 @@ function tramos(serie: PuntoEvolucion[], x: (i: number) => number, y: (v: number
   return resultado;
 }
 
-function dibujarGrafico(svg: SVGSVGElement, estacion: PuntoEvolucion[], provincia: PuntoEvolucion[]): void {
+function dibujarGrafico(svg: SVGSVGElement, estacion: PuntoEvolucion[], municipio: PuntoEvolucion[] | null, provincia: PuntoEvolucion[]): void {
   svg.replaceChildren();
-  const valores = [...estacion, ...provincia].flatMap((p) => p.milesimas === null ? [] : [p.milesimas]);
+  const valores = [...estacion, ...(municipio ?? []), ...provincia].flatMap((p) => p.milesimas === null ? [] : [p.milesimas]);
   if (valores.length < 2) return;
   const ancho = 900, alto = 360, izquierda = 58, derecha = 20, arriba = 24, abajo = 42;
   const minimo = Math.floor((Math.min(...valores) - 20) / 50) * 50;
@@ -61,8 +61,8 @@ function dibujarGrafico(svg: SVGSVGElement, estacion: PuntoEvolucion[], provinci
     texto.textContent = (valor / 1000).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     svg.append(linea, texto);
   }
-  [[0, 'evolucion-grafico__provincia'], [1, 'evolucion-grafico__estacion']].forEach(([tipo, clase]) => {
-    const serie = tipo === 0 ? provincia : estacion;
+  [[provincia, 'evolucion-grafico__provincia'], [municipio, 'evolucion-grafico__municipio'], [estacion, 'evolucion-grafico__estacion']].forEach(([serie, clase]) => {
+    if (!Array.isArray(serie)) return;
     for (const d of tramos(serie, x, y)) {
       const path = document.createElementNS(SVG_NS, 'path'); path.setAttribute('d', d); path.setAttribute('class', String(clase)); svg.append(path);
     }
@@ -104,7 +104,11 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const clave = combustible.value as ClavePrecio;
       const serie = serieDeEstacion(historico, estacion.id, clave)!;
       const media = serieMedia(historico.provincia, historico.fechas, clave);
+      const municipioId = historico.estaciones.find((entrada) => entrada[0] === estacion.id)?.[1] ?? null;
+      const agregadoMunicipio = municipioId === null ? null : historico.municipios[municipioId] ?? null;
+      const mediaMunicipio = agregadoMunicipio ? serieMedia(agregadoMunicipio, historico.fechas, clave) : null;
       const cambio = cambioEnPeriodo(serie, periodo);
+      const cambioMunicipio = mediaMunicipio ? cambioEnPeriodo(mediaMunicipio, periodo) : null;
       const actualMilesimas = [...serie].reverse().find((p) => p.milesimas !== null)?.milesimas ?? null;
       contenedor.querySelector<HTMLElement>('[data-rotulo]')!.textContent = estacion.rotulo;
       contenedor.querySelector<HTMLElement>('[data-direccion]')!.textContent = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
@@ -113,9 +117,13 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       if (!cambio) conclusion.textContent = `No hay datos suficientes en los dos extremos exactos de este periodo.`;
       else if (cambio.diferenciaMilesimas === 0) conclusion.textContent = `El precio no ha cambiado en ${periodo} días.`;
       else conclusion.textContent = `Ha ${cambio.diferenciaMilesimas < 0 ? 'bajado' : 'subido'} ${eur(Math.abs(cambio.diferenciaMilesimas)).replace(' €/L', '')} por litro (${Math.abs(cambio.porcentaje).toLocaleString('es-ES', { maximumFractionDigits: 1 })} %) en ${periodo} días.`;
+      const contexto = contenedor.querySelector<HTMLElement>('[data-contexto]')!;
+      if (!cambioMunicipio) contexto.textContent = `No hay dos extremos completos para comparar con ${cajaDeTitulo(estacion.municipio)}.`;
+      else if (cambioMunicipio.diferenciaMilesimas === 0) contexto.textContent = `La media de ${cajaDeTitulo(estacion.municipio)} se ha mantenido estable en el mismo periodo.`;
+      else contexto.textContent = `Mientras tanto, la media de ${cajaDeTitulo(estacion.municipio)} ha ${cambioMunicipio.diferenciaMilesimas < 0 ? 'bajado' : 'subido'} ${(Math.abs(cambioMunicipio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} céntimos.`;
       const svg = contenedor.querySelector<SVGSVGElement>('svg')!;
       svg.setAttribute('aria-label', `${ETIQUETA[clave]} en ${estacion.rotulo}: estación frente a media provincial durante 90 días.`);
-      dibujarGrafico(svg, serie, media);
+      dibujarGrafico(svg, serie, mediaMunicipio, media);
       const url = new URL(location.href); url.searchParams.set('estacion', estacion.id); history.replaceState(null, '', url);
     };
     selector.addEventListener('change', render); combustible.addEventListener('change', render);

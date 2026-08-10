@@ -175,6 +175,11 @@ el histórico y el dato actual de su provincia; nombres y direcciones no se
 duplican en el histórico. `/hoy/evolucion/` es la entrada sin contexto y ofrece
 selección explícita de provincia.
 
+La serie pública conserva también el identificador del municipio actual. Esto
+permite dibujar estación, media municipal y media provincial sobre la misma
+escala. La pertenencia diaria completa sigue en el estado nacional de build y
+es la que gobierna los agregados cuando una estación cambia de territorio.
+
 ## Datos y arquitectura
 
 El endpoint `EstacionesTerrestresHist/{fecha}` existe, no admite CORS y escapa

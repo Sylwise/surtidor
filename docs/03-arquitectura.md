@@ -319,15 +319,18 @@ colisiones por encima e identidad estable al desplazar. Ver
 El sitio usa `surtidor.app`; las URL canónicas se construyen con ese dominio en
 la configuración de Astro.
 
-El histórico diario y Evolución son el siguiente gran hito. El endpoint
-`EstacionesTerrestresHist/{fecha}` existe, no admite CORS y usa claves escapadas,
-pero V2-01 aún no está implementado. La experiencia contextual está decidida en
-[ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md) y especificada en
-[08 · Evolución](08-evolucion.md).
+El histórico diario está implementado como una ventana cerrada de 90 días. El
+estado nacional conserva presencia, territorio diario y los cuatro precios; el
+navegador recibe únicamente el artefacto de la provincia consultada. Cada serie
+provincial lleva `IDEESS`, municipio actual, presencia y precios. Los nombres y
+direcciones se cruzan por `IDEESS` con el contrato actual y no se duplican.
 
-La persistencia histórica no está decidida todavía. Antes de implementar se
-medirán volumen, estabilidad de identificadores, días ausentes y coste de
-reconstrucción. Un ADR posterior fijará granularidad, retención, artefactos
+Los artefactos incluyen agregados diarios de municipio y provincia como
+`[sumaMilesimas, observaciones, minimoMilesimas]`. La suma se conserva hasta el
+cliente para no acumular redondeos. La experiencia está decidida en
+[ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md), la persistencia en
+[ADR-0024](adr/0024-ventana-historica-en-despliegue.md) y el producto en
+[08 · Evolución](08-evolucion.md).
 públicos y rotación entre ejecuciones sin introducir un servidor. La retención
 de producto ya está fijada en una ventana móvil de 90 días cerrados. No se
 añadirá el histórico sin esa decisión: el endpoint disponible no resuelve por

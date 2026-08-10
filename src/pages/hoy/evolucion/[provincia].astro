@@ -38,7 +38,8 @@ const titulo = `Evolución del precio en ${nombre} · Surtidor`;
           <div class="evolucion-panel__cabecera"><div><p data-direccion></p><h2 data-rotulo></h2></div><strong data-precio></strong></div>
           <div class="evolucion-periodos" aria-label="Periodo de comparación"><button data-periodo="7" aria-pressed="false">7 días</button><button data-periodo="30" aria-pressed="true">30 días</button><button data-periodo="90" aria-pressed="false">90 días</button></div>
           <p class="evolucion-conclusion" data-conclusion></p>
-          <div class="evolucion-leyenda"><span><i class="estacion"></i>Estación</span><span><i class="provincia"></i>Media provincial</span></div>
+          <p class="evolucion-contexto" data-contexto></p>
+          <div class="evolucion-leyenda"><span><i class="estacion"></i>Estación</span><span><i class="municipio"></i>Media municipal</span><span><i class="provincia"></i>Media provincial</span></div>
           <svg class="evolucion-grafico" viewBox="0 0 900 360" role="img"></svg>
           <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos se muestran como huecos; no se interpolan.</p>
         </article>

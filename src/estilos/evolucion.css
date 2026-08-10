@@ -24,14 +24,17 @@ button, select { font: inherit; }
 .evolucion-periodos button { min-height: 40px; padding: 0 14px; border: 1px solid var(--hair-dark); border-radius: 999px; background: transparent; color: var(--muted-light); cursor: pointer; }
 .evolucion-periodos button[aria-pressed="true"] { border-color: var(--signal); background: var(--signal); color: var(--petrol); font-weight: 750; }
 .evolucion-conclusion { max-width: 760px; min-height: 2.4em; margin: 0 0 14px; font-size: clamp(19px, 3vw, 28px); font-weight: 650; line-height: 1.25; }
+.evolucion-contexto { max-width: 760px; margin: -4px 0 18px; color: var(--muted-light); font-size: var(--fs-4); line-height: 1.5; }
 .evolucion-leyenda { display: flex; gap: 20px; color: var(--muted-light); font-size: var(--fs-2); }
 .evolucion-leyenda span { display: inline-flex; align-items: center; gap: 7px; }
 .evolucion-leyenda i { width: 20px; border-top: 3px solid var(--signal); }
+.evolucion-leyenda i.municipio { border-color: var(--mejor-texto); }
 .evolucion-leyenda i.provincia { border-color: var(--muted-light); border-top-style: dashed; }
 .evolucion-grafico { display: block; width: 100%; height: auto; margin-top: 8px; overflow: visible; }
 .evolucion-grafico__rejilla { stroke: var(--hair-dark); stroke-width: 1; }
 .evolucion-grafico__estacion { fill: none; stroke: var(--signal); stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; }
 .evolucion-grafico__provincia { fill: none; stroke: var(--muted-light); stroke-dasharray: 7 7; stroke-width: 2; }
+.evolucion-grafico__municipio { fill: none; stroke: var(--mejor-texto); stroke-width: 2; }
 .evolucion-grafico__eje, .evolucion-grafico__fecha { fill: var(--muted-light); font-family: var(--mono); font-size: 12px; }
 .evolucion-nota { max-width: 700px; margin: 0; color: var(--muted-light); font-size: var(--fs-2); line-height: 1.5; }
 button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--signal); outline-offset: 3px; }

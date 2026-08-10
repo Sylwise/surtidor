@@ -1,11 +1,11 @@
 import type { AgregadoHistorico, HistoricoProvincia, SerieHistoricaPublica } from '../../scripts/lib/artefactos-historicos.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
-const INDICE_PRECIO: Record<ClavePrecio, 2 | 3 | 4 | 5> = {
-  gasolina95e5: 2,
-  gasoleoA: 3,
-  gasolina98e5: 4,
-  gasoleoPremium: 5,
+const INDICE_PRECIO: Record<ClavePrecio, 3 | 4 | 5 | 6> = {
+  gasolina95e5: 3,
+  gasoleoA: 4,
+  gasolina98e5: 5,
+  gasoleoPremium: 6,
 };
 
 export interface PuntoEvolucion {
@@ -30,7 +30,7 @@ export function serieDeEstacion(
   const precios = estacion[INDICE_PRECIO[combustible]];
   return historico.fechas.map((fecha, indice) => ({
     fecha,
-    milesimas: estacion[1][indice] === 1 ? (precios[indice] ?? null) : null,
+    milesimas: estacion[2][indice] === 1 ? (precios[indice] ?? null) : null,
   }));
 }
 
@@ -70,7 +70,7 @@ export function validarHistoricoPublico(valor: unknown, provinciaId: string): Hi
     throw new Error('La ventana histórica está incompleta.');
   }
   for (const serie of h.estaciones as SerieHistoricaPublica[]) {
-    if (!Array.isArray(serie) || serie.length !== 6 || serie.slice(1).some((parte) => !Array.isArray(parte) || parte.length !== 90)) {
+    if (!Array.isArray(serie) || serie.length !== 7 || (serie[1] !== null && typeof serie[1] !== 'string') || serie.slice(2).some((parte) => !Array.isArray(parte) || parte.length !== 90)) {
       throw new Error('Una serie histórica está incompleta.');
     }
   }

@@ -17,7 +17,7 @@ la ventana nacional completa ocupa 2.040.733 B con `gzip -9` después de añadir
 presencia y territorio por día. En la muestra no hubo cambios de provincia o
 municipio para un mismo `IDEESS`.
 
-## Decisión propuesta
+## Decisión
 
 El estado canónico de los últimos 90 días se publica como un artefacto estático
 versionado dentro del despliegue de Cloudflare Pages. Es público pero de uso de
@@ -91,6 +91,10 @@ comprimido y 52 provincias. Los provinciales suman 3.832.088 B con gzip; la
 mediana es 63.322 B, el percentil 95 es 153.624 B y el máximo, Barcelona, 274.725
 B. El sitio completo queda en 2.457 ficheros, muy por debajo de los 20.000 del
 plan gratuito de Pages.
+
+El enlace estación → municipio añadido al contrato público aumenta el máximo
+provincial medido de Barcelona a 274.981 B: 256 B comprimidos. Permite comparar
+la estación con su municipio sin publicar otro fichero ni duplicar nombres.
 
 ## Alternativas descartadas
 

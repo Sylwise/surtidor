@@ -17,8 +17,9 @@ test('distingue ausencia de estación y combustible no vendido', () => {
   ]);
   const alava = construirHistoricosProvincia(estado).get('01')!;
 
-  assert.deepEqual(alava.estaciones[0]![1], [1, 0, 1]);
-  assert.deepEqual(alava.estaciones[0]![2], [null, null, 1300]);
+  assert.equal(alava.estaciones[0]![1], '01059');
+  assert.deepEqual(alava.estaciones[0]![2], [1, 0, 1]);
+  assert.deepEqual(alava.estaciones[0]![3], [null, null, 1300]);
   assert.deepEqual(alava.provincia.gasolina95e5, [
     [0, 0, null],
     [0, 0, null],
@@ -48,4 +49,6 @@ test('agrega suma, n y mínimo en el territorio observado de cada día', () => {
     [1300, 1, 1300],
   ]);
   assert.deepEqual(provincias.get('01')!.municipios['01059']!.gasolina95e5[0], [2900, 2, 1400]);
+  assert.equal(provincias.get('01')!.estaciones.find((serie) => serie[0] === '1')?.[1], '01059');
+  assert.equal(provincias.get('28')!.estaciones.find((serie) => serie[0] === '1')?.[1], '28079');
 });

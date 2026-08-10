@@ -12,6 +12,7 @@ export type AgregadoHistorico = Record<ClavePrecio, PuntoAgregadoHistorico[]>;
 
 export type SerieHistoricaPublica = [
   id: string,
+  municipioIdActual: string | null,
   presencia: Array<0 | 1>,
   gasolina95e5: PrecioHistorico[],
   gasoleoA: PrecioHistorico[],
@@ -77,6 +78,7 @@ export function construirHistoricosProvincia(
     const presencia = territorios.map<0 | 1>((territorio) => (territorio === null ? 0 : 1));
     const publica: SerieHistoricaPublica = [
       serie[0],
+      null,
       presencia,
       [...serie[2]],
       [...serie[3]],
@@ -89,7 +91,11 @@ export function construirHistoricosProvincia(
         .map((territorio) => territorio?.[0])
         .filter((provinciaId): provinciaId is string => provinciaId !== undefined),
     );
-    for (const provinciaId of provinciasObservadas) obtenerProvincia(provinciaId).estaciones.push(publica);
+    for (const provinciaId of provinciasObservadas) {
+      const copia: SerieHistoricaPublica = [...publica];
+      copia[1] = [...territorios].reverse().find((territorio) => territorio?.[0] === provinciaId)?.[1] ?? null;
+      obtenerProvincia(provinciaId).estaciones.push(copia);
+    }
 
     for (const [indiceDia, territorio] of territorios.entries()) {
       if (territorio === null) continue;
