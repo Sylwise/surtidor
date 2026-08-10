@@ -37,6 +37,20 @@ button, select { font: inherit; }
 .evolucion-grafico__municipio { fill: none; stroke: var(--mejor-texto); stroke-width: 2; }
 .evolucion-grafico__eje, .evolucion-grafico__fecha { fill: var(--muted-light); font-family: var(--mono); font-size: 12px; }
 .evolucion-nota { max-width: 700px; margin: 0; color: var(--muted-light); font-size: var(--fs-2); line-height: 1.5; }
+.evolucion-ranking { margin-top: 64px; }
+.evolucion-ranking > h2 { margin: 0; font-size: clamp(26px, 4vw, 42px); letter-spacing: -.03em; }
+.evolucion-ranking > p:not(.evolucion-eyebrow) { margin: 10px 0 24px; color: var(--muted); }
+.evolucion-ranking__columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.evolucion-ranking__columnas > section { padding: 20px; border: 1px solid var(--hair); border-radius: var(--radio); }
+.evolucion-ranking__columnas h3 { margin: 0 0 12px; font-size: var(--fs-4); }
+.evolucion-ranking ol { margin: 0; padding: 0; list-style: none; }
+.evolucion-ranking li + li { border-top: 1px solid var(--hair); }
+.evolucion-ranking li button { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; min-height: 64px; padding: 10px 0; border: 0; background: transparent; color: var(--petrol); text-align: left; cursor: pointer; }
+.evolucion-ranking li span { display: flex; min-width: 0; flex-direction: column; }
+.evolucion-ranking li strong { overflow: hidden; font-size: var(--fs-3); text-overflow: ellipsis; white-space: nowrap; }
+.evolucion-ranking li small { overflow: hidden; color: var(--muted); font-size: var(--fs-2); text-overflow: ellipsis; white-space: nowrap; }
+.evolucion-ranking li b { flex: none; font-family: var(--mono); font-size: var(--fs-4); }
+.evolucion-ranking__vacio { padding: 18px 0; color: var(--muted); font-size: var(--fs-3); }
 button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--signal); outline-offset: 3px; }
 .evolucion-provincias { margin-top: 52px; }
 .evolucion-provincias h2 { margin: 0 0 14px; font-size: var(--fs-6); }
@@ -52,4 +66,5 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid
   .evolucion-panel__cabecera { align-items: start; flex-direction: column; gap: 12px; }
   .evolucion-grafico__eje { display: none; }
   .evolucion-provincias ul { grid-template-columns: 1fr; }
+  .evolucion-ranking__columnas { grid-template-columns: 1fr; }
 }

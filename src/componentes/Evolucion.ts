@@ -1,6 +1,6 @@
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { cajaDeTitulo } from '../logica/formato.ts';
-import { cambioEnPeriodo, serieDeEstacion, serieMedia, validarHistoricoPublico, type PuntoEvolucion } from '../logica/evolucion.ts';
+import { cambioEnPeriodo, cambiosDeEstaciones, serieDeEstacion, serieMedia, validarHistoricoPublico, type CambioEstacion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import type { ClavePrecio, DatosProvincia } from '../../scripts/lib/tipos.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -24,6 +24,33 @@ function eur(milesimas: number): string {
 
 function fechaCorta(iso: string): string {
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+}
+
+function pintarCambios(
+  lista: HTMLElement,
+  cambios: CambioEstacion[],
+  estaciones: DatosProvincia['estaciones'],
+  selector: HTMLSelectElement,
+  render: () => void,
+): void {
+  lista.replaceChildren();
+  if (cambios.length === 0) {
+    const vacio = document.createElement('li'); vacio.className = 'evolucion-ranking__vacio'; vacio.textContent = 'No hay movimientos en esta dirección.'; lista.append(vacio); return;
+  }
+  cambios.forEach((cambio) => {
+    const estacion = estaciones.find((entrada) => entrada.id === cambio.estacionId);
+    if (!estacion) return;
+    const li = document.createElement('li');
+    const boton = document.createElement('button'); boton.type = 'button';
+    const identidad = document.createElement('span');
+    const rotulo = document.createElement('strong'); rotulo.textContent = estacion.rotulo;
+    const direccion = document.createElement('small'); direccion.textContent = cajaDeTitulo(estacion.direccion);
+    identidad.append(rotulo, direccion);
+    const cifra = document.createElement('b'); cifra.textContent = `${cambio.diferenciaMilesimas < 0 ? '−' : '+'}${(Math.abs(cambio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts`;
+    boton.append(identidad, cifra);
+    boton.addEventListener('click', () => { selector.value = estacion.id; render(); document.querySelector('.evolucion-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    li.append(boton); lista.append(li);
+  });
 }
 
 function tramos(serie: PuntoEvolucion[], x: (i: number) => number, y: (v: number) => number): string[] {
@@ -109,6 +136,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const mediaMunicipio = agregadoMunicipio ? serieMedia(agregadoMunicipio, historico.fechas, clave) : null;
       const cambio = cambioEnPeriodo(serie, periodo);
       const cambioMunicipio = mediaMunicipio ? cambioEnPeriodo(mediaMunicipio, periodo) : null;
+      const cambiosMunicipio = cambiosDeEstaciones(historico, clave, periodo, municipioId);
       const actualMilesimas = [...serie].reverse().find((p) => p.milesimas !== null)?.milesimas ?? null;
       contenedor.querySelector<HTMLElement>('[data-rotulo]')!.textContent = estacion.rotulo;
       contenedor.querySelector<HTMLElement>('[data-direccion]')!.textContent = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
@@ -116,7 +144,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const conclusion = contenedor.querySelector<HTMLElement>('[data-conclusion]')!;
       if (!cambio) conclusion.textContent = `No hay datos suficientes en los dos extremos exactos de este periodo.`;
       else if (cambio.diferenciaMilesimas === 0) conclusion.textContent = `El precio no ha cambiado en ${periodo} días.`;
-      else conclusion.textContent = `Ha ${cambio.diferenciaMilesimas < 0 ? 'bajado' : 'subido'} ${eur(Math.abs(cambio.diferenciaMilesimas)).replace(' €/L', '')} por litro (${Math.abs(cambio.porcentaje).toLocaleString('es-ES', { maximumFractionDigits: 1 })} %) en ${periodo} días.`;
+      else conclusion.textContent = `Ha ${cambio.diferenciaMilesimas < 0 ? 'bajado' : 'subido'} ${(Math.abs(cambio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} céntimos por litro (${Math.abs(cambio.porcentaje).toLocaleString('es-ES', { maximumFractionDigits: 1 })} %) en ${periodo} días.`;
       const contexto = contenedor.querySelector<HTMLElement>('[data-contexto]')!;
       if (!cambioMunicipio) contexto.textContent = `No hay dos extremos completos para comparar con ${cajaDeTitulo(estacion.municipio)}.`;
       else if (cambioMunicipio.diferenciaMilesimas === 0) contexto.textContent = `La media de ${cajaDeTitulo(estacion.municipio)} se ha mantenido estable en el mismo periodo.`;
@@ -124,6 +152,21 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const svg = contenedor.querySelector<SVGSVGElement>('svg')!;
       svg.setAttribute('aria-label', `${ETIQUETA[clave]} en ${estacion.rotulo}: estación frente a media provincial durante 90 días.`);
       dibujarGrafico(svg, serie, mediaMunicipio, media);
+      contenedor.querySelector<HTMLElement>('[data-ranking-ambito]')!.textContent = cajaDeTitulo(estacion.municipio);
+      pintarCambios(
+        contenedor.querySelector<HTMLElement>('[data-bajadas]')!,
+        cambiosMunicipio.filter((entrada) => entrada.diferenciaMilesimas < 0).slice(0, 3),
+        disponibles,
+        selector,
+        render,
+      );
+      pintarCambios(
+        contenedor.querySelector<HTMLElement>('[data-subidas]')!,
+        cambiosMunicipio.filter((entrada) => entrada.diferenciaMilesimas > 0).slice(-3).reverse(),
+        disponibles,
+        selector,
+        render,
+      );
       const url = new URL(location.href); url.searchParams.set('estacion', estacion.id); history.replaceState(null, '', url);
     };
     selector.addEventListener('change', render); combustible.addEventListener('change', render);

@@ -20,6 +20,10 @@ export interface CambioEvolucion {
   porcentaje: number;
 }
 
+export interface CambioEstacion extends CambioEvolucion {
+  estacionId: string;
+}
+
 export function serieDeEstacion(
   historico: HistoricoProvincia,
   estacionId: string,
@@ -58,6 +62,22 @@ export function cambioEnPeriodo(serie: PuntoEvolucion[], dias: 7 | 30 | 90): Cam
     diferenciaMilesimas,
     porcentaje: (diferenciaMilesimas / desde.milesimas) * 100,
   };
+}
+
+export function cambiosDeEstaciones(
+  historico: HistoricoProvincia,
+  combustible: ClavePrecio,
+  dias: 7 | 30 | 90,
+  municipioId?: string | null,
+): CambioEstacion[] {
+  return historico.estaciones
+    .filter((serie) => municipioId == null || serie[1] === municipioId)
+    .flatMap((serie) => {
+      const puntos = serieDeEstacion(historico, serie[0], combustible);
+      const cambio = puntos ? cambioEnPeriodo(puntos, dias) : null;
+      return cambio ? [{ estacionId: serie[0], ...cambio }] : [];
+    })
+    .sort((a, b) => a.diferenciaMilesimas - b.diferenciaMilesimas || a.estacionId.localeCompare(b.estacionId));
 }
 
 export function validarHistoricoPublico(valor: unknown, provinciaId: string): HistoricoProvincia {

@@ -220,9 +220,9 @@ dentro de Hoy. Desde una estación, municipio o zona explica cuánto ha cambiado
 el precio, durante qué periodo y si el movimiento también ocurre en su entorno.
 
 **En curso:** están terminados el contrato de 90 días, la recuperación entre
-despliegues, los artefactos provinciales y el primer corte visible estación ↔
-media provincial. Faltan el contexto municipal, los rankings territoriales y
-el refinamiento de la miniseñal dentro de la ficha.
+despliegues, los artefactos provinciales, la comparación estación ↔ municipio ↔
+provincia, los rankings del municipio y la señal de siete días dentro de la
+ficha. Faltan ampliar las lecturas territoriales y la revisión visual final.
 La ficha ofrece un indicio compacto junto al precio; el análisis completo vive
 fuera de la aplicación de mapa.
 

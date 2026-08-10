@@ -1511,12 +1511,25 @@ input {
   color: var(--muted);
 }
 .totem__evolucion {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   min-height: 44px;
   color: var(--signal);
   font-size: var(--fs-3);
   font-weight: 700;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
+}
+
+.totem__evolucion-cambio {
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+}
+
+.totem__evolucion span {
+  color: var(--signal);
+  font-size: var(--fs-2);
 }

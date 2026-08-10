@@ -57,6 +57,9 @@ Ver evolución →
 Puede incorporar una minigráfica de 30 días si sigue siendo legible a 360 px.
 El indicio enlaza al análisis de esa estación y ese combustible. Nunca sustituye
 el precio actual ni añade un paso para abrir la ficha o usar «Cómo llegar».
+El histórico provincial se descarga solo al abrir una ficha y se reutiliza en
+las siguientes selecciones. Si falla, la ficha, el precio y «Cómo llegar» siguen
+operativos y el enlace permite reintentar desde Evolución.
 
 ### Desde un municipio o una zona
 
@@ -91,6 +94,11 @@ El primer corte útil del producto histórico incluye:
 5. evolución de media y mínimo en páginas de municipio y provincia;
 6. mayores subidas y bajadas del territorio, con magnitud y periodo;
 7. fecha de cada observación y estados explícitos cuando falten datos.
+
+La vista provincial materializada incorpora también las tres mayores bajadas y
+subidas del municipio activo para el mismo combustible y periodo. Una estación
+solo entra si publicó precio en ambos extremos exactos; cambiar de fila abre su
+análisis sin crear otra página.
 
 El histórico es una capacidad común. V2-01 construye los datos; V2-02 y V2-08
 son lecturas sobre ellos, no proyectos independientes.

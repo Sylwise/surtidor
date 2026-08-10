@@ -19,6 +19,8 @@ import { cajaDeTitulo, formatearEuros, formatearPrecio } from '../logica/formato
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
 import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
+import { cargarHistoricoProvincia } from '../logica/datosEvolucion.ts';
+import { cambioEnPeriodo, serieDeEstacion } from '../logica/evolucion.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
@@ -132,7 +134,35 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
   const enlaceEvolucion = document.createElement('a');
   enlaceEvolucion.className = 'totem__evolucion';
-  enlaceEvolucion.textContent = 'Ver evolución del precio';
+  const evolucionCambio = document.createElement('strong');
+  evolucionCambio.className = 'totem__evolucion-cambio';
+  const evolucionAccion = document.createElement('span');
+  evolucionAccion.textContent = 'Ver evolución →';
+  enlaceEvolucion.append(evolucionCambio, evolucionAccion);
+  let peticionEvolucion = 0;
+  let claveEvolucion = '';
+
+  async function actualizarEvolucion(estacionId: string, provinciaId: string, combustible: ClavePrecio): Promise<void> {
+    const clave = `${provinciaId}:${estacionId}:${combustible}`;
+    if (clave === claveEvolucion) return;
+    claveEvolucion = clave;
+    const peticion = ++peticionEvolucion;
+    evolucionCambio.textContent = 'Consultando últimos 7 días…';
+    try {
+      const historico = await cargarHistoricoProvincia(provinciaId);
+      if (peticion !== peticionEvolucion) return;
+      const serie = serieDeEstacion(historico, estacionId, combustible);
+      const cambio = serie ? cambioEnPeriodo(serie, 7) : null;
+      if (!cambio) evolucionCambio.textContent = 'Sin comparación completa a 7 días';
+      else if (cambio.diferenciaMilesimas === 0) evolucionCambio.textContent = 'Sin cambios en 7 días';
+      else evolucionCambio.textContent = `${cambio.diferenciaMilesimas < 0 ? '↓' : '↑'} ${(Math.abs(cambio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts en 7 días`;
+    } catch {
+      if (peticion === peticionEvolucion) {
+        evolucionCambio.textContent = 'Histórico no disponible ahora';
+        claveEvolucion = '';
+      }
+    }
+  }
 
   const ahorro = document.createElement('div');
   ahorro.className = 'totem__ahorro';
@@ -222,7 +252,11 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       inputLitros.value = String(estado.litros);
     }
 
-    if (!estacion) return;
+    if (!estacion) {
+      peticionEvolucion += 1;
+      claveEvolucion = '';
+      return;
+    }
 
     const multiProvincia = new Set(visiblesTipoVenta.map((e) => e.provinciaId)).size > 1;
 
@@ -231,6 +265,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     // provincia, verbatim (RF-76).
     rotulo.textContent = estacion.rotulo;
     enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?estacion=${encodeURIComponent(estacion.id)}`;
+    void actualizarEvolucion(estacion.id, estacion.provinciaId, estado.combustible);
 
     const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
     direccion.textContent = multiProvincia

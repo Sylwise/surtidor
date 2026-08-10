@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cambioEnPeriodo, serieDeEstacion, serieMedia } from './evolucion.ts';
+import { cambioEnPeriodo, cambiosDeEstaciones, serieDeEstacion, serieMedia } from './evolucion.ts';
 import type { HistoricoProvincia } from '../../scripts/lib/artefactos-historicos.ts';
 
 const fechas = Array.from({ length: 90 }, (_, i) => `2026-05-${String(i + 1).padStart(2, '0')}`);
@@ -21,4 +21,17 @@ test('un hueco en un extremo no se sustituye por otro día', () => {
 
 test('la media conserva suma y tamaño de muestra hasta el último paso', () => {
   assert.equal(serieMedia(agregado, fechas, 'gasolina95e5')[10]?.milesimas, 1410);
+});
+
+test('ordena los cambios y permite limitarlos al municipio actual', () => {
+  const segundo = ['2', 'otro', Array(90).fill(1), precios.map((p) => p - 2), Array(90).fill(null), Array(90).fill(null), Array(90).fill(null)] as HistoricoProvincia['estaciones'][number];
+  const tercero = ['3', '01059', Array(90).fill(1), precios.map((p, i) => p - i * 2), Array(90).fill(null), Array(90).fill(null), Array(90).fill(null)] as HistoricoProvincia['estaciones'][number];
+  const conTres = { ...historico, estaciones: [...historico.estaciones, segundo, tercero] };
+  assert.deepEqual(cambiosDeEstaciones(conTres, 'gasolina95e5', 7, '01059').map((c) => c.estacionId), ['3', '1']);
+});
+
+test('el ranking excluye estaciones sin ambos extremos exactos', () => {
+  const conHueco = structuredClone(historico);
+  conHueco.estaciones[0]![3][82] = null;
+  assert.deepEqual(cambiosDeEstaciones(conHueco, 'gasolina95e5', 7), []);
 });

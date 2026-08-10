@@ -43,6 +43,15 @@ const titulo = `Evolución del precio en ${nombre} · Surtidor`;
           <svg class="evolucion-grafico" viewBox="0 0 900 360" role="img"></svg>
           <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos se muestran como huecos; no se interpolan.</p>
         </article>
+        <section class="evolucion-ranking" aria-labelledby="titulo-ranking">
+          <p class="evolucion-eyebrow">El mismo periodo y combustible</p>
+          <h2 id="titulo-ranking">Los movimientos en <span data-ranking-ambito></span></h2>
+          <p>Solo entran estaciones con precio publicado en los dos extremos exactos.</p>
+          <div class="evolucion-ranking__columnas">
+            <section><h3>Mayores bajadas</h3><ol data-bajadas></ol></section>
+            <section><h3>Mayores subidas</h3><ol data-subidas></ol></section>
+          </div>
+        </section>
       </div>
     </main>
     <script>
