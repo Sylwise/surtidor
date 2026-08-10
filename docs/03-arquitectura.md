@@ -59,7 +59,7 @@ Verificar estas cifras antes de tocar la cadencia, porque cambian.
 | Servicio | Límite gratuito | Uso previsto | Margen |
 |---|---|---|---|
 | GitHub Actions (repo público) | minutos ilimitados | 12 ejecuciones/día × ~2 min | holgado |
-| Cloudflare Pages | 500 despliegues/mes, 20.000 ficheros | 12/día ≈ 360/mes, ~2.400 ficheros (1161 páginas + 1160 `og/*.png`, H11) | despliegues ajustado y a vigilar; ficheros holgado |
+| Cloudflare Pages | 500 despliegues/mes, 20.000 ficheros | 12/día ≈ 360/mes; páginas e imágenes se regeneran con los datos | despliegues ajustado y a vigilar; ficheros holgado |
 | Cloudflare Pages | ancho de banda ilimitado | — | sin problema |
 | OpenFreeMap | sin límite de peticiones ni registro | tiles del mapa | sin problema |
 | API MITECO | sin límite publicado | 52 peticiones cada 2 h | sin problema |
@@ -83,70 +83,59 @@ y dejar Pages solo para el código. No antes.
 | Programación | GitHub Actions con `schedule` | Gratis en repos públicos. |
 | Imagen de compartición | `@resvg/resvg-js`, solo en el build | Rasteriza a PNG un SVG propio (sin motor de layout externo). Corre en Node durante `npm run build`, nunca en el navegador — no cuenta para RNF-11. Ver [ADR-0011](adr/0011-imagen-og-generada-en-build-con-resvg.md). |
 
-Dependencias permitidas: `astro`, `maplibre-gl`, `zod`, `typescript`,
-`@resvg/resvg-js` (solo en `scripts/`, nunca en el bundle del navegador).
-Cualquier otra cosa necesita justificación en el pull request.
+Dependencias de ejecución y build actuales: `astro`, `maplibre-gl`, `zod` y
+`@resvg/resvg-js` (esta última solo en `scripts/`, nunca en el bundle del
+navegador). Herramientas de desarrollo y despliegue: `typescript`,
+`@astrojs/check`, `@types/node` y `wrangler`. `package.json` es la fuente de
+verdad de versiones y comandos. Cualquier paquete nuevo necesita justificación
+en el pull request.
 
 ## Estructura del repositorio
 
 ```
 surtidor/
-├── CLAUDE.md
-├── README.md
-├── astro.config.mjs
-├── package.json
+├── README.md · CLAUDE.md · package.json · astro.config.mjs
 ├── docs/
-│   ├── 01-especificacion.md
-│   ├── 02-requisitos.md
-│   ├── 03-arquitectura.md
-│   ├── 04-fuente-datos.md
-│   ├── 05-diseno.md
-│   ├── 06-roadmap.md
+│   ├── 01-especificacion.md … 07-marca.md
 │   └── adr/
-├── .github/workflows/
-│   └── datos.yml              # cron cada 2 h: descarga, construye, despliega
+├── .github/workflows/datos.yml # descarga, build y despliegue cada 2 h o al hacer push
 ├── scripts/
-│   ├── descargar-datos.ts     # llama al MITECO, normaliza, escribe JSON
-│   ├── datos-mock.ts          # genera datos falsos para desarrollo sin red
-│   ├── generar-imagenes-compartir.ts # RF-66 (H11): og:image por zona y municipio (ADR-0011)
-│   └── lib/
-│       ├── miteco.ts          # cliente de la API y esquemas zod
-│       ├── normalizar.ts      # String con coma → number | null
-│       ├── horario.ts         # intérprete del campo Horario
-│       ├── municipios.ts      # cruza estaciones reales con Listados/Municipios
-│       ├── slug.ts            # nombre del catálogo → tramo de URL, sin colisiones
-│       └── fuentes/           # Inter y JetBrains Mono (OFL), solo para el build de imágenes
+│   ├── descargar-datos.ts      # descarga, normaliza y escribe artefactos
+│   ├── datos-mock.ts           # datos falsos para desarrollo sin red
+│   ├── comprobar-datos-reales.ts # impide construir o desplegar datos mock
+│   ├── generar-imagenes-compartir.ts # imágenes de zona, municipio y editorial
+│   ├── probar-miteco.ts        # diagnóstico manual de la fuente
+│   └── lib/                    # cliente, normalización, agregados, slugs y contratos
 ├── src/
 │   ├── pages/
-│   │   ├── index.astro                        # redirige a la última zona o la elige
-│   │   ├── [zona]/index.astro                 # una página por zona, para SEO
-│   │   ├── [provincia]/[municipio]/index.astro # una página por municipio (H10)
-│   │   ├── 404.astro                          # 404 real; municipio sin página cae aquí (ADR-0012)
-│   │   └── sitemap.xml.ts                     # RF-64, regenerado en cada build
-│   ├── componentes/
-│   │   ├── AppInteractiva.astro # cascarón interactivo, compartido por zona y municipio
-│   │   ├── Mapa.ts             # isla: MapLibre y marcadores
-│   │   ├── Totem.ts            # ficha de la estación seleccionada
-│   │   ├── Lista.ts            # lista ordenada
-│   │   └── Controles.ts        # combustible, filtro, provincia, depósito
-│   ├── logica/
-│   │   ├── estado.ts          # estado de la aplicación, sin librería
-│   │   ├── zona.ts            # carga en paralelo y fusión de provincias
-│   │   ├── escala.ts          # percentil → banda de color
-│   │   └── ahorro.ts          # cálculo en euros
-│   └── estilos/
-│       └── tokens.css         # única fuente de verdad del diseño
-├── datos-build/
-│   └── municipios.json         # catálogo de municipios (H10). NO se despliega, ver más abajo
+│   │   ├── index.astro
+│   │   ├── [...zona]/index.astro
+│   │   ├── [provincia]/[municipio]/index.astro
+│   │   ├── hoy/*.astro         # seis documentos editoriales
+│   │   ├── 404.astro
+│   │   └── sitemap.xml.ts
+│   ├── componentes/            # aplicación, mapa, hoja, navegación y tablas editoriales
+│   ├── layouts/DocumentoEditorial.astro
+│   ├── logica/                 # estado, zonas, racimos, cercanía y vista nacional
+│   ├── estilos/                # tokens, interfaz, mapa y documentos editoriales
+│   └── assets/marca.svg
+├── datos-build/                # catálogos consumidos solo durante el build
+│   ├── municipios.json
+│   └── provincias-slugs.json   # residuo de ADR-0010; el código actual no lo consume
+├── marca/                      # maestros SVG; no se despliegan directamente
 └── public/
+    ├── _redirects              # 71 redirecciones exactas de URL antigua
     ├── data/
-    │   ├── indice.json         # provincias, zonas, marca de tiempo — lo pide el navegador
-    │   └── provincias/
-    │       └── 01.json … 52.json
-    └── og/                     # RF-66 (H11): un PNG 1200×630 por zona y por municipio
-        ├── p-01.png … ccaa-19.png
-        └── {provincia}/{municipio}.png
+    │   ├── indice.json
+    │   ├── resumen-nacional.json
+    │   └── provincias/01.json … 52.json
+    ├── og/                     # PNG generados de zona, municipio y editorial
+    └── favicon, iconos, manifiesto y robots.txt
 ```
+
+El árbol enumera las piezas estructurales, no cada prueba ni cada artefacto
+generado. Los nombres exactos y la lista completa se consultan en el repositorio;
+`public/data/` y `public/og/` cambian al regenerar datos e imágenes.
 
 ## Contrato de los ficheros de datos
 
@@ -167,6 +156,8 @@ surtidor/
       "lat": 42.8695,
       "lon": -2.6716,
       "horario": "L-D: 24H",
+      "tipoVenta": "P",
+      "margen": "D",
       "precios": {
         "gasolina95e5": 1.409,
         "gasoleoA": 1.489,
@@ -201,11 +192,11 @@ que deliberadamente no está aquí.
       "minimos": { "gasolina95e5": 1.409 } }
   ],
   "zonas": [
-    { "id": "p-01", "nombre": "Álava",
+    { "id": "araba-alava", "nombre": "ARABA/ALAVA",
       "tipo": "provincia", "provincias": ["01"] },
-    { "id": "ccaa-16", "nombre": "Euskadi",
+    { "id": "pais-vasco", "nombre": "País Vasco",
       "tipo": "ccaa", "provincias": ["01","48","20"] },
-    { "id": "ccaa-01", "nombre": "ANDALUCIA",
+    { "id": "andalucia", "nombre": "Andalucía",
       "tipo": "ccaa", "provincias": ["04","11","14","18","21","23","29","41"] }
   ]
 }
@@ -304,16 +295,21 @@ y `push` a `main`. Pasos:
 2. `npm run data:fetch` — si falla, **el workflow se detiene aquí**. No se
    despliega nada y el sitio anterior sigue en pie (RF-05).
 3. `npm run build`
-4. `wrangler pages deploy dist/`
+4. `npm run comprobar:datos` — segunda guarda explícita contra datos mock.
+5. `npx wrangler pages deploy dist/ --project-name=surtidor`
 
 El token de Cloudflare va en los secretos del repositorio. No hay más secretos:
 la API del ministerio es abierta.
 
-## Lo que hay que decidir cuando toque
+## Límites y trabajo pendiente
 
-- **Agrupación de marcadores.** A partir de unas 300 estaciones en pantalla
-  (Madrid, Barcelona) hace falta. No se implementa hasta que se vea el problema
-  con datos reales.
-- **Histórico.** El endpoint `EstacionesTerrestresHist/{fecha}` existe. Guardar
-  un resumen diario por provincia es barato en espacio, pero es v2.
-- **Dominio.** `surtidor.es` o similar. No bloquea nada.
+La agrupación de marcadores ya está implementada: racimos por debajo de zoom 11,
+colisiones por encima e identidad estable al desplazar. Ver
+[ADR-0006](adr/0006-marcadores-dom-con-colisiones.md) y
+[ADR-0021](adr/0021-racimos-estables-al-desplazar-el-mapa.md).
+
+El sitio usa `surtidor.app`; las URL canónicas se construyen con ese dominio en
+la configuración de Astro. El histórico diario sigue pendiente: el endpoint
+`EstacionesTerrestresHist/{fecha}` existe, pero V2-01 aún no está implementado.
+El estado de ese trabajo vive en [06 · Roadmap](06-roadmap.md), no en este
+documento de arquitectura actual.

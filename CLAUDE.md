@@ -6,7 +6,10 @@ Instrucciones para Claude Code en este repositorio.
 
 Surtidor es un mapa de precios de carburantes de España. Sitio estático, sin
 backend, sin base de datos, sin autenticación. Lee `README.md` y luego
-`docs/01-especificacion.md` y `docs/03-arquitectura.md` antes de escribir nada.
+`docs/01-especificacion.md`, `docs/02-requisitos.md` y
+`docs/03-arquitectura.md` antes de escribir nada. Para conocer qué está
+terminado o pendiente, consulta también `docs/06-roadmap.md` y contrástalo con
+el código y las pruebas actuales.
 
 El propietario del repo **no va a revisar el código línea a línea**. Prioriza
 código legible, simple y con pocas dependencias sobre código listo. Si dudas
@@ -41,10 +44,12 @@ mensaje que diga qué ha fallado, y el resto sigue vivo.
 La API del ministerio no envía cabeceras CORS. El navegador siempre lee ficheros
 JSON estáticos propios generados en el build. Ver `docs/04-fuente-datos.md`.
 
-### 4. Nada de almacenamiento del navegador para datos de usuario
+### 4. Solo preferencias locales, nunca datos enviados o sincronizados
 
-No hay cuentas ni sincronización. Las preferencias (combustible elegido, tamaño
-del depósito) van en `localStorage` y en ningún sitio más. No se manda telemetría.
+No hay cuentas ni sincronización. Las únicas preferencias persistentes son zona,
+combustible y litros a repostar; van en `localStorage` y en ningún sitio más.
+La ubicación y el modo de orden por cercanía solo viven en memoria durante la
+carga. Nada de ello se envía y no se manda telemetría.
 
 ### 5. Sin dependencias que no ganen su sitio
 
@@ -54,8 +59,9 @@ nada de gestores de estado. La lista permitida está en `docs/03-arquitectura.md
 
 ## Cómo trabajar
 
-- **Un hito por rama.** Los hitos están en `docs/06-roadmap.md`, en orden. No
-  saltes hitos ni empieces varios a la vez.
+- **Un cambio acotado por rama.** La v1 ya está terminada; no trates H1-H11 como
+  una cola vigente. Para trabajo futuro, parte del estado y el orden de
+  `docs/06-roadmap.md` y no mezcles varios hitos en la misma rama.
 - **Verifica antes de decir que funciona.** `npm run build` tiene que pasar y
   tienes que haber cargado la página. "Debería funcionar" no vale.
 - **Comprueba los casos de fallo a mano:** sin red, JSON corrupto, provincia sin
@@ -83,6 +89,9 @@ npm run build        # build de producción
 npm run preview      # servir el build
 npm run data:fetch   # regenerar public/data/ desde la API del MITECO
 npm run check        # tipos + lint
+npm test             # pruebas unitarias de scripts y lógica de cliente
+npm run comprobar:datos # aborta si public/data contiene datos mock
+npm run generar:imagenes # regenera las imágenes de compartición
 ```
 
 `npm run data:fetch` necesita salida a internet hacia

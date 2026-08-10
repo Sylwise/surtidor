@@ -9,9 +9,10 @@ Prioridad: **M** imprescindible para la v1 · **S** deseable dentro de la v1 ·
 
 Filtro previo a cualquier requisito nuevo: **si necesita un servidor, no entra.**
 
-Todo lo de este documento es **v1**, salvo la última sección. Los requisitos de
-la v2 están al final, claramente separados: no se implementan hasta que la v1
-esté publicada.
+Todo lo de este documento es **v1**, salvo las secciones marcadas como v2 o v3.
+La v1 ya está publicada. Este documento define comportamiento verificable; el
+estado de ejecución de cada versión se mantiene en
+[06 · Roadmap](06-roadmap.md), contrastado con el código y las pruebas.
 
 ---
 
@@ -147,7 +148,7 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 |---|---|---|
 | RF-97 | V2 | `/hoy/provincias-mas-baratas/` responde en una sola página qué provincias tienen menor precio medio para cada uno de los cuatro combustibles. No se generan cuatro variantes por combustible. Para cada combustible se ven de entrada las diez primeras provincias; las restantes siguen en el HTML servido y se muestran dentro de un `<details>` nativo, sin JavaScript y sin repetir el top 10. Canarias, Ceuta y Melilla no entran en los rankings nacionales y aparecen siempre en una tabla aparte completa. |
 | RF-98 | V2 | `/hoy/cuanto-te-juegas/` muestra, por provincia y combustible, la diferencia entre la estación más barata y la media de la provincia, expresada en euros para un depósito de 50 litros. La presenta como el ahorro posible al elegir la más barata frente al precio medio y responde cuánto se puede ahorrar al llenar el depósito. Canarias, Ceuta y Melilla no entran en los rankings nacionales y aparecen en una tabla aparte. |
-| RF-99 | V2 | `/hoy/marcas-mas-baratas/` muestra la media por rótulo y combustible, junto al número de estaciones de cada rótulo, como comparación no geográfica. El ámbito analizado es península y Baleares; solo entran rótulos con un mínimo de 100 estaciones en ese ámbito. La página dice en texto visible que el umbral es 100 y cuántas estaciones quedan fuera del ranking; con los datos actuales entran 12 rótulos y quedan fuera unas 4.900 de las 10.993 estaciones. La página ordena rótulos, no empresas ni grupos empresariales: lo escrito en el cartel, de acuerdo con «el precio de pantalla es el precio del cartel» de `docs/05-diseno.md`. MOEVE y CEPSA aparecen por separado porque hoy son dos carteles distintos en la calle, aunque sean la misma compañía en pleno cambio de marca; PETRONOR y CAMPSA aparecen separados de REPSOL por el mismo motivo. La propia página lo explica en una línea para dejar claro que es deliberado. No existe una tabla de equivalencias entre marcas: exigiría trabajo recurrente y cambiaría cada pocos meses conforme avance el cambio de marca. Los rótulos se agrupan por coincidencia literal después de recortar espacios al principio y al final; no se normalizan mayúsculas ni tildes, porque los datos actuales no presentan variantes por ninguna de las dos. Canarias, Ceuta y Melilla quedan fuera del cálculo nacional y aparecen en una tabla aparte. |
+| RF-99 | V2 | `/hoy/marcas-mas-baratas/` muestra la media por rótulo y combustible, junto al número de estaciones de cada rótulo, como comparación no geográfica. El ámbito analizado es península y Baleares; solo entran rótulos con un mínimo de 100 estaciones en ese ámbito. La página dice en texto visible que el umbral es 100 y calcula en cada build cuántos rótulos entran y cuántas estaciones quedan fuera; esas cifras dependen de los datos y no son constantes del requisito. La página ordena rótulos, no empresas ni grupos empresariales: lo escrito en el cartel, de acuerdo con «el precio de pantalla es el precio del cartel» de `docs/05-diseno.md`. MOEVE y CEPSA aparecen por separado porque son carteles distintos en la calle, aunque pertenezcan a la misma compañía; PETRONOR y CAMPSA aparecen separados de REPSOL por el mismo motivo. La propia página lo explica en una línea para dejar claro que es deliberado. No existe una tabla de equivalencias entre marcas: exigiría trabajo recurrente y cambiaría conforme evolucionen los rótulos. Los rótulos se agrupan por coincidencia literal después de recortar espacios al principio y al final; no se normalizan mayúsculas ni tildes mientras los datos reales no presenten variantes que obliguen a revisar esta regla. Canarias, Ceuta y Melilla quedan fuera del cálculo nacional y aparecen en una tabla aparte. |
 | RF-100 | V2 | `/hoy/capitales-de-provincia/` compara la media de las 52 capitales de provincia y enlaza a las 52 páginas de municipio. Una tabla fija escrita a mano una sola vez contiene los 52 nombres y los empareja verbatim contra el catálogo del ministerio, conforme a RF-76. Si un nombre no casa, el build falla e indica cuál no ha encontrado; nunca omite una capital en silencio. Canarias, Ceuta y Melilla no entran en los rankings nacionales y aparecen en una tabla aparte. |
 | RF-101 | V2 | `/hoy/la-mas-barata-de-espana/` muestra, para cada combustible, el mínimo nacional y el mínimo de cada comunidad, con el municipio de origen visible y enlace a su página. Si el municipio no genera página propia por el umbral de RF-60, el enlace lleva a su provincia, donde aparece la estación; no se excluye el mínimo ni se crea una URL municipal excepcional. Canarias, Ceuta y Melilla no entran en el ranking nacional y aparecen en una tabla aparte. |
 | RF-102 | V2 | `/hoy/canarias-ceuta-melilla/` contiene, para cada combustible, un ranking completo de Las Palmas, Santa Cruz de Tenerife, Ceuta y Melilla. Su único párrafo fijo redactado a mano dice: «Los precios de Canarias, Ceuta y Melilla se presentan por separado porque su fiscalidad de carburantes no es la misma que en Península y Baleares. Canarias aplica un impuesto autonómico específico sobre los combustibles derivados del petróleo; Ceuta y Melilla aplican el IPSI y pueden gravar los carburantes con un complemento propio. Por eso una diferencia de precio no refleja solo competencia o costes comerciales: también incorpora regímenes tributarios distintos». |
@@ -213,8 +214,8 @@ RF-70 se retiró de aquí: decía lo mismo que RF-49, palabra por palabra.
 
 ## Requisitos de la v2
 
-**No se implementan hasta que la v1 esté publicada.** Están aquí para que las
-decisiones de la v1 no cierren puertas, no para construirlos ahora.
+La v1 ya está publicada. Estos identificadores se conservan como requisitos de
+la v2; la marca **Completado** o **Descartado** indica su estado actual.
 
 Ninguno necesita servidor. Si alguno acaba necesitándolo, se cae de la lista.
 

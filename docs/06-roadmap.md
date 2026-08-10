@@ -16,9 +16,9 @@ corto, es acabar pareciéndose a lo que quería sustituir. Ver el apartado
 
 # V1 · Publicable
 
-El objetivo no es estar completo, es **estar en línea y ser mejor que lo que hay**.
-Cada hito en su rama, en este orden. Los datos primero y el mapa después: es la
-pieza que más falla y la que menos aporta al principio.
+**Estado: terminada y publicada.** El objetivo no era estar completo, sino estar
+en línea y ser mejor que lo que había. Los hitos siguientes conservan el orden y
+los criterios con los que se construyó la v1; ya no son una cola de trabajo.
 
 ## H1 · Andamiaje
 
@@ -61,9 +61,10 @@ semana (`V-L`); campo vacío o ininteligible devuelve abierta.
 ## H5 · Generación de datos
 
 `scripts/descargar-datos.ts`. Las 52 provincias a `public/data/provincias/NN.json`
-más `indice.json` con los catálogos de provincias, municipios y zonas. Escritura
-atómica: fichero temporal y renombrado. Si falla cualquier provincia, sale con
-código distinto de cero y no toca nada.
+más `indice.json` con los catálogos de provincias y zonas. El catálogo de
+municipios vive en `datos-build/municipios.json`: solo lo consume el build y no
+se despliega. Escritura atómica: fichero temporal y renombrado. Si falla
+cualquier provincia, sale con código distinto de cero y no toca nada.
 
 Más `scripts/datos-mock.ts` para desarrollar sin salida a internet.
 
@@ -282,7 +283,9 @@ El motivo completo, en [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md).
 
 Recogidas el 8 de agosto de 2026. No están comprometidas, no tienen
 requisito ni versión asignada, y varias se solapan con lo ya planificado.
-Se anotan para no perderlas.
+Se anotan para no perderlas. Son un registro fechado, no una descripción del
+estado actual; antes de promover una hay que contrastarla de nuevo con el código
+y los requisitos vigentes.
 
 **Dependen del resumen histórico (V2-01) y salen casi solas una vez exista:**
 
@@ -316,10 +319,10 @@ Se anotan para no perderlas.
 
 **Se solapan con cosas ya planificadas o ya hechas, comprobar antes:**
 
-- Preferencia de combustible persistente. Puede que ya esté: `estado.ts`
+- Preferencia de combustible persistente. **Ya implementada:** `estado.ts`
   guarda combustible junto a zona y litros.
-- Indicador de frescura del dato. La línea de "Datos de las HH:MM" ya
-  cumple la función; podría faltarle forma, no fondo.
+- Indicador de frescura del dato. **Ya implementado:** la interfaz muestra la
+  hora y avisa cuando los datos superan seis horas.
 - Detección de estaciones anómalas: precios inusualmente bajos, cambios
   desproporcionados, estaciones sin actualizar. Se solapa con el precio
   congelado (V2-08).

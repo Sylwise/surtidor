@@ -519,10 +519,9 @@ color.
 
 ## Nomenclatura
 
-Un producto tiene **un solo nombre** en toda la interfaz. Ahora mismo hay tres
-vocabularios conviviendo: las pestañas dicen "Diésel" y "Premium", las filas de
-la ficha dicen "Diésel" y "Diésel premium", y estos documentos decían "Gasóleo A"
-y "Gasóleo Premium".
+Un producto tiene **un solo nombre** en toda la interfaz. Antes de fijar esta
+regla convivían tres vocabularios entre pestañas, ficha y documentación; la
+tabla siguiente resolvió esa divergencia y es la referencia vigente.
 
 Tabla canónica. Es la única fuente de verdad y no se improvisa en cada
 componente:
@@ -554,8 +553,8 @@ El ministerio devuelve rótulos y direcciones en mayúsculas.
   peor. Las partículas —de, la, del, y— quedan en minúscula.
 - **La provincia, verbatim** (RF-76): `ARABA/ALAVA`.
 
-Hoy conviven en la misma línea la dirección en mayúsculas y el municipio en caja
-de título. Eso es lo que hay que unificar.
+Esta regla sustituyó la mezcla anterior de dirección en mayúsculas y municipio
+en caja de título. Código nuevo y revisiones deben conservarla.
 
 ### Palabras concretas
 

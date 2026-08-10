@@ -1,6 +1,6 @@
 # ADR-0014 · El mapa manda: la vista decide qué zona se muestra
 
-**Fecha:** 2026-08-07 · **Estado:** aceptado · **Amplía:** ADR-0003, ADR-0005
+**Fecha:** 2026-08-07 · **Estado:** superado por [ADR-0015](0015-el-mapa-manda-abandonado.md) · **Amplía:** ADR-0003, ADR-0005
 
 ## Contexto
 

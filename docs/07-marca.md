@@ -40,15 +40,17 @@ estorban en vez de ayudar.
 
 | Fichero | Para qué |
 |---|---|
-| `favicon.svg` | Favicon moderno. Vectorial, nítido a cualquier tamaño |
-| `icono.svg` | Maestro. Editar aquí y regenerar el resto |
-| `marca.svg` | Sin fondo, hereda `currentColor`. Para la cabecera y documentos |
-| `apple-touch-icon.png` | 180×180. iOS, al guardar en pantalla de inicio |
-| `icono-192.png` / `icono-512.png` | Manifiesto e instalación |
-| `icono-maskable-512.png` | Android recorta hasta un 20% por lado; esta lleva el margen |
-| `site.webmanifest` | Manifiesto. Ajustar si cambia el nombre |
+| `public/favicon.svg` | Favicon moderno. Vectorial, nítido a cualquier tamaño |
+| `marca/icono.svg` | Maestro del icono normal. Editar aquí y regenerar derivados |
+| `marca/icono-maskable.svg` | Maestro con margen seguro para Android |
+| `src/assets/marca.svg` | Sin fondo, hereda `currentColor`; cabecera y documentos |
+| `public/apple-touch-icon.png` | 180×180. iOS, al guardar en pantalla de inicio |
+| `public/icono-192.png` / `public/icono-512.png` | Manifiesto e instalación |
+| `public/icono-maskable-512.png` | Android puede recortar; esta lleva margen |
+| `public/site.webmanifest` | Manifiesto. Ajustar si cambia el nombre |
 
-Todo va en `public/`, en la raíz.
+Solo los derivados destinados al navegador van en `public/`. Los maestros
+viven en `marca/` y la marca que se integra en el código, en `src/assets/`.
 
 ## Etiquetas en el `<head>`
 
@@ -68,7 +70,8 @@ que tocar `site.webmanifest` y el texto de la cabecera, que es HTML normal.
 
 ## Al regenerar
 
-Editar `icono.svg` y volver a rasterizar. **Comprobar siempre a 16 px**: es donde
+Editar `marca/icono.svg` (y `marca/icono-maskable.svg` cuando afecte al área
+segura) y volver a rasterizar. **Comprobar siempre a 16 px**: es donde
 se rompe todo. El poste tiene 8 unidades de ancho de 64 justamente por eso — con
 4 desaparecía y el icono quedaba en un borrón.
 

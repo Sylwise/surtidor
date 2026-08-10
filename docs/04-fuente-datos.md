@@ -234,8 +234,10 @@ Tres códigos, no dos. Según el anexo de la Orden ITC/2308/2007:
 Una instalación que venda a sus cooperativistas a un precio distinto remite **dos
 registros**, uno `P` y otro `R`. Si solo vende a asociados, remite `R`.
 
-**En la práctica, el servicio REST devuelve `P` en el 100 % de las estaciones.**
-Comprobado sobre las 11.519 de España: cero `R`, cero `A`.
+**En la muestra nacional comprobada el 5 de agosto de 2026, el servicio REST
+devolvía `P` en el 100 % de las 11.519 estaciones:** cero `R`, cero `A`. Es una
+medición, no una garantía permanente de la fuente; el normalizador sigue
+aceptando los tres códigos.
 
 No es un error de lectura. Hay dos razones:
 

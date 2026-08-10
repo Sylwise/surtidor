@@ -6,31 +6,23 @@ Los datos vienen de la API pública del Ministerio para la Transición Ecológic
 (MITECO), la misma fuente que alimenta Waze y las webs de comparación. La
 diferencia es que aquí no hay nada entre el precio y tú.
 
-**Estado:** v1 completa. H1 a H11: mapa con botón de ubicación (RF-17),
-páginas de zona y de municipio, JSON-LD, sitemap.xml, 404 real para el
-municipio sin página propia —
-[ADR-0012](docs/adr/0012-municipio-sin-pagina-404.md)— e imagen de
-compartición `og:image` generada en el build —
-[ADR-0011](docs/adr/0011-imagen-og-generada-en-build-con-resvg.md).
-Enlazado interno portada → zona → municipio (RF-91, RF-92) —
-[ADR-0017](docs/adr/0017-jerarquia-de-enlaces.md). El precio que acompaña a
-cada municipio, en zona y en vecinos, sigue al combustible seleccionado
-(RF-94). Las URLs de zona llevan el nombre, no el identificador (RF-95,
-RF-96) — [ADR-0018](docs/adr/0018-urls-de-zona-por-nombre.md).
-
-**V2 en curso:** V2-10, V2-13 y V2-18 completados. Las seis páginas editoriales
-bajo `/hoy/`, la ordenación por cercanía y la vista nacional por provincias
-están implementadas, con sus agregados, enlazado, sitemap e imágenes de
-compartición (RF-97 a RF-107, ADR-0019, ADR-0020 y ADR-0022).
+**Estado actual:** v1 completa y publicada en [surtidor.app](https://surtidor.app).
+De la v2 están terminadas las seis páginas editoriales bajo `/hoy/` (V2-10),
+la ordenación por cercanía tras conceder ubicación (V2-13) y la vista nacional
+por provincias (V2-18). El estado completo —terminado, pendiente y descartado—
+se mantiene en el [roadmap](docs/06-roadmap.md); los requisitos verificables,
+en [02 · Requisitos](docs/02-requisitos.md).
 
 Pendiente conocido y aplazado a la v2: RF-56, la interfaz de venta restringida.
-El filtro y sus pruebas están, pero no se expone porque hoy no hay ninguna
-estación `R` en toda España. Entra con el gasóleo B. El detalle, en
-`docs/04-fuente-datos.md`.
+El filtro y sus pruebas están, pero no se expone porque la muestra nacional
+verificada no contenía ninguna estación `R`. Entra con el gasóleo B. El detalle
+y el contexto de esa medición están en `docs/04-fuente-datos.md`.
 
-La documentación describe el objetivo, no siempre lo ya construido. Ante una
-discrepancia entre documento y código, **manda el documento**: es la
-especificación, y el código es lo que va detrás.
+Cada documento tiene una responsabilidad distinta: los requisitos y los ADR
+vigentes son normativos; la arquitectura describe lo construido; el roadmap
+separa lo terminado de lo pendiente y descartado. Ante una duda sobre el estado
+actual, hay que comprobar también el código, las pruebas y el workflow: una
+aspiración del roadmap no demuestra que una función exista.
 
 ---
 
@@ -57,7 +49,10 @@ Euskadi entera.
 npm install
 npm run data:fetch      # descarga y normaliza los datos del MITECO a public/data/
 npm run dev             # servidor de desarrollo
+npm run check           # tipos de Astro y TypeScript de scripts
+npm test                # pruebas unitarias
 npm run build           # build estático a dist/
+npm run preview         # sirve el build localmente
 ```
 
 ## Documentación
@@ -71,7 +66,7 @@ Leer en este orden.
 | [03 · Arquitectura](docs/03-arquitectura.md) | Flujo de datos, stack, despliegue, estructura de carpetas |
 | [04 · Fuente de datos](docs/04-fuente-datos.md) | La API del MITECO y todas sus trampas |
 | [05 · Diseño](docs/05-diseno.md) | Tokens, tipografía, el tótem, componentes |
-| [06 · Roadmap](docs/06-roadmap.md) | Hitos en orden, listos para convertir en issues |
+| [06 · Roadmap](docs/06-roadmap.md) | Trabajo terminado, pendiente, descartado y futuro |
 | [07 · Marca](docs/07-marca.md) | Icono, favicon, manifiesto y dónde vive cada fichero |
 | [ADR](docs/adr/) | Decisiones de arquitectura y por qué se tomaron |
 

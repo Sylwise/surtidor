@@ -68,9 +68,12 @@ Lo que la hace encontrable:
   guardada si vuelve, página de aterrizaje si viene de una búsqueda, y selector
   si es visita directa nueva. Ver [ADR-0008](adr/0008-zona-inicial-sin-servidor.md).
 
-### v2 — pensado y en espera
+### v2 y futuro
 
-Nada de esto necesita servidor. Está en cola por tiempo, no por arquitectura.
+Nada de esto necesita servidor. Algunas funciones ya están terminadas, otras
+siguen en cola y otras se descartaron después de probarlas. El estado y el orden
+se mantienen en [06 · Roadmap](06-roadmap.md); esta tabla conserva la intención
+de producto, no actúa como contabilidad de implementación.
 
 | Función | Qué aporta |
 |---|---|
@@ -79,11 +82,12 @@ Nada de esto necesita servidor. Está en cola por tiempo, no por arquitectura.
 | Filtro por carretera | "Voy por la A-1". Distancias precalculadas en el build |
 | Precio congelado | Señalar las que dejan de actualizar para parecer baratas |
 | Favoritos | Fijar arriba tus tres habituales |
-| Páginas editoriales | "Las provincias más baratas hoy", generadas solas |
+| Páginas editoriales | "Las provincias más baratas hoy", generadas solas (terminado: V2-10) |
 | API abierta | Publicar nuestros JSON normalizados. Trae enlaces |
 | Gasóleo B y otros | Público pequeño pero muy fiel |
-| Ordenar por distancia | Requiere geolocalización concedida |
-| PWA sin conexión | La última zona en caché |
+| Ordenar por distancia | Requiere geolocalización concedida (terminado: V2-13) |
+| Vista nacional | Resumen provincial al alejar el mapa (terminado: V2-18) |
+| PWA sin conexión | Descartada: servir precios antiguos rompe la confianza; ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md) |
 | Puntos de recarga | Misma familia de servicios |
 
 ### Descartado, y no se revisa
@@ -110,13 +114,15 @@ Nada de esto necesita servidor. Está en cola por tiempo, no por arquitectura.
 
 ### CU-1 · Consultar mi zona
 
-El usuario abre la web. Se le muestra su zona (recordada de la última visita o,
-si es la primera, detectada por geolocalización si la concede, y si no, un
-selector). Ve el mapa con los precios del combustible que tenga guardado.
+El usuario abre la web. Se le muestra su zona guardada o la zona de la página de
+aterrizaje; en una primera visita directa sin historial, se abre el selector.
+La geolocalización nunca se solicita al cargar: solo al pulsar «Mi ubicación».
+Ve el mapa con los precios del combustible que tenga guardado.
 
-Quien vive en Vitoria-Gasteiz puede tener guardada "Álava", "Euskadi" o "Euskadi
-y alrededores", que además de las tres provincias vascas incluye Navarra y
-Burgos. La frontera provincial no significa nada para quien conduce.
+Quien vive en Vitoria-Gasteiz puede elegir su provincia o su comunidad autónoma.
+No existen zonas manuales ni agrupaciones territoriales inventadas por el
+proyecto; la corrección y sus motivos están en
+[ADR-0005](adr/0005-provincia-unidad-y-zonas.md).
 
 La más barata está resaltada. La lista lateral va ordenada de más barata a más
 cara. El color se calcula sobre la zona completa, así que dos estaciones de
@@ -154,7 +160,7 @@ convierte una diferencia de céntimos en una decisión.
 | Coste mensual de infraestructura | 0 € |
 | Contenido útil en pantalla | menos de 1 s |
 | Peso de la carga inicial (sin tiles) | menos de 150 KB comprimido |
-| Antigüedad máxima de los precios | 2 horas |
+| Cadencia programada de actualización | cada 2 horas; si los datos superan 6 horas, se avisa |
 | Funciona sin que cargue el mapa | sí, completo |
 | Anuncios, cookies, registro | ninguno |
 
