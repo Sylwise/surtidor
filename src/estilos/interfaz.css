@@ -488,10 +488,6 @@ input {
   font-variant-numeric: tabular-nums;
 }
 
-.panel-zona .enlaces-bloque__fila--zona[aria-current='page'] {
-  display: none;
-}
-
 .panel-zona__actual + .enlaces-bloque {
   margin-top: 0;
 }

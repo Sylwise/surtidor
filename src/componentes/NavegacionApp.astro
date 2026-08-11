@@ -78,7 +78,7 @@ const editoriales = [
           </a>
         )}
         {tipos.map(({ tipo, etiqueta }) => {
-          const opciones = zonas.filter((zona) => zona.tipo === tipo);
+          const opciones = zonas.filter((zona) => zona.tipo === tipo && zona.id !== zonaId);
           return (
             <section class="enlaces-bloque" data-grupo-zona>
               <h3 class="enlaces-bloque__titulo micro">{etiqueta}</h3>
