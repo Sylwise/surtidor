@@ -31,6 +31,14 @@ export function serieDeEstacion(
 ): PuntoEvolucion[] | null {
   const estacion = historico.estaciones.find((serie) => serie[0] === estacionId);
   if (!estacion) return null;
+  return puntosDeSerie(historico, estacion, combustible);
+}
+
+function puntosDeSerie(
+  historico: HistoricoProvincia,
+  estacion: SerieHistoricaPublica,
+  combustible: ClavePrecio,
+): PuntoEvolucion[] {
   const precios = estacion[INDICE_PRECIO[combustible]];
   return historico.fechas.map((fecha, indice) => ({
     fecha,
@@ -73,8 +81,7 @@ export function cambiosDeEstaciones(
   return historico.estaciones
     .filter((serie) => municipioId == null || serie[1] === municipioId)
     .flatMap((serie) => {
-      const puntos = serieDeEstacion(historico, serie[0], combustible);
-      const cambio = puntos ? cambioEnPeriodo(puntos, dias) : null;
+      const cambio = cambioEnPeriodo(puntosDeSerie(historico, serie, combustible), dias);
       return cambio ? [{ estacionId: serie[0], ...cambio }] : [];
     })
     .sort((a, b) => a.diferenciaMilesimas - b.diferenciaMilesimas || a.estacionId.localeCompare(b.estacionId));
