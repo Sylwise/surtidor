@@ -137,8 +137,8 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const evolucionCambio = document.createElement('strong');
   evolucionCambio.className = 'totem__evolucion-cambio';
   const evolucionAccion = document.createElement('span');
-  evolucionAccion.textContent = 'Ver evolución →';
-  enlaceEvolucion.append(evolucionCambio, evolucionAccion);
+  evolucionAccion.textContent = 'Evolución';
+  enlaceEvolucion.append(evolucionAccion);
   let peticionEvolucion = 0;
   let claveEvolucion = '';
 
@@ -170,6 +170,8 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   ahorroCifra.className = 'totem__ahorro-cifra';
   const ahorroTexto = document.createElement('p');
   ahorroTexto.className = 'totem__ahorro-texto';
+  const ahorroResumen = document.createElement('p');
+  ahorroResumen.className = 'totem__ahorro-resumen';
 
   // --- Litros a repostar, 20 L por defecto: estepador a medida (RF-33) ---
   // Se mantiene `type="number"` (teclado numérico, validación nativa) pero
@@ -233,7 +235,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   campoLitros.append(botonMenos, campoNumero, botonMas);
   grupoLitros.append(etiquetaLitros, campoLitros);
 
-  lleno.append(cabeceraFicha, direccion, filaMargen, horario, llegar, combustibles, puesto, enlaceEvolucion, ahorro, grupoLitros);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, puesto, evolucionCambio, ahorro, llegar, enlaceEvolucion, grupoLitros);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
@@ -324,7 +326,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     const ordenadas = ordenarPorPrecio(visiblesTipoVenta, estado.combustible);
     const posicion = ordenadas.indexOf(estacion) + 1;
     const sufijoLugar = multiProvincia ? ` · ${estacion.provinciaNombre}` : '';
-    puesto.textContent = `${posicion}º de ${ordenadas.length} en ${estado.zonaNombre || 'la zona'}${sufijoLugar}.`;
+    puesto.textContent = `#${posicion} ${estado.zonaNombre || 'la zona'}${sufijoLugar}`;
 
     const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
     if (escala.maximo === null) {
@@ -336,11 +338,13 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     if (euros <= 0) {
       ahorroCifra.textContent = formatearEuros(0);
       ahorroTexto.textContent = 'Ya es de las más baratas de la zona con este combustible.';
+      ahorroResumen.textContent = `Sin ahorro adicional · ${estado.litros} L`;
     } else {
       ahorroCifra.textContent = formatearEuros(euros);
       ahorroTexto.textContent = `de ahorro repostando aquí en vez de en la más cara de la zona, con ${estado.litros} L.`;
+      ahorroResumen.textContent = `Ahorras ${formatearEuros(euros)} · ${estado.litros} L`;
     }
-    ahorro.replaceChildren(ahorroCifra, ahorroTexto);
+    ahorro.replaceChildren(ahorroCifra, ahorroTexto, ahorroResumen);
   }
 
   render(obtenerEstado());

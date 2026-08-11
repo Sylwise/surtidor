@@ -840,6 +840,7 @@ input {
   flex: none;
   position: relative;
   margin-left: 4px;
+  gap: 6px;
   /* Píldora más compacta que las pestañas de combustible: comparte familia
      visual (.controles__pestana) pero aquí vive junto a un contador
      pequeño, no en la cabecera de la hoja. El área de pulsación real sigue
@@ -856,6 +857,29 @@ input {
   content: '';
   position: absolute;
   inset: -7px;
+}
+
+.lista__filtro::after {
+  content: '';
+  order: -1;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  background: transparent;
+  transition: border-color 130ms, background 130ms;
+}
+
+.lista__filtro[aria-pressed='true']::after {
+  border-color: var(--positive);
+  background: var(--positive);
+}
+
+.lista__filtro.controles__pestana--activa {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--petrol);
 }
 
 .lista__aviso {
@@ -1321,7 +1345,42 @@ input {
   }
 
   .hoja__cuerpo {
+    display: flex;
+    flex-direction: column;
     touch-action: pan-y;
+    scrollbar-width: none;
+  }
+
+  .hoja__cuerpo > .totem { order: 1; }
+  .hoja__cuerpo > .lista-cabecera-portal { order: 2; }
+  .hoja__cuerpo > .lista { order: 3; }
+
+  .totem__evolucion-cambio { display: none; }
+  .totem__ahorro {
+    grid-area: cambio;
+    justify-self: end;
+    align-self: center;
+    padding: 0;
+    background: transparent;
+  }
+  .totem__ahorro-cifra,
+  .totem__ahorro-texto { display: none; }
+  .totem__ahorro-resumen {
+    display: block;
+    margin: 0;
+    color: var(--paper);
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .totem__puesto {
+    padding: 0;
+    background: transparent;
+    color: var(--signal);
+  }
+
+  .hoja__cuerpo::-webkit-scrollbar {
+    display: none;
   }
 
   .boton-zona__etiqueta {
@@ -1385,6 +1444,162 @@ input {
     border-radius: 0 0 12px 12px;
   }
 }
+
+/* Sidebar principal del prototipo Pencil. La cabecera de la lista vive fuera
+   de #lista para conservar su posición cuando aparece la ficha seleccionada. */
+.lista-cabecera-portal {
+  flex: none;
+  min-height: 58px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.lista-cabecera-portal:empty { display: none; }
+.lista-cabecera-portal .lista__cabecera {
+  min-height: 38px;
+  margin: 0;
+  flex-wrap: nowrap;
+}
+.lista-cabecera-portal .lista__filtro { margin-left: auto; }
+.lista { padding: 0 12px 18px; }
+.lista__filas { gap: 0; }
+.fila {
+  min-height: 58px;
+  padding: 7px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+.fila:hover { background: #e8eeed; }
+.fila--activa { background: #e8eeed; }
+.fila__rotulo { font-size: 12px; font-weight: 700; }
+.fila__direccion { font-size: 10px; }
+.fila__precio {
+  min-width: 72px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 17px;
+}
+
+.totem--vacio { display: none; }
+.totem:not(.totem--vacio) {
+  position: relative;
+  min-height: 278px;
+  padding: 18px;
+  border: 0;
+}
+.totem__lleno {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    'cabecera puesto'
+    'direccion direccion'
+    'precio cambio'
+    'ahorro ahorro'
+    'llegar evolucion';
+  gap: 8px;
+  align-items: center;
+}
+.totem__cabecera { grid-area: cabecera; }
+.totem__cerrar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  margin: 0;
+  color: var(--muted-light);
+}
+.totem__direccion { grid-area: direccion; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.totem__margen,
+.totem__horario,
+.totem__llegar-secundarios,
+.totem__litros { display: none; }
+.totem__combustibles { grid-area: precio; margin: 4px 0 0; border: 0; }
+.totem__fila-combustible { display: none; border: 0; }
+.totem__fila-combustible--activa { display: block; }
+.totem__fila-combustible--activa::before { display: none; }
+.totem__fila-combustible-boton {
+  display: flex;
+  min-height: 60px;
+  padding: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  cursor: default;
+}
+.totem__etiqueta-combustible {
+  color: var(--muted-light);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.totem__fila-combustible--activa .totem__precio {
+  color: var(--signal);
+  font-size: 32px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.totem__fila-combustible--activa .totem__precio::after { content: ' €/L'; }
+.totem__puesto {
+  grid-area: puesto;
+  justify-self: end;
+  align-self: start;
+  margin: 0 34px 0 0;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.08);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+.totem__evolucion-cambio {
+  grid-area: cambio;
+  justify-self: end;
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 12px;
+  text-decoration: none;
+}
+.totem__ahorro {
+  grid-area: ahorro;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.07);
+}
+.totem__ahorro-cifra { display: inline; margin-right: 5px; font-size: 15px; }
+.totem__ahorro-texto { display: inline; font-size: 10px; }
+.totem__ahorro-resumen { display: none; }
+.totem__llegar { grid-area: llegar; margin: 0; }
+.totem__llegar-boton,
+.totem__evolucion {
+  min-height: 38px;
+  width: 100%;
+  justify-content: center;
+  border-radius: 7px;
+  text-decoration: none;
+}
+.totem__evolucion {
+  grid-area: evolucion;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.17);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+@media (max-width: 760px) {
+  .lista-cabecera-portal { min-height: 50px; padding: 6px 14px; }
+  .totem:not(.totem--vacio) { min-height: 196px; padding: 12px 16px; }
+  .totem__lleno { gap: 5px 8px; }
+  .totem__fila-combustible-boton { min-height: 46px; }
+  .totem__fila-combustible--activa .totem__precio { font-size: 26px; }
+  .totem__ahorro { padding-block: 7px; }
+  .fila { min-height: 58px; }
+}
 /* ---------- Enlaces de jerarquía (H10, RF-91/RF-92, ADR-0017) ----------
    Portada → provincias/comunidades (src/pages/index.astro) y zona/municipio
    → municipios (AppInteractiva.astro, repintado en cliente por Lista.ts,
@@ -1425,6 +1640,265 @@ input {
 @media (max-width: 760px) {
   .panel-zona .enlaces-bloque__filas {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Rediseño Pencil 2026: chrome común de la aplicación. Estas reglas viven
+   al final para poder migrar la composición sin alterar la lógica ni los
+   estados SSR de los componentes existentes. */
+.cabecera {
+  flex: 0 0 64px;
+  height: 64px;
+  padding: 0 22px;
+  gap: 18px;
+  flex-wrap: nowrap;
+  background: var(--paper);
+}
+
+.app { --hoja-ancho: 380px; }
+.marca { font-size: 18px; font-weight: 800; letter-spacing: -0.4px; }
+.marca__icono { width: 22px; height: 22px; }
+.boton-zona,
+.boton-hoy {
+  min-height: 38px;
+  background: var(--surface);
+  border-color: var(--line);
+  border-radius: 7px;
+  font-size: 12px;
+}
+.boton-zona { padding: 4px 11px; }
+.boton-zona__nombre { font-weight: 400; }
+.boton-hoy { padding-inline: 13px; }
+.boton-hoy__icono { display: none; }
+.hoja { background: var(--paper); }
+.hoja__rapidos { padding: 16px; gap: 8px; }
+.hoja__rapidos .controles__combustible {
+  width: 100%;
+  gap: 6px;
+}
+.hoja__rapidos .controles__combustible .controles__pestana {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 6px;
+  border-radius: 7px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.mapa-hueco { background: var(--map-land); }
+
+@media (min-width: 1200px) {
+  .app { --hoja-ancho: 408px; }
+  .hoja__rapidos { padding: 18px; }
+  .lista-cabecera-portal { padding-inline: 18px; }
+  .lista { padding-inline: 14px; }
+  .totem:not(.totem--vacio) { padding: 20px; }
+}
+
+.estado-datos {
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 22px;
+  background: var(--subtle);
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.estado-datos::before {
+  content: '◷';
+  margin-right: 7px;
+  font-size: 12px;
+}
+
+.panel-zona {
+  top: 50%;
+  left: 50%;
+  width: 680px;
+  height: 720px;
+  max-height: calc(100dvh - 48px);
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: 0 16px 42px rgba(22, 50, 59, .19);
+}
+.panel-fondo { inset: 0; background: rgba(22, 50, 59, .4); backdrop-filter: none; }
+.panel-zona__cabecera { min-height: 126px; padding: 20px 20px 16px; gap: 14px 16px; box-shadow: none; }
+.panel-zona__titulo { font-size: 21px; font-weight: 800; }
+.panel-zona__ayuda { font-size: 11px; }
+.panel-zona__buscar { min-height: 42px; height: 42px; background: var(--surface); }
+.panel-zona__grupos { padding: 16px 18px; }
+.panel-zona .enlaces-bloque__filas { gap: 8px 10px; }
+.panel-zona .enlaces-bloque__fila { min-height: 45px; padding: 0 11px; border: 1px solid var(--line); border-radius: 7px; }
+
+.panel-hoy__fondo { display: none; }
+.panel-hoy {
+  position: fixed;
+  z-index: 18;
+  top: 94px;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  padding: 20px 16px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: -6px 0 18px rgba(22, 50, 59, .12);
+}
+.app--hoy-abierto .layout { padding-right: 320px; }
+.panel-hoy__asa { display: none; }
+.panel-hoy__cabecera { padding: 0 4px 10px; }
+.panel-hoy__cabecera > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.panel-hoy__titulo {
+  color: var(--petrol);
+  font-size: 16px;
+  line-height: 1.2;
+}
+.panel-hoy__lista { display: flex; flex-direction: column; gap: 6px; }
+.panel-hoy__lista a {
+  justify-content: flex-start;
+  min-height: 68px;
+  padding: 10px;
+  gap: 11px;
+  border-radius: 7px;
+}
+.panel-hoy__lista a > :last-child { margin-left: auto; font-size: 21px; }
+.panel-hoy__enlace--activo { background: var(--analysis-active); }
+.panel-hoy__icono { display: grid; place-items: center; width: 28px; height: 28px; flex: none; color: var(--ink-2); font-weight: 800; }
+.panel-hoy__texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.panel-hoy__texto strong { font-size: 12px; font-weight: 750; }
+.panel-hoy__texto small { margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 500; }
+
+@media (max-width: 760px) {
+  :root {
+    --hoja-colapsada: 110px;
+    --hoja-media: 462px;
+    --hoja-completa: calc(100dvh - 108px);
+  }
+  .cabecera {
+    height: 56px;
+    flex-basis: 56px;
+    padding: 0 14px;
+    gap: 8px;
+    box-shadow: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .marca__texto { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; }
+  .marca { font-size: 16px; }
+  .marca__icono { width: 20px; height: 20px; }
+  .controles-identidad {
+    min-width: 0;
+    flex: 0 1 auto;
+    margin-left: auto;
+  }
+  .boton-zona {
+    width: auto;
+    max-width: 150px;
+    min-width: 0;
+    height: 34px;
+    min-height: 34px;
+    justify-content: flex-start;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 3px 9px;
+  }
+  .boton-zona__nombre {
+    max-width: 110px;
+    min-width: 0;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: .08em;
+  }
+  .boton-zona__flecha { margin-left: auto; }
+  .navegacion-hoy { margin-left: 0; }
+  .boton-hoy { width: 34px; min-height: 34px; padding: 0; background: var(--petrol); color: var(--paper); border-color: var(--petrol); }
+  .boton-hoy__texto,
+  .boton-hoy__flecha { display: none; }
+  .boton-hoy__icono { display: inline; font-family: var(--mono); font-size: 17px; line-height: 1; }
+  .estado-datos { display: none; }
+  .layout { padding-top: 52px; }
+  .mapa-hueco { top: 52px; }
+  .app--hoy-abierto .layout { padding-right: 0; }
+  .hoja { height: var(--hoja-media); background: var(--paper); border-radius: 14px 14px 0 0; box-shadow: 0 -8px 22px color-mix(in srgb, var(--petrol) 14%, transparent); }
+  .hoja__rapidos {
+    position: fixed;
+    z-index: 4;
+    top: 56px;
+    left: 0;
+    width: 100%;
+    height: 52px;
+    padding: 7px 12px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .avisos { display: none; }
+  .hoja__asa { height: 24px; }
+  .hoja__asa::before { width: 28px; background: var(--line); }
+  .controles__pestana { border-radius: 6px; }
+  .panel-fondo,
+  .panel-hoy__fondo { position: fixed; z-index: 19; inset: 0; display: block; background: rgba(22,50,59,.4); }
+  .panel-fondo[hidden], .panel-hoy__fondo[hidden] { display: none; }
+  .panel-zona {
+    top: 96px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    max-height: none;
+    transform: translateY(12px);
+    border: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(22,50,59,.19);
+  }
+  .panel-zona.panel-zona--abierta { transform: translateY(0); }
+  .panel-zona__cabecera { min-height: 116px; padding: 20px 16px 12px; }
+  .panel-zona__grupos { padding: 12px 16px 20px; }
+  .panel-zona .enlaces-bloque__fila { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; min-height: 43px; }
+  .panel-hoy {
+    z-index: 20;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    max-height: calc(100dvh - 96px);
+    padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(22,50,59,.19);
+  }
+  .panel-hoy__asa { display: block; width: 40px; height: 4px; margin: 0 auto 8px; border-radius: 99px; background: var(--line); }
+  .panel-hoy__lista a { min-height: 64px; }
+  .totem__evolucion-cambio { display: none; }
+  .totem__ahorro {
+    grid-area: cambio;
+    justify-self: end;
+    align-self: center;
+    padding: 0;
+    background: transparent;
+  }
+  .totem__ahorro-cifra,
+  .totem__ahorro-texto { display: none; }
+  .totem__ahorro-resumen {
+    display: block;
+    margin: 0;
+    color: var(--paper);
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+  .totem__puesto {
+    padding: 0;
+    background: transparent;
+    color: var(--signal);
   }
 }
 
@@ -1533,3 +2007,21 @@ input {
   color: var(--signal);
   font-size: var(--fs-2);
 }
+
+/* El CTA de la ficha nueva gana sobre la regla heredada anterior. */
+.totem__lleno .totem__evolucion {
+  grid-area: evolucion;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 7px;
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.totem__lleno .totem__evolucion span { color: inherit; font-size: inherit; }

@@ -40,7 +40,7 @@ function techoUtil(): number {
 // el arrastre lea `getComputedStyle` en cada movimiento del puntero.
 function alturaDeEstado(estado: EstadoHoja): number {
   if (estado === 'colapsada') return 110;
-  if (estado === 'media') return window.innerHeight * 0.55;
+  if (estado === 'media') return Math.min(462, window.innerHeight - 108);
   return Math.min(window.innerHeight * 0.9, techoUtil());
 }
 
@@ -153,9 +153,8 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
   asa.addEventListener('pointerup', alSoltar);
   asa.addEventListener('pointercancel', alSoltar);
 
-  // Al seleccionar una estación (desde el mapa o desde la lista), la hoja
-  // sube del todo para que la ficha quepa entera sin depender de medir su
-  // alto real.
+  // Al seleccionar una estación, la hoja sube a la lectura media del nuevo
+  // diseño: deja mapa y contexto visibles mientras enseña la ficha.
   //
   // La ficha se pinta ENCIMA de la lista dentro del mismo contenedor con
   // scroll (.hoja__cuerpo, RF-39): si se ha bajado por la lista para tocar
@@ -167,6 +166,7 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
   // por el mismo cambio de estacionId a null).
   const cuerpo = hoja.querySelector<HTMLElement>('.hoja__cuerpo');
   let scrollListaGuardado = 0;
+  let frameDesplazamiento: number | null = null;
 
   let estacionAnterior = obtenerEstado().estacionId;
   const cancelarSuscripcion = suscribir((estadoApp) => {
@@ -174,16 +174,37 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     const habiaSeleccion = estacionAnterior !== null;
 
     if (estadoApp.estacionId && estadoApp.estacionId !== estacionAnterior) {
-      aplicar('completa', true);
+      aplicar('media', true);
     }
 
-    if (cuerpo && haySeleccion !== habiaSeleccion) {
+    if (cuerpo && estadoApp.estacionId !== estacionAnterior) {
       const comportamiento: ScrollBehavior = prefiereMovimientoReducido() ? 'auto' : 'smooth';
       if (haySeleccion) {
-        scrollListaGuardado = cuerpo.scrollTop;
-        cuerpo.scrollTo({ top: 0, behavior: comportamiento });
-      } else {
-        cuerpo.scrollTo({ top: scrollListaGuardado, behavior: comportamiento });
+        // Solo se guarda al abrir la primera ficha. Cambiar de estación con
+        // una ficha ya abierta debe volver a subir, pero no sustituir el
+        // punto de la lista al que regresaremos cuando se cierre.
+        if (!habiaSeleccion) scrollListaGuardado = cuerpo.scrollTop;
+        // Hoja se suscribe antes que Tótem. Si desplazamos aquí de forma
+        // síncrona, la ficha todavía sigue oculta; al aparecer después, el
+        // anclaje de scroll del navegador compensa su altura para mantener
+        // la fila pulsada en pantalla y parece que no hemos subido. Esperar
+        // al siguiente frame deja que todos los suscriptores terminen y que
+        // el navegador calcule primero la altura real de la ficha.
+        if (frameDesplazamiento !== null) cancelAnimationFrame(frameDesplazamiento);
+        frameDesplazamiento = requestAnimationFrame(() => {
+          frameDesplazamiento = null;
+          if (obtenerEstado().estacionId !== null) {
+            cuerpo.scrollTo({ top: 0, behavior: comportamiento });
+          }
+        });
+      } else if (habiaSeleccion) {
+        if (frameDesplazamiento !== null) cancelAnimationFrame(frameDesplazamiento);
+        frameDesplazamiento = requestAnimationFrame(() => {
+          frameDesplazamiento = null;
+          if (obtenerEstado().estacionId === null) {
+            cuerpo.scrollTo({ top: scrollListaGuardado, behavior: comportamiento });
+          }
+        });
       }
     }
 
@@ -199,13 +220,10 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
   }
   mapa.addEventListener('click', alTocarMapa);
 
-  // El mapa reserva desde el primer encuadre el espacio de la hoja asomada.
-  // Empezar a media altura ocultaba su centro bajo un panel del 55 % y
-  // obligaba a alejar el mapa para compensarlo. Los controles y la estación
-  // más barata siguen visibles; un toque en el asa abre el estado medio.
-  aplicar('colapsada', false);
+  aplicar('media', false);
 
   return () => {
+    if (frameDesplazamiento !== null) cancelAnimationFrame(frameDesplazamiento);
     cancelarSuscripcion();
     asa.removeEventListener('click', alClic);
     asa.removeEventListener('keydown', alTeclado);

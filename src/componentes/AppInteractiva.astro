@@ -125,6 +125,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
     <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
   </header>
 
+  <div id="estado-datos" class="estado-datos" aria-live="polite"></div>
   <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
 
   <div class="layout">
@@ -132,26 +133,20 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones. Flecha arriba o abajo para cambiar de tamaño."></button>
       <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible"></div>
       <div class="hoja__cuerpo">
+        <div id="lista-cabecera" class="lista-cabecera-portal">
+          <div class="lista__cabecera">
+            <h2 class="lista__titulo">Más baratas</h2>
+            {' · '}
+            <span class="lista__contador">{listasPorCombustible[COMBUSTIBLE_POR_DEFECTO].length}</span>
+            <button type="button" class="controles__pestana lista__filtro" aria-pressed="false">Abiertas ahora</button>
+          </div>
+        </div>
         <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
         <section id="lista" class="lista" aria-label="Lista de estaciones">
           {ORDEN_COMBUSTIBLES.map((clave) => {
             const filas = listasPorCombustible[clave];
             return (
               <div class="lista__grupo" data-combustible={clave} hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
-                <div class="lista__cabecera">
-                  <h2 class="lista__titulo">Más baratas</h2>
-                  {' · '}
-                  <span class="lista__contador">{filas.length}</span>
-                  {' · '}
-                  <button
-                    type="button"
-                    class="controles__pestana lista__filtro"
-                    aria-pressed="false"
-                    aria-label="Filtrar solo estaciones abiertas ahora"
-                  >
-                    Abiertas
-                  </button>
-                </div>
                 {filas.length === 0 ? (
                   <p class="lista__aviso">
                     Ninguna estación de {zonaNombre || 'esta zona'} vende {ETIQUETA[clave].toLowerCase()}.
@@ -296,6 +291,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   const contenedorLista = elemento('lista');
   const contenedorMapa = elemento('mapa');
   const contenedorAvisos = elemento('avisos');
+  const contenedorEstadoDatos = elemento('estado-datos');
   const insigniaMock = elemento('insignia-mock');
   const hoja = elemento('hoja');
   const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
@@ -385,6 +381,14 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   function renderAvisos(estado: EstadoApp): void {
     contenedorAvisos.innerHTML = '';
     insigniaMock.hidden = !estado.mock;
+    const estaDesactualizado = actualizadoZona
+      ? datosDesactualizados(actualizadoZona, new Date())
+      : false;
+    contenedorEstadoDatos.textContent = actualizadoZona
+      ? `Datos del ${formatearFechaHora(actualizadoZona)} · ${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}${estaDesactualizado ? ' · Pueden estar desactualizados' : ''}`
+      : estado.cargando
+        ? 'Cargando datos de la zona…'
+        : `${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}`;
 
     if (estado.error) {
       contenedorAvisos.append(crearAviso(estado.error, 'error', true));
@@ -398,11 +402,6 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
           'parcial',
           true
         )
-      );
-    }
-    if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
-      contenedorAvisos.append(
-        crearAviso(`Datos de las ${formatearFechaHora(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
       );
     }
   }

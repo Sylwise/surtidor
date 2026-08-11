@@ -24,14 +24,15 @@ const tipos: { tipo: Zona['tipo']; etiqueta: string }[] = [
   { tipo: 'provincia', etiqueta: 'Provincias' },
   { tipo: 'ccaa', etiqueta: 'Comunidades autónomas' },
 ];
+const zonaActual = zonas.find((zona) => zona.id === zonaId);
+const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provincias[0] : null;
 const editoriales = [
-  { href: '/hoy/evolucion/', nombre: 'Evolución de precios' },
-  { href: '/hoy/provincias-mas-baratas/', nombre: 'Provincias más baratas' },
-  { href: '/hoy/cuanto-te-juegas/', nombre: 'Cuánto puedes ahorrar' },
-  { href: '/hoy/marcas-mas-baratas/', nombre: 'Marcas más baratas' },
-  { href: '/hoy/capitales-de-provincia/', nombre: 'Capitales de provincia' },
-  { href: '/hoy/la-mas-barata-de-espana/', nombre: 'La más barata de España' },
-  { href: '/hoy/canarias-ceuta-melilla/', nombre: 'Canarias, Ceuta y Melilla' },
+  { href: provinciaEvolucion ? `/hoy/evolucion/${provinciaEvolucion}/` : '/hoy/evolucion/', icono: '↗', nombre: 'Evolución de precios', descripcion: 'Qué ha cambiado en 30 días' },
+  { href: '/hoy/provincias-mas-baratas/', icono: '◇', nombre: 'Provincias más baratas', descripcion: 'Compara medias y mínimos' },
+  { href: '/hoy/cuanto-te-juegas/', icono: '€', nombre: 'Cuánto puedes ahorrar', descripcion: 'Ahorro posible por depósito' },
+  { href: '/hoy/marcas-mas-baratas/', icono: '◉', nombre: 'Marcas más baratas', descripcion: 'Ranking por cadenas' },
+  { href: '/hoy/capitales-de-provincia/', icono: '▥', nombre: 'Capitales de provincia', descripcion: 'Precios en grandes ciudades' },
+  { href: '/hoy/la-mas-barata-de-espana/', icono: '☆', nombre: 'La más barata de España', descripcion: 'El mínimo nacional de hoy' },
 ];
 ---
 
@@ -93,17 +94,29 @@ const editoriales = [
 
 <div class="navegacion-hoy">
   <button id="boton-hoy" type="button" class="boton-hoy" aria-expanded="false" aria-controls="panel-hoy">
-    Hoy
+    <span class="boton-hoy__texto">Hoy</span>
+    <span class="boton-hoy__icono" aria-hidden="true">▤</span>
     <span class="boton-hoy__flecha" aria-hidden="true"></span>
   </button>
-  <nav id="panel-hoy" class="panel-hoy" aria-label="Análisis de precios de hoy" hidden>
+  <div id="fondo-panel-hoy" class="panel-hoy__fondo" hidden></div>
+  <nav id="panel-hoy" class="panel-hoy" aria-label="Análisis de precios de hoy" aria-modal="true" hidden>
+    <span class="panel-hoy__asa" aria-hidden="true"></span>
     <div class="panel-hoy__cabecera">
-      <span class="micro">ANÁLISIS DE HOY</span>
+      <span>
+        <span class="micro">ANÁLISIS DE HOY</span>
+        <strong class="panel-hoy__titulo">Descubre los datos</strong>
+      </span>
       <button id="cerrar-panel-hoy" type="button" class="boton-cerrar" aria-label="Cerrar análisis de hoy">✕</button>
     </div>
     <ul class="panel-hoy__lista">
-      {editoriales.map((editorial) => (
-        <li><a href={editorial.href}>{editorial.nombre}<span aria-hidden="true">→</span></a></li>
+      {editoriales.map((editorial, indice) => (
+        <li>
+          <a href={editorial.href} class:list={{ 'panel-hoy__enlace--activo': indice === 0 }}>
+            <span class="panel-hoy__icono" aria-hidden="true">{editorial.icono}</span>
+            <span class="panel-hoy__texto"><strong>{editorial.nombre}</strong><small>{editorial.descripcion}</small></span>
+            <span aria-hidden="true">›</span>
+          </a>
+        </li>
       ))}
     </ul>
   </nav>
