@@ -428,18 +428,25 @@ input {
   background: #fff;
 }
 
-.panel-zona__cabecera::after {
-  content: '';
+.panel-zona__buscar-icono {
   position: absolute;
   left: 31px;
-  bottom: 28px;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--muted);
-  border-radius: 50%;
-  box-shadow: 8px 8px 0 -6px var(--muted);
-  transform: rotate(-45deg);
+  bottom: 29px;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
   pointer-events: none;
+}
+
+.panel-zona__buscar-icono svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .panel-zona__grupos {
@@ -1977,7 +1984,11 @@ input {
     width: 44px;
     height: 44px;
     margin-top: -5px;
-    font-size: 22px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 18px;
+    font-weight: 400;
   }
   .panel-zona__buscar {
     height: 42px;
@@ -1985,11 +1996,11 @@ input {
     padding-left: 36px;
     font-size: 11px;
   }
-  .panel-zona__cabecera::after {
+  .panel-zona__buscar-icono {
     left: 12px;
     bottom: 14px;
-    width: 11px;
-    height: 11px;
+    width: 15px;
+    height: 15px;
   }
   .panel-zona__grupos { padding: 0; }
   .panel-zona__actual {
@@ -2009,7 +2020,7 @@ input {
   .panel-zona .enlaces-bloque__filas { gap: 8px; }
   .panel-zona__grupos > .enlaces-bloque + .enlaces-bloque {
     margin-top: 18px;
-    padding-top: 0;
+    padding-top: 16px;
   }
   .panel-hoy {
     z-index: 20;
