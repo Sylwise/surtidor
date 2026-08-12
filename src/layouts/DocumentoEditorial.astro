@@ -4,6 +4,7 @@ import '../estilos/editorial.css';
 import '../estilos/navegacion-global.css';
 import marcaSvg from '../assets/marca.svg?raw';
 import CabeceraGlobal from '../componentes/CabeceraGlobal.astro';
+import NavegacionApp from '../componentes/NavegacionApp.astro';
 
 interface Props {
   titulo: string;
@@ -43,6 +44,13 @@ const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
   </head>
   <body>
     <CabeceraGlobal modo="editorial" variante="petroleo" />
+    <div class="selector-zona-editorial" data-selector-zona-editorial>
+      <NavegacionApp
+        mostrarMenuHoy={false}
+        tituloSelector="¿Dónde quieres ver precios?"
+        ayudaSelector="Elige una zona para abrir la aplicación"
+      />
+    </div>
     <main class="editorial-documento">
       <slot />
     </main>
@@ -64,5 +72,30 @@ const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
         <a class="editorial-pie__arriba" href="#">Volver arriba ↑</a>
       </div>
     </footer>
+    <script>
+      import { obtenerEstado } from '../logica/estado.ts';
+      import { montarSelectorZona } from '../componentes/SelectorZona.ts';
+
+      const contenedor = document.querySelector<HTMLElement>('[data-selector-zona-editorial]');
+      const marca = document.querySelector<HTMLAnchorElement>('.cabecera-global .marca-global');
+      const enlacePrecios = document.querySelector<HTMLAnchorElement>('.cabecera-global__nav > a[href="/"]');
+      const enlacesEntrada = [marca, enlacePrecios].filter((enlace): enlace is HTMLAnchorElement => enlace !== null);
+      if (contenedor) {
+        const idsDisponibles = new Set(Array.from(contenedor.querySelectorAll<HTMLAnchorElement>('[data-zona-id]'), (enlace) => enlace.dataset.zonaId));
+        const zonaGuardada = obtenerEstado().zonaId;
+        const destinoGuardado = zonaGuardada && idsDisponibles.has(zonaGuardada) ? `/${zonaGuardada}/` : null;
+        const selector = montarSelectorZona(contenedor);
+        const movil = window.matchMedia('(max-width: 760px)');
+
+        if (destinoGuardado && movil.matches && enlacePrecios) enlacePrecios.href = destinoGuardado;
+        for (const enlace of enlacesEntrada) {
+          enlace.addEventListener('click', (evento) => {
+            if (!movil.matches || destinoGuardado) return;
+            evento.preventDefault();
+            selector.abrir(enlace);
+          });
+        }
+      }
+    </script>
   </body>
 </html>

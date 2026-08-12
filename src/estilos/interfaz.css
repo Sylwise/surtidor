@@ -1287,7 +1287,7 @@ input {
        pantallas con cabecera alta (nombre de zona en dos líneas, insignia
        de datos de prueba) el 90vh fijo dejaba el asa de la hoja escondida
        detrás de la cabecera y ya no se podía volver a bajar. */
-    --hoja-colapsada: 110px;
+    --hoja-minimizada: 44px;
     --hoja-media: 55dvh;
     /* dvh, no vh: en Android con la barra de navegación en pantalla, vh mide
        contra el viewport "grande" (como si la barra no estuviera) y
@@ -1363,8 +1363,8 @@ input {
     transition: height 220ms ease;
   }
 
-  .hoja[data-estado='colapsada'] {
-    height: var(--hoja-colapsada);
+  .hoja[data-estado='minimizada'] {
+    height: var(--hoja-minimizada);
   }
   .hoja[data-estado='media'] {
     height: var(--hoja-media);
@@ -1388,8 +1388,8 @@ input {
     touch-action: none;
   }
 
-  .hoja__asa::before {
-    content: '';
+  .hoja__asa-barra {
+    display: block;
     width: 36px;
     height: 4px;
     border-radius: 999px;
@@ -1399,6 +1399,46 @@ input {
   .hoja__asa:active {
     cursor: grabbing;
   }
+
+  .hoja__resumen-minimizado,
+  .hoja__resumen-chevron { display: none; }
+
+  .hoja[data-estado='minimizada'] {
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 7px color-mix(in srgb, var(--petrol) 9%, transparent);
+  }
+  .hoja[data-estado='minimizada'] .hoja__asa {
+    position: relative;
+    display: grid;
+    height: 44px;
+    padding: 7px 14px 3px;
+    cursor: pointer;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 5px 1fr;
+  }
+  .hoja[data-estado='minimizada'] .hoja__asa-barra {
+    width: 28px;
+    height: 3px;
+    margin: 0 auto;
+    background: var(--line);
+    grid-column: 1 / -1;
+  }
+  .hoja[data-estado='minimizada'] .hoja__resumen-minimizado {
+    display: block;
+    align-self: center;
+    color: var(--muted);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-align: left;
+  }
+  .hoja[data-estado='minimizada'] .hoja__resumen-chevron {
+    display: block;
+    align-self: center;
+    color: var(--petrol);
+    font-size: 11px;
+  }
+  .hoja[data-estado='minimizada'] .hoja__cuerpo { display: none; }
 
   .hoja__rapidos {
     padding: 6px 14px 10px;
@@ -1872,9 +1912,9 @@ input {
 
 @media (max-width: 760px) {
   :root {
-    --hoja-colapsada: 110px;
-    --hoja-media: 462px;
-    --hoja-completa: calc(100dvh - 108px);
+    --hoja-minimizada: 44px;
+    --hoja-media: min(55dvh, 462px);
+    --hoja-completa: calc(100dvh - var(--cabecera-alto, 56px) - 52px);
   }
   .cabecera {
     height: 56px;
@@ -1887,46 +1927,47 @@ input {
   .marca__texto { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; }
   .marca { font-size: 16px; }
   .marca__icono { width: 20px; height: 20px; }
-  .controles-identidad {
+  .cabecera-global--principal .controles-identidad {
+    position: fixed;
+    z-index: 5;
+    top: 56px;
+    left: 0;
+    width: 80px;
+    height: 52px;
     min-width: 0;
-    flex: 0 1 auto;
-    margin-left: auto;
+    margin: 0;
   }
-  .boton-zona {
-    width: auto;
-    max-width: 150px;
+  .cabecera-global--principal .boton-zona {
+    width: 80px;
+    max-width: none;
     min-width: 0;
-    height:44px;
-    min-height:44px;
+    height: 52px;
+    min-height: 52px;
     justify-content: flex-start;
-    border: 1px solid var(--surface-stroke);
-    background: var(--surface-soft);
-    color: var(--paper);
-    padding: 3px 9px;
+    padding: 3px 7px;
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--petrol);
   }
-  .boton-zona__nombre {
-    max-width: 110px;
+  .cabecera-global--principal .boton-zona__nombre {
+    max-width: 56px;
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-transform: uppercase;
-    font-size: 10px;
-    letter-spacing: .08em;
+    font-size: 0;
+    letter-spacing: .05em;
+    white-space: nowrap;
   }
-  .boton-zona__flecha { margin-left: auto; }
-  .navegacion-hoy { margin-left: 0; }
-  .boton-hoy { width:44px; min-height:44px; padding:0; background:var(--petrol); color:var(--paper); border-color:var(--petrol); }
-  .cabecera-global__precios-app { display:none; }
-  .boton-hoy__texto,
-  .boton-hoy__flecha { display: none; }
-  .boton-hoy__icono {
-    display: block;
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
+  .cabecera-global--principal .boton-zona__nombre::after { content:attr(data-zona-etiqueta); font-size:9px; }
+  .cabecera-global--principal .boton-zona__flecha { margin-left: auto; }
+  .cabecera-global--principal .navegacion-hoy { margin-left: 0; }
+  .cabecera-global--principal .boton-hoy { width:auto; min-height:44px; padding:0 5px; border:0; background:transparent; color:var(--muted-light); }
+  .cabecera-global--principal .boton-hoy__texto,
+  .cabecera-global--principal .boton-hoy__flecha { display: inline; }
+  .cabecera-global--principal .boton-hoy__icono { display: none; }
   .estado-datos { display: none; }
   .layout { padding-top: 52px; }
   .mapa-hueco { top: 52px; }
@@ -1939,18 +1980,18 @@ input {
     left: 0;
     width: 100%;
     height: 52px;
-    padding: 7px 12px;
+    padding: 7px 8px 7px 84px;
     background: var(--paper);
     border-bottom: 1px solid var(--line);
   }
   .avisos { display: none; }
-  .hoja__asa { height: 24px; }
-  .hoja__asa::before { width: 28px; background: var(--line); }
+  .hoja__asa { height: 44px; }
+  .hoja__asa-barra { width: 28px; background: var(--line); }
   .controles__pestana { border-radius: 6px; }
   .panel-fondo { position: fixed; z-index: 19; inset: 0; display: block; background: color-mix(in srgb, var(--petrol) 40%, transparent); }
   .panel-fondo[hidden] { display: none; }
   .panel-zona {
-    top: 96px;
+    top: 108px;
     left: 0;
     right: 0;
     bottom: 0;

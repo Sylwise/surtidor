@@ -1,8 +1,8 @@
 ---
 import '../estilos/tokens.css';
 import '../estilos/interfaz.css';
-import marcaSvg from '../assets/marca.svg?raw';
 import NavegacionApp from '../componentes/NavegacionApp.astro';
+import CabeceraGlobal from '../componentes/CabeceraGlobal.astro';
 
 const titulo = 'Surtidor · Precios de carburantes de España';
 const descripcion = 'Precios de gasolina y diésel por zona, sin anuncios ni registro.';
@@ -38,14 +38,10 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
   </head>
   <body>
     <div class="app">
-      <header class="cabecera">
-        <span class="marca">
-          <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
-          <span class="marca__texto">Surtidor</span>
-        </span>
+      <CabeceraGlobal modo="principal" variante="petroleo">
         <NavegacionApp />
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
-      </header>
+      </CabeceraGlobal>
 
       <div id="avisos" class="avisos" role="status" aria-live="polite"></div>
 
@@ -56,7 +52,11 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
              src/componentes/Hoja.ts); el orden en el DOM deja de importar
              porque ambas pasan a position:fixed. -->
         <aside class="hoja" id="hoja" data-estado="media">
-          <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones. Flecha arriba o abajo para cambiar de tamaño."></button>
+          <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones: media. Flecha arriba o abajo para cambiar de tamaño." aria-expanded="true">
+            <span class="hoja__asa-barra" aria-hidden="true"></span>
+            <span class="hoja__resumen-minimizado">ESTACIONES · <span data-contador-hoja>0</span></span>
+            <span class="hoja__resumen-chevron" aria-hidden="true">⌃</span>
+          </button>
           <div id="controles-rapidos" class="hoja__rapidos" aria-label="Combustible"></div>
           <div class="hoja__cuerpo">
             <div id="lista-cabecera" class="lista-cabecera-portal"></div>

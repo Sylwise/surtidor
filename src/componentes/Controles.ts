@@ -17,7 +17,8 @@
 // la ficha son las que cambian el combustible activo entonces (RF-81).
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-import { ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { montarSelectorZona } from './SelectorZona.ts';
 import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
 // Exportadas: src/pages/index.astro (RF-91, ADR-0017) agrupa sus enlaces de
@@ -29,13 +30,6 @@ export const ETIQUETA_TIPO: Record<Zona['tipo'], string> = {
 };
 
 export const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa'];
-
-function normalizar(texto: string): string {
-  return texto
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
-}
 
 /**
  * Monta los controles y los mantiene sincronizados con el estado. El DOM se
@@ -72,77 +66,12 @@ export function montarControles(
   };
   const botonZona = exigir<HTMLButtonElement>('#boton-zona');
   const nombreZonaSpan = exigir<HTMLElement>('#nombre-zona');
-  const panelZona = exigir<HTMLElement>('#panel-zona');
-  const fondoPanelZona = exigir<HTMLElement>('#fondo-panel-zona');
-  const cerrarZona = exigir<HTMLButtonElement>('#cerrar-panel-zona');
-  const buscar = exigir<HTMLInputElement>('#buscar-zona');
   const botonHoy = exigir<HTMLButtonElement>('#boton-hoy');
   const panelHoy = exigir<HTMLElement>('#panel-hoy');
   const fondoPanelHoy = exigir<HTMLElement>('#fondo-panel-hoy');
   const cerrarHoy = exigir<HTMLButtonElement>('#cerrar-panel-hoy');
   const enlaceEvolucionZona = document.querySelector<HTMLAnchorElement>('[data-enlace-evolucion-zona]');
-  const opcionesZona = Array.from(
-    contenedorIdentidad.querySelectorAll<HTMLLIElement>('[data-opcion-zona]'),
-    (fila) => ({ fila, textoBusqueda: normalizar(fila.dataset.busqueda ?? '') }),
-  );
-  const gruposDom = Array.from(contenedorIdentidad.querySelectorAll<HTMLElement>('[data-grupo-zona]'));
   const enlacesZona = Array.from(contenedorIdentidad.querySelectorAll<HTMLAnchorElement>('[data-zona-id]'));
-
-  function abrirPanel(): void {
-    cerrarPanelHoy();
-    panelZona.hidden = false;
-    fondoPanelZona.hidden = false;
-    botonZona.setAttribute('aria-expanded', 'true');
-    buscar.value = '';
-    filtrarZonas('');
-    // `hidden` no se puede animar directamente (salta a display:none): se
-    // quita en el frame anterior a añadir la clase que dispara la
-    // transición de entrada en móvil (ver interfaz.css, .panel-zona--abierta).
-    requestAnimationFrame(() => panelZona.classList.add('panel-zona--abierta'));
-    buscar.focus();
-  }
-
-  function cerrarPanel(): void {
-    panelZona.hidden = true;
-    fondoPanelZona.hidden = true;
-    panelZona.classList.remove('panel-zona--abierta');
-    botonZona.setAttribute('aria-expanded', 'false');
-  }
-
-  function filtrarZonas(consulta: string): void {
-    const q = normalizar(consulta.trim());
-    for (const { fila, textoBusqueda } of opcionesZona) {
-      fila.hidden = q !== '' && !textoBusqueda.includes(q);
-    }
-    for (const grupo of gruposDom) {
-      const hayVisibles = Array.from(grupo.querySelectorAll('li')).some((li) => !(li as HTMLLIElement).hidden);
-      grupo.hidden = !hayVisibles;
-    }
-  }
-
-  botonZona.addEventListener('click', () => {
-    if (panelZona.hidden) abrirPanel();
-    else cerrarPanel();
-  });
-  cerrarZona.addEventListener('click', () => {
-    cerrarPanel();
-    botonZona.focus();
-  });
-  fondoPanelZona.addEventListener('click', () => {
-    cerrarPanel();
-    botonZona.focus();
-  });
-  for (const enlace of enlacesZona) {
-    enlace.addEventListener('click', (evento) => {
-      const zonaId = enlace.dataset.zonaId;
-      if (!zonaId) return;
-      evento.preventDefault();
-      actualizarEstado({ zonaId });
-      cerrarPanel();
-      botonZona.focus();
-    });
-  }
-  buscar.addEventListener('input', () => filtrarZonas(buscar.value));
   document.addEventListener('click', (evento) => {
     if (!panelHoy.hidden && !panelHoy.contains(evento.target as Node) && !botonHoy.contains(evento.target as Node)) {
       cerrarPanelHoy();
@@ -150,18 +79,14 @@ export function montarControles(
     }
   });
   document.addEventListener('keydown', (evento) => {
-    if (evento.key === 'Escape' && !panelZona.hidden) {
-      evento.stopPropagation();
-      cerrarPanel();
-      botonZona.focus();
-    } else if (evento.key === 'Escape' && !panelHoy.hidden) {
+    if (evento.key === 'Escape' && !panelHoy.hidden) {
       cerrarPanelHoy();
       botonHoy.focus();
     }
   });
 
   function abrirPanelHoy(): void {
-    cerrarPanel();
+    selectorZona.cerrar(false);
     panelHoy.hidden = false;
     fondoPanelHoy.hidden = false;
     document.querySelector('.app')?.classList.add('app--hoy-abierto');
@@ -177,6 +102,11 @@ export function montarControles(
     document.body.classList.remove('menu-hoy-abierto');
     botonHoy.setAttribute('aria-expanded', 'false');
   }
+
+  const selectorZona = montarSelectorZona(contenedorIdentidad, {
+    alElegirZona: (zonaId) => actualizarEstado({ zonaId }),
+    antesDeAbrir: cerrarPanelHoy,
+  });
 
   botonHoy.addEventListener('click', () => {
     if (panelHoy.hidden) abrirPanelHoy();
@@ -218,6 +148,7 @@ export function montarControles(
     boton.type = 'button';
     boton.className = 'controles__pestana';
     boton.textContent = ETIQUETA_CORTA[clave];
+    boton.setAttribute('aria-label', ETIQUETA[clave]);
     boton.addEventListener('click', () => actualizarEstado({ combustible: clave }));
     tabsCombustible.append(boton);
     botonesCombustible.set(clave, boton);
@@ -237,9 +168,16 @@ export function montarControles(
     // zona sin recargar (ADR-0016)— el botón lo dice, para que la interfaz
     // no se quede congelada sin señal mientras el resto (mapa, lista,
     // #tabla-zona) sigue mostrando la zona anterior a propósito.
+    const enlaceZonaActual = zonaActual
+      ? enlacesZona.find((enlace) => enlace.dataset.zonaId === zonaActual.id)
+      : null;
     nombreZonaSpan.textContent = estado.cargando
       ? 'Cargando…'
       : (zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona');
+    nombreZonaSpan.dataset.zonaEtiqueta = estado.cargando
+      ? 'Cargando…'
+      : (enlaceZonaActual?.dataset.zonaEtiqueta ?? zonaActual?.nombre ?? estado.zonaId ?? 'Zona');
+    botonZona.setAttribute('aria-label', zonaActual ? `Cambiar zona. Zona actual: ${zonaActual.nombre}` : 'Elegir zona');
 
     for (const enlace of enlacesZona) {
       const activo = enlace.dataset.zonaId === estado.zonaId;
@@ -261,5 +199,5 @@ export function montarControles(
 
   render(obtenerEstado());
   suscribir(render);
-  return { abrirSelector: abrirPanel };
+  return { abrirSelector: () => selectorZona.abrir(botonZona) };
 }

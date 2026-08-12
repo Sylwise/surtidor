@@ -159,6 +159,7 @@ button, input { font: inherit; }
 .evolucion-canvas { min-width: 0; min-height: 0; padding: 30px max(34px, calc((100% - 1366px) / 2)) 28px; overflow-y: auto; background: var(--surface); }
 .evolucion-controles--movil { display: none; }
 .evolucion-resumen { display: grid; height: 166px; grid-template-columns: minmax(0,1fr) auto; }
+.evolucion-resumen__zona { display:none; }
 .evolucion-resumen p { margin: 0; }
 .evolucion-resumen__titulo p, .evolucion-panel__precio span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .evolucion-resumen h1 { margin: 5px 0 0; font-size: clamp(34px, 3vw, 42px); line-height: 1; }
@@ -293,10 +294,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .evolucion-controles--movil .evolucion-periodos { margin-top: 6px; gap: 6px; }
   .evolucion-controles--movil .evolucion-periodos button { min-height: 32px; }
   .evolucion-controles--movil .evolucion-periodos button::before { inset: -6px 0; }
-  .evolucion-resumen { height: 84px; min-height: 84px; margin-top: 10px; grid-template-rows: 27px 24px minmax(0, 1fr); }
+  .evolucion-resumen { height: 96px; min-height: 96px; margin-top: 8px; grid-template-rows: 16px 25px 23px minmax(0,1fr); }
+  .evolucion-resumen__zona { display:inline-flex; width:max-content; min-height:16px; align-items:center; gap:5px; grid-column:1 / -1; color:var(--muted); font-size:9px; font-weight:800; letter-spacing:.08em; line-height:1; text-decoration:none; text-transform:uppercase; }
   .evolucion-resumen__titulo p, .evolucion-panel__precio span { display: none; }
-  .evolucion-resumen h1 { margin: 0; font-size: 25px; }
-  .evolucion-panel__precio strong { margin-top: 0; font-size: 21px; white-space: nowrap; }
+  .evolucion-resumen h1 { margin: 0; font-size: 22px; }
+  .evolucion-panel__precio strong { margin-top: 0; font-size: 18px; white-space: nowrap; }
   .evolucion-conclusion { gap: 7px; margin-top: 3px !important; font-size: 12px; }
   .evolucion-conclusion b { padding: 5px 7px; font-size: 10px; }
   .evolucion-cambio--desktop { display: none; }

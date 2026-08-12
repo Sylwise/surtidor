@@ -44,8 +44,11 @@ const lideres = Object.fromEntries(
         return <article class="editorial-destacado" data-destacado-combustible={combustible} hidden={indice > 0}>
           <span>Capital con menor media · {ETIQUETA[combustible]}</span>
           <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
-          {lider && <a href={lider.href}>{lider.nombre}</a>}
-          {resumen && <small>Media de {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>}
+          {lider && resumen && <div>
+            <span>Capital</span>
+            <a href={lider.href}>{lider.nombre}</a>
+            <small>Media de {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+          </div>}
         </article>;
       })}
     </header>
@@ -75,13 +78,23 @@ const lideres = Object.fromEntries(
           </>}
         </div>
 
-        <aside class="editorial-fiscal editorial-fiscal--compacta">
-          <div><h3>Canarias, Ceuta y Melilla</h3><p>Cuatro capitales separadas por su fiscalidad.</p></div>
-          <TablaCapitalesEditorial filas={rankingsFiscales[combustible]} combustible={combustible} etiqueta={`${ETIQUETA[combustible]} en capitales de territorios fiscales`} />
+        <aside class="editorial-fiscal editorial-fiscal--compacta editorial-fiscal--tarjetas">
+          <div><h3>Canarias, Ceuta y Melilla</h3></div>
+          <ul class="editorial-fiscal__datos" aria-label={`${ETIQUETA[combustible]} en capitales de territorios fiscales`}>
+            {rankingsFiscales[combustible].map(({ elemento: capital }) => {
+              const resumen = capital.combustibles[combustible];
+              return <li>
+                <span>
+                  <strong><a href={capital.href}>{capital.nombre}</a></strong>
+                  <small>{resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+                </span>
+                <b>{resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}</b>
+              </li>;
+            })}
+          </ul>
         </aside>
         <details class="editorial-fiscal-movil">
           <summary>Canarias, Ceuta y Melilla</summary>
-          <p>Cuatro capitales separadas por su fiscalidad.</p>
           <TablaCapitalesEditorial filas={rankingsFiscales[combustible]} combustible={combustible} etiqueta={`${ETIQUETA[combustible]} en capitales de territorios fiscales`} />
         </details>
 

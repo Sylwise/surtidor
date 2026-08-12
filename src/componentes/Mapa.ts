@@ -85,9 +85,9 @@ const CAPAS_OCULTAS_EN_VISTA_NACIONAL = [
 const CAJA_NORMAL = { ancho: 56, alto: 24 };
 const CAJA_DESTACADA = { ancho: 72, alto: 30 }; // más barata y racimos: un punto más grandes
 
-// Alto garantizado de la hoja inferior en su estado "asomada" (mismo número
-// que --hoja-colapsada en interfaz.css y el caso 'colapsada' en Hoja.ts).
-const ALTURA_MINIMA_HOJA_PX = 110;
+// Alto garantizado de la pestaña minimizada (mismo número que
+// --hoja-minimizada en interfaz.css y el caso 'minimizada' en Hoja.ts).
+const ALTURA_MINIMA_HOJA_PX = 44;
 
 interface EntradaMarcador {
   marker: Marker;

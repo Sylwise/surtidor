@@ -22,6 +22,9 @@ export function getStaticPaths() {
 const provinciaId = Astro.params.provincia!;
 const { nombre, zonaId, actualJson, historicoJson } = Astro.props as { nombre: string; zonaId: string; actualJson: string; historicoJson: string };
 const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
+const zonaCompacta = nombre.trim().toLocaleUpperCase('es') === 'ARABA/ALAVA'
+  ? 'ÁLAVA'
+  : (nombre.split('/').at(-1)?.trim() ?? nombre);
 ---
 <html lang="es">
   <head>
@@ -61,12 +64,12 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
 
           <article class="evolucion-canvas evolucion-panel">
             <section class="evolucion-controles evolucion-controles--movil">
-              <div class="evolucion-contexto-movil"><span>{nombre}</span><i aria-hidden="true">·</i><b>Evolución</b></div>
               <div class="evolucion-combustibles" data-combustibles aria-label="Combustible"></div>
               <div class="evolucion-periodos" aria-label="Periodo"><button data-periodo="7" aria-pressed="false">7 d</button><button data-periodo="30" aria-pressed="true">30 d</button><button data-periodo="90" aria-pressed="false">90 d</button></div>
             </section>
 
             <header class="evolucion-resumen">
+              <a class="evolucion-resumen__zona" href={`/${zonaId}/`} aria-label={`Cambiar zona. Zona actual: ${nombre}`}>{zonaCompacta}<span aria-hidden="true">⌄</span></a>
               <div class="evolucion-resumen__titulo"><p data-ambito>Media provincial</p><h1 data-titulo-panel></h1></div>
               <div class="evolucion-panel__precio"><span data-etiqueta-precio>Último cierre</span><strong data-precio></strong></div>
               <p class="evolucion-conclusion"><b class="evolucion-cambio--desktop" data-cambio></b><b class="evolucion-cambio--movil" data-cambio-movil></b><span data-frase-desktop></span><span data-frase-movil></span></p>
@@ -97,7 +100,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
               <div class="evolucion-leyenda"><span><i class="estacion"></i><b data-leyenda-principal>Media provincial</b></span><span><i class="provincia"></i><b data-leyenda-secundaria>Precio mínimo</b></span></div>
             </section>
 
-            <section class="evolucion-movimientos-movil"><header><h2>Movimientos destacados</h2><button type="button" data-abrir-todas>Ver todas <span aria-hidden="true">›</span></button></header><ol data-movimientos-movil></ol></section>
+            <section class="evolucion-movimientos-movil"><header><h2>Movimientos destacados</h2><button type="button" data-abrir-todas>Estaciones <span aria-hidden="true">›</span></button></header><ol data-movimientos-movil></ol></section>
             <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos no se interpolan.</p>
           </article>
 

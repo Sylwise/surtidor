@@ -40,7 +40,7 @@ const rankingsFiscales = Object.fromEntries(
           <div>
             <span>{resumen.origenes.length === 1 ? 'Dónde' : `${resumen.origenes.length} municipios empatados`}</span>
             {resumen.origenes.map((origen) => <a href={origen.href}>{origen.municipio}{origen.destino === 'provincia' && ` · ${origen.provinciaNombre}`}</a>)}
-            <small class="editorial-destacado__muestra-movil">Entre {resumen.n} estaciones</small>
+            <small>Entre {resumen.n} estaciones analizadas</small>
           </div>
         </article>;
       })}
@@ -83,13 +83,24 @@ const rankingsFiscales = Object.fromEntries(
           </>}
         </div>
 
-        <aside class="editorial-fiscal editorial-fiscal--compacta">
-          <div><h3>Canarias, Ceuta y Melilla</h3><p>Resultados separados por su fiscalidad.</p></div>
-          <TablaMinimosEditorial filas={rankingsFiscales[combustible]} combustible={combustible} etiqueta={`${ETIQUETA[combustible]} en territorios fiscales`} />
+        <aside class="editorial-fiscal editorial-fiscal--compacta editorial-fiscal--tarjetas">
+          <div><h3>Canarias, Ceuta y Melilla</h3></div>
+          <ul class="editorial-fiscal__datos" aria-label={`${ETIQUETA[combustible]} en territorios fiscales`}>
+            {rankingsFiscales[combustible].map(({ elemento: zona }) => {
+              const resumen = zona.combustibles[combustible];
+              const origen = resumen.origenes[0];
+              return <li>
+                <span>
+                  <strong><a href={`/${zona.id}/`}>{zona.nombre}</a></strong>
+                  <small>{origen ? `${origen.municipio}${resumen.origenes.length > 1 ? ` +${resumen.origenes.length - 1}` : ''}` : 'Sin ubicación publicada'}</small>
+                </span>
+                <b>{resumen.minimo === null ? 'no vende' : `${formatearPrecio(resumen.minimo)} €/L`}</b>
+              </li>;
+            })}
+          </ul>
         </aside>
         <details class="editorial-fiscal-movil">
           <summary>Canarias, Ceuta y Melilla</summary>
-          <p>Resultados separados por su fiscalidad.</p>
           <TablaMinimosEditorial filas={rankingsFiscales[combustible]} combustible={combustible} etiqueta={`${ETIQUETA[combustible]} en territorios fiscales`} />
         </details>
 

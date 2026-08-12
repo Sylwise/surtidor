@@ -77,13 +77,10 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
       <article class="editorial-destacado">
         <span>Mayor ahorro posible</span>
         <strong>{formatearEuros(mayorAhorro.diferencia)}</strong>
-        <small>por un depósito de 50 L</small>
-        <span class="editorial-destacado__movil-desc">por 50 L · {etiquetaEditorial[mayorAhorro.combustible]}</span>
         <div>
           <span>{etiquetaEditorial[mayorAhorro.combustible]}</span>
           <a href={`/${mayorAhorro.lider.id}/`}>{mayorAhorro.lider.nombre}</a>
-          <small>Calculado sobre {mayorAhorro.lider.combustibles[mayorAhorro.combustible].n} estaciones</small>
-          <small class="editorial-destacado__muestra-movil">{mayorAhorro.lider.combustibles[mayorAhorro.combustible].n} estaciones</small>
+          <small>50 L · {mayorAhorro.lider.combustibles[mayorAhorro.combustible].n} estaciones</small>
         </div>
       </article>
     )}
@@ -228,13 +225,19 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
         </details>
       )}
 
-      <aside class="editorial-fiscal" id={combustible === ORDEN_COMBUSTIBLES[0] ? 'territorios-fiscales' : undefined} aria-label={`${etiquetaEditorial[combustible]} en Canarias, Ceuta y Melilla`}>
-        <h3>Canarias, Ceuta y Melilla</h3>
-        <p>Se muestran aparte porque su fiscalidad de carburantes es distinta.</p>
+      <aside class="editorial-fiscal editorial-fiscal--compacta editorial-fiscal--tarjetas editorial-fiscal--articulo" id={combustible === ORDEN_COMBUSTIBLES[0] ? 'territorios-fiscales' : undefined} aria-label={`${etiquetaEditorial[combustible]} en Canarias, Ceuta y Melilla`}>
+        <div><h3>Canarias, Ceuta y Melilla</h3></div>
         <ul class="editorial-fiscal__datos">
           {rankingsFiscales[combustible].map(({ elemento: provincia }) => {
             const diferencia = coste(provincia, combustible);
-            return <li><a href={`/${provincia.id}/`}>{etiquetaFiscal(provincia.nombre)}</a><strong>{diferencia === null ? 'no vende' : formatearEuros(diferencia)}</strong></li>;
+            const resumen = provincia.combustibles[combustible];
+            return <li>
+              <span>
+                <strong><a href={`/${provincia.id}/`}>{etiquetaFiscal(provincia.nombre)}</a></strong>
+                <small>{resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+              </span>
+              <b>{diferencia === null ? 'no vende' : formatearEuros(diferencia)}</b>
+            </li>;
           })}
         </ul>
       </aside>

@@ -9,9 +9,18 @@ import MenuHoy from './MenuHoy.astro';
 interface Props {
   zonaId?: string | null;
   zonaNombre?: string | null;
+  mostrarMenuHoy?: boolean;
+  tituloSelector?: string;
+  ayudaSelector?: string;
 }
 
-const { zonaId = null, zonaNombre = null } = Astro.props;
+const {
+  zonaId = null,
+  zonaNombre = null,
+  mostrarMenuHoy = true,
+  tituloSelector = 'Cambiar zona',
+  ayudaSelector = 'Elige una provincia o comunidad autónoma',
+} = Astro.props;
 const indice = JSON.parse(
   readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8'),
 ) as Indice;
@@ -30,13 +39,18 @@ const estacionesZonaActual = zonaActual
   ? estacionesDeZona(zonaActual, indice.provincias)
   : null;
 const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provincias[0] : null;
+function etiquetaCompacta(nombre: string): string {
+  if (nombre.trim().toLocaleUpperCase('es') === 'ARABA/ALAVA') return 'ÁLAVA';
+  const partes = nombre.split('/').map((parte) => parte.trim()).filter(Boolean);
+  return cajaDeTitulo(partes.at(-1) ?? nombre);
+}
 ---
 
 <div id="controles-identidad" class="controles-identidad" aria-label="Zona">
   <div class="controles__zona">
-    <button id="boton-zona" type="button" class="boton-zona" aria-expanded="false" aria-controls="panel-zona">
+    <button id="boton-zona" type="button" class="boton-zona" aria-expanded="false" aria-controls="panel-zona" aria-label={zonaNombre ? `Cambiar zona. Zona actual: ${zonaNombre}` : 'Elegir zona'}>
       <span class="boton-zona__etiqueta">Zona</span>
-      <span id="nombre-zona" class="boton-zona__nombre">{zonaNombre ?? 'Elige tu zona'}</span>
+      <span id="nombre-zona" class="boton-zona__nombre" data-zona-etiqueta={zonaNombre ? etiquetaCompacta(zonaNombre) : 'Zona'}>{zonaNombre ?? 'Elige tu zona'}</span>
       <span class="boton-zona__flecha" aria-hidden="true"></span>
     </button>
 
@@ -45,10 +59,8 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
       <span class="panel-zona__asa" aria-hidden="true"></span>
       <header class="panel-zona__cabecera">
         <div>
-          <h2 id="titulo-panel-zona" class="panel-zona__titulo">Cambiar zona</h2>
-          <p class="panel-zona__ayuda">
-            <span class="panel-zona__ayuda-desktop">Elige una </span>provincia o comunidad autónoma
-          </p>
+          <h2 id="titulo-panel-zona" class="panel-zona__titulo">{tituloSelector}</h2>
+          <p class="panel-zona__ayuda">{ayudaSelector}</p>
         </div>
         <button id="cerrar-panel-zona" type="button" class="boton-cerrar" aria-label="Cerrar selector de zona">✕</button>
         <span class="panel-zona__buscar-icono" aria-hidden="true">
@@ -85,6 +97,7 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
                       href={`/${zona.id}/`}
                       class="enlaces-bloque__fila enlaces-bloque__fila--zona"
                       data-zona-id={zona.id}
+                      data-zona-etiqueta={etiquetaCompacta(zona.nombre)}
                       aria-current={zona.id === zonaId ? 'page' : undefined}
                     >
                       <span class="enlaces-bloque__info">
@@ -109,4 +122,4 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
   </div>
 </div>
 
-<MenuHoy provinciaId={provinciaEvolucion} />
+{mostrarMenuHoy && <MenuHoy provinciaId={provinciaEvolucion} />}

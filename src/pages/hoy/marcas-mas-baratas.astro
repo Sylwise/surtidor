@@ -45,8 +45,11 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
         return <article class="editorial-destacado" data-destacado-combustible={combustible} hidden={indice > 0}>
           <span>Menor media · {ETIQUETA[combustible]}</span>
           <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
-          {lider && <span class="editorial-destacado__nombre">{lider.rotulo}</span>}
-          {resumen && <small>{numero(resumen.n)} estaciones con precio</small>}
+          {lider && resumen && <div>
+            <span>Marca</span>
+            <b class="editorial-destacado__entidad">{lider.rotulo}</b>
+            <small>{numero(resumen.n)} estaciones con precio</small>
+          </div>}
         </article>;
       })}
     </header>
@@ -61,6 +64,16 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
 
     {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
       const filas = rankingsGenerales[combustible];
+      const resumenFiscal = mercadosFiscales.map((mercado) => {
+        const clasificados = ranking(mercado.seleccion.incluidos, combustible);
+        const referencia = clasificados[0] ?? ranking(mercado.rotulos, combustible)[0] ?? null;
+        return {
+          mercado,
+          clasificados,
+          referencia,
+          resumen: referencia?.elemento.combustibles[combustible],
+        };
+      });
       return <section id={`panel-${combustible}`} class="editorial-panel-ranking" data-panel-combustible={combustible} hidden={indiceCombustible > 0} aria-labelledby={`titulo-marcas-${combustible}`}>
         <aside class="editorial-claves">
           <p class="micro">Cobertura del ranking</p>
@@ -80,52 +93,38 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
           </>}
         </div>
 
-        <section class="editorial-desglose-fiscal" data-desglose-fiscal>
-          <div class="editorial-desglose-fiscal__resumen">
-            <div><h3>Canarias, Ceuta y Melilla</h3><p>Sus rótulos se analizan sin mezclarlos con el mercado general.</p></div>
-            <button type="button" data-abrir-desglose aria-expanded="false" aria-controls={`desglose-${combustible}`}>Ver desglose fiscal <span aria-hidden="true">↓</span></button>
-          </div>
-          <div class="editorial-desglose-fiscal__fondo" data-fondo-desglose hidden></div>
-          <div id={`desglose-${combustible}`} class="editorial-desglose-fiscal__contenido" data-contenido-desglose hidden>
-            <header><div><span class="micro">Análisis por mercado</span><h3>Canarias, Ceuta y Melilla</h3></div><button type="button" class="boton-cerrar" data-cerrar-desglose aria-label="Cerrar desglose fiscal">✕</button></header>
-            <p>Mismo cálculo y umbral de {UMBRAL_ESTACIONES_ROTULO} estaciones, aplicado dentro de cada mercado fiscal.</p>
-            <ul>
-              {mercadosFiscales.map((mercado) => {
-                const clasificados = ranking(mercado.seleccion.incluidos, combustible);
-                const referencia = clasificados[0] ?? ranking(mercado.rotulos, combustible)[0] ?? null;
-                const resumen = referencia?.elemento.combustibles[combustible];
-                return <li><span><strong>{mercado.nombre}</strong><small>{referencia ? referencia.elemento.rotulo : 'Sin datos'} · {mercado.conRanking ? `${clasificados.length} en ranking` : 'sin ranking'}</small></span><b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b></li>;
-              })}
-            </ul>
-            <small>Ceuta y Melilla se muestran como referencia cuando no alcanzan la muestra mínima; no se finge una clasificación válida.</small>
-          </div>
-        </section>
+        <aside class="editorial-fiscal editorial-fiscal--compacta editorial-fiscal--tarjetas">
+          <div><h3>Canarias, Ceuta y Melilla</h3></div>
+          <ul class="editorial-fiscal__datos">
+            {resumenFiscal.map(({ mercado, clasificados, referencia, resumen }) => (
+              <li>
+                <span>
+                  <strong>{mercado.nombre}</strong>
+                  <small>{referencia ? referencia.elemento.rotulo : 'Sin datos'} · {mercado.conRanking ? `${clasificados.length} en ranking` : 'sin ranking'}</small>
+                </span>
+                <b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b>
+              </li>
+            ))}
+          </ul>
+        </aside>
+        <details class="editorial-fiscal-movil editorial-fiscal-movil--rotulos">
+          <summary>Canarias, Ceuta y Melilla</summary>
+          <ul class="editorial-fiscal__datos">
+            {resumenFiscal.map(({ mercado, clasificados, referencia, resumen }) => (
+              <li>
+                <span>
+                  <strong>{mercado.nombre}</strong>
+                  <small>{referencia ? referencia.elemento.rotulo : 'Sin datos'} · {mercado.conRanking ? `${clasificados.length} en ranking` : 'sin ranking'}</small>
+                </span>
+                <b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b>
+              </li>
+            ))}
+          </ul>
+        </details>
 
         <details class="editorial-metodologia-final"><summary>Metodología y limitaciones</summary><p>Media simple por estación pública y combustible. CEPSA/MOEVE y REPSOL/CAMPSA/PETRONOR permanecen separados cuando el rótulo visible es distinto. Los valores ausentes no entran en el divisor.</p></details>
       </section>;
     })}
 
-    <script>
-      for (const bloque of document.querySelectorAll<HTMLElement>('[data-desglose-fiscal]')) {
-        const abrir = bloque.querySelector<HTMLButtonElement>('[data-abrir-desglose]')!;
-        const cerrar = bloque.querySelector<HTMLButtonElement>('[data-cerrar-desglose]')!;
-        const contenido = bloque.querySelector<HTMLElement>('[data-contenido-desglose]')!;
-        const fondo = bloque.querySelector<HTMLElement>('[data-fondo-desglose]')!;
-        const focables = () => [...contenido.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')];
-        const ocultar = (devolverFoco = true): void => { contenido.hidden = true; fondo.hidden = true; abrir.setAttribute('aria-expanded', 'false'); abrir.querySelector('span')!.textContent = '↓'; abrir.firstChild!.textContent = 'Ver desglose fiscal '; document.body.classList.remove('desglose-fiscal-abierto'); if (devolverFoco) abrir.focus(); };
-        const mostrar = (): void => { contenido.hidden = false; fondo.hidden = false; abrir.setAttribute('aria-expanded', 'true'); abrir.querySelector('span')!.textContent = '↑'; abrir.firstChild!.textContent = 'Ocultar desglose '; document.body.classList.add('desglose-fiscal-abierto'); if (matchMedia('(max-width: 700px)').matches) cerrar.focus(); };
-        abrir.addEventListener('click', () => contenido.hidden ? mostrar() : ocultar());
-        cerrar.addEventListener('click', () => ocultar());
-        fondo.addEventListener('click', () => ocultar());
-        document.addEventListener('keydown', (evento) => {
-          if (contenido.hidden) return;
-          if (evento.key === 'Escape') { evento.preventDefault(); ocultar(); return; }
-          if (evento.key !== 'Tab' || !matchMedia('(max-width: 700px)').matches) return;
-          const elementos = focables(); const primero = elementos[0]; const ultimo = elementos.at(-1);
-          if (evento.shiftKey && document.activeElement === primero) { evento.preventDefault(); ultimo?.focus(); }
-          else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primero?.focus(); }
-        });
-      }
-    </script>
   </div>
 </DocumentoEditorial>

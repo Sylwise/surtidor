@@ -1,4 +1,4 @@
-// Hoja inferior arrastrable (ADR-0006): tres estados — colapsada, media,
+// Hoja inferior arrastrable (ADR-0006): tres estados — minimizada, media,
 // completa — que reparten el espacio entre el mapa (capa de fondo, regla
 // dura 2 de CLAUDE.md: es un extra) y los controles rápidos + lista/ficha.
 //
@@ -13,11 +13,17 @@
 
 import { actualizarEstado, obtenerEstado, suscribir } from '../logica/estado.ts';
 
-type EstadoHoja = 'colapsada' | 'media' | 'completa';
+export type EstadoHoja = 'minimizada' | 'media' | 'completa';
 
-const ORDEN: EstadoHoja[] = ['colapsada', 'media', 'completa'];
+export const ORDEN_ESTADOS_HOJA: EstadoHoja[] = ['minimizada', 'media', 'completa'];
 const CONSULTA_MOVIL = '(max-width: 760px)';
 const UMBRAL_ARRASTRE_PX = 4;
+
+export function siguienteEstadoHoja(estado: EstadoHoja, direccion: 1 | -1): EstadoHoja {
+  const indice = ORDEN_ESTADOS_HOJA.indexOf(estado);
+  const nuevoIndice = Math.min(ORDEN_ESTADOS_HOJA.length - 1, Math.max(0, indice + direccion));
+  return ORDEN_ESTADOS_HOJA[nuevoIndice] as EstadoHoja;
+}
 
 // Alto real de la cabecera (--cabecera-alto, ResizeObserver en los .astro,
 // fijada antes de llamar a montarHoja). El respaldo de 56 coincide con el
@@ -28,20 +34,20 @@ function alturaCabecera(): number {
   return Number.isFinite(px) && px > 0 ? px : 56;
 }
 
-// Techo real del arrastre libre: nunca más allá del hueco que deja la
-// cabecera, para que el borde superior de la hoja (y su asa) no quede
-// escondido detrás de ella sin forma de volver a agarrarla.
+// Techo real del arrastre libre: nunca más allá del hueco que dejan la
+// topbar y la fila territorial/combustibles (52 px), para que el borde
+// superior de la hoja no tape esos controles.
 function techoUtil(): number {
-  return window.innerHeight - alturaCabecera() - 8;
+  return window.innerHeight - alturaCabecera() - 52;
 }
 
-// Mismos números que --hoja-colapsada/--hoja-media/--hoja-completa en
+// Mismos números que --hoja-minimizada/--hoja-media/--hoja-completa en
 // interfaz.css. Duplicarlos aquí es más simple y más robusto que hacer que
 // el arrastre lea `getComputedStyle` en cada movimiento del puntero.
 function alturaDeEstado(estado: EstadoHoja): number {
-  if (estado === 'colapsada') return 110;
-  if (estado === 'media') return Math.min(462, window.innerHeight - 108);
-  return Math.min(window.innerHeight * 0.9, techoUtil());
+  if (estado === 'minimizada') return 44;
+  if (estado === 'media') return Math.min(462, window.innerHeight * 0.55);
+  return techoUtil();
 }
 
 function prefiereMovimientoReducido(): boolean {
@@ -58,7 +64,7 @@ function prefiereMovimientoReducido(): boolean {
  * Devuelve una función de limpieza.
  */
 export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTMLElement): () => void {
-  let estado: EstadoHoja = 'colapsada';
+  let estado: EstadoHoja = 'minimizada';
   let arrastrando = false;
   let seMovio = false;
   let inicioY = 0;
@@ -69,7 +75,7 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     hoja.style.removeProperty('height');
     hoja.style.transition = animar && !prefiereMovimientoReducido() ? '' : 'none';
     hoja.dataset.estado = nuevo;
-    asa.setAttribute('aria-expanded', String(nuevo !== 'colapsada'));
+    asa.setAttribute('aria-expanded', String(nuevo !== 'minimizada'));
     asa.setAttribute(
       'aria-label',
       `Panel de estaciones: ${nuevo}. Flecha arriba o abajo para cambiar de tamaño.`,
@@ -78,21 +84,19 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     // RF-83: arrastrar (o el atajo de un toque en el asa) hasta la posición
     // asomada es una de las tres formas de cerrar la ficha, igual que tocar
     // el mapa (Mapa.ts) o la X (Totem.ts).
-    if (nuevo === 'colapsada' && obtenerEstado().estacionId) {
+    if (nuevo === 'minimizada' && obtenerEstado().estacionId) {
       actualizarEstado({ estacionId: null });
     }
   }
 
   function siguiente(direccion: 1 | -1): EstadoHoja {
-    const indice = ORDEN.indexOf(estado);
-    const nuevoIndice = Math.min(ORDEN.length - 1, Math.max(0, indice + direccion));
-    return ORDEN[nuevoIndice] as EstadoHoja;
+    return siguienteEstadoHoja(estado, direccion);
   }
 
   function estadoMasCercano(alturaPx: number): EstadoHoja {
     let mejor: EstadoHoja = 'media';
     let mejorDistancia = Infinity;
-    for (const candidato of ORDEN) {
+    for (const candidato of ORDEN_ESTADOS_HOJA) {
       const distancia = Math.abs(alturaDeEstado(candidato) - alturaPx);
       if (distancia < mejorDistancia) {
         mejorDistancia = distancia;
@@ -102,11 +106,12 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     return mejor;
   }
 
-  // Clic simple (sin arrastre de por medio): alterna colapsada ↔ siguiente
+  // Clic simple (sin arrastre de por medio): abre la pestaña minimizada en
+  // media; desde los otros estados recorre el orden sin saltos.
   // estado hacia arriba. Es el atajo para quien no quiere arrastrar.
   function alClic(): void {
     if (seMovio) return;
-    aplicar(estado === 'completa' ? 'colapsada' : siguiente(1), true);
+    aplicar(estado === 'completa' ? 'media' : siguiente(1), true);
   }
 
   function alTeclado(evento: KeyboardEvent): void {
@@ -134,7 +139,7 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     const delta = inicioY - evento.clientY;
     if (Math.abs(delta) > UMBRAL_ARRASTRE_PX) seMovio = true;
     const techo = techoUtil();
-    const nuevaAltura = Math.min(techo, Math.max(60, alturaInicio + delta));
+    const nuevaAltura = Math.min(techo, Math.max(44, alturaInicio + delta));
     hoja.style.height = `${nuevaAltura}px`;
   }
 
@@ -211,26 +216,48 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     estacionAnterior = estadoApp.estacionId;
   });
 
-  // Tocar el mapa de fondo despeja la hoja (colapsada), haya o no
-  // selección: es lo que se acaba de pedir al tocar el mapa, no una
-  // consecuencia indirecta de deseleccionar.
-  function alTocarMapa(): void {
-    if (!window.matchMedia(CONSULTA_MOVIL).matches) return;
-    if (estado !== 'colapsada') aplicar('colapsada', true);
+  const selectorExcluidoMapa = '.maplibregl-marker, .marcador, .marcador-provincia, .maplibregl-control-container, .maplibregl-ctrl, .maplibregl-ctrl-attrib';
+
+  function esFondoInteractivoMapa(objetivo: EventTarget | null): boolean {
+    return !(objetivo instanceof Element) || !objetivo.closest(selectorExcluidoMapa);
   }
-  mapa.addEventListener('click', alTocarMapa);
+
+  // Se minimiza al INICIO del gesto. No se cancela ni consume: el mismo
+  // pointerdown sigue llegando a MapLibre y mueve o amplía el mapa. Los
+  // marcadores, controles, GPS y atribución quedan fuera explícitamente.
+  function alIniciarInteraccionMapa(evento: PointerEvent | WheelEvent): void {
+    if (!window.matchMedia(CONSULTA_MOVIL).matches) return;
+    if (!esFondoInteractivoMapa(evento.target)) return;
+    if (estado !== 'minimizada') aplicar('minimizada', true);
+  }
+  mapa.addEventListener('pointerdown', alIniciarInteraccionMapa, { passive: true });
+  mapa.addEventListener('wheel', alIniciarInteraccionMapa, { passive: true });
+
+  const contadorMinimizado = asa.querySelector<HTMLElement>('[data-contador-hoja]');
+  function sincronizarContador(): void {
+    const contadorLista = hoja.querySelector<HTMLElement>('.lista__contador');
+    const siguienteContador = contadorLista?.textContent?.trim() || '0';
+    if (contadorMinimizado && contadorMinimizado.textContent !== siguienteContador) {
+      contadorMinimizado.textContent = siguienteContador;
+    }
+  }
+  const observadorContador = new MutationObserver(sincronizarContador);
+  observadorContador.observe(hoja, { childList: true, subtree: true, characterData: true });
+  sincronizarContador();
 
   aplicar('media', false);
 
   return () => {
     if (frameDesplazamiento !== null) cancelAnimationFrame(frameDesplazamiento);
     cancelarSuscripcion();
+    observadorContador.disconnect();
     asa.removeEventListener('click', alClic);
     asa.removeEventListener('keydown', alTeclado);
     asa.removeEventListener('pointerdown', alPuntero);
     asa.removeEventListener('pointermove', alMover);
     asa.removeEventListener('pointerup', alSoltar);
     asa.removeEventListener('pointercancel', alSoltar);
-    mapa.removeEventListener('click', alTocarMapa);
+    mapa.removeEventListener('pointerdown', alIniciarInteraccionMapa);
+    mapa.removeEventListener('wheel', alIniciarInteraccionMapa);
   };
 }

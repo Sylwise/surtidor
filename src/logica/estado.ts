@@ -46,24 +46,27 @@ export interface EstadoApp {
 
 const CLAVE_LOCALSTORAGE = 'surtidor:preferencias';
 
-interface Preferencias {
+export interface Preferencias {
   zonaId?: string;
   combustible?: ClavePrecio;
   litros?: number;
+}
+
+export function normalizarPreferencias(valor: unknown): Preferencias {
+  if (!valor || typeof valor !== 'object') return {};
+  const datos = valor as Record<string, unknown>;
+  const resultado: Preferencias = {};
+  if (typeof datos.zonaId === 'string') resultado.zonaId = datos.zonaId;
+  if (typeof datos.combustible === 'string') resultado.combustible = datos.combustible as ClavePrecio;
+  if (typeof datos.litros === 'number' && Number.isFinite(datos.litros) && datos.litros > 0) resultado.litros = datos.litros;
+  return resultado;
 }
 
 function leerPreferencias(): Preferencias {
   try {
     const crudo = localStorage.getItem(CLAVE_LOCALSTORAGE);
     if (!crudo) return {};
-    const datos = JSON.parse(crudo) as Record<string, unknown>;
-    const resultado: Preferencias = {};
-    if (typeof datos.zonaId === 'string') resultado.zonaId = datos.zonaId;
-    if (typeof datos.combustible === 'string') resultado.combustible = datos.combustible as ClavePrecio;
-    if (typeof datos.litros === 'number' && Number.isFinite(datos.litros) && datos.litros > 0) {
-      resultado.litros = datos.litros;
-    }
-    return resultado;
+    return normalizarPreferencias(JSON.parse(crudo));
   } catch {
     // localStorage puede no existir (SSR) o fallar (modo privado, cuota).
     // Se pierde la persistencia, no la aplicación.
