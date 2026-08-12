@@ -10,8 +10,6 @@
     "check": "astro check && tsc -p scripts/tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types scripts/**/*.test.ts src/**/*.test.ts",
     "data:fetch": "node --experimental-strip-types scripts/descargar-datos.ts",
-    "data:historico": "node --experimental-strip-types scripts/descargar-historico.ts",
-    "medir:historico": "node --experimental-strip-types scripts/medir-historico.ts",
     "materializar:historico": "node --experimental-strip-types scripts/materializar-historico.ts",
     "preparar:historico": "node --experimental-strip-types scripts/preparar-historico.ts",
     "data:mock": "node --experimental-strip-types scripts/datos-mock.ts",
