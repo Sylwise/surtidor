@@ -21,16 +21,6 @@ import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combusti
 import { montarSelectorZona } from './SelectorZona.ts';
 import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
-// Exportadas: src/pages/index.astro (RF-91, ADR-0017) agrupa sus enlaces de
-// portada con el mismo vocabulario y el mismo orden que este selector, para
-// que las dos vías no diverjan.
-export const ETIQUETA_TIPO: Record<Zona['tipo'], string> = {
-  provincia: 'Provincias',
-  ccaa: 'Comunidades autónomas',
-};
-
-export const ORDEN_TIPOS: Zona['tipo'][] = ['provincia', 'ccaa'];
-
 /**
  * Monta los controles y los mantiene sincronizados con el estado. El DOM se
  * construye una sola vez: las actualizaciones posteriores solo tocan lo que
