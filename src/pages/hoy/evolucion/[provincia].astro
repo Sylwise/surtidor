@@ -31,11 +31,11 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
     <meta name="description" content={`Qué está pasando con el precio del combustible en ${nombre} durante los últimos 90 días.`} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="theme-color" content="#F4F6F5" />
+    <meta name="theme-color" content="#16323B" />
   </head>
   <body>
     <div class="evolucion-app" data-evolucion data-provincia-id={provinciaId}>
-      <CabeceraGlobal modo="evolucion" variante="clara" provinciaId={provinciaId} zonaHref={`/${zonaId}/`} zonaNombre={nombre} contexto="Evolución">
+      <CabeceraGlobal modo="evolucion" variante="petroleo" provinciaId={provinciaId} zonaHref={`/${zonaId}/`} zonaNombre={nombre} contexto="Evolución">
         <button slot="accion-movil" class="evolucion-abrir-explorador" type="button" data-abrir-explorador aria-label="Explorar estaciones">
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
         </button>
@@ -75,9 +75,9 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
             </header>
 
             <dl class="evolucion-hitos">
-              <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0M12 14l4-5" /></svg><dt data-etiqueta-media>Media provincial</dt><dd data-media></dd><small>cierre de hoy</small></div>
-              <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2 3 2 4 .5.5 4 2.5 3-2.5 3-.5 4-4 .5-3 2-3-2-4-.5-.5-4L2 11l2.5-3 .5-4 4-.5zM9 12h6m-5-3h4m-4 6h4" /></svg><dt data-etiqueta-minimo>Más barata</dt><dd data-minimo></dd><small data-minimo-contexto></small></div>
-              <div><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg><dt data-etiqueta-muestra>Cobertura</dt><dd data-muestra></dd><small data-muestra-contexto></small></div>
+              <div><dt data-etiqueta-media>Media</dt><dd data-media></dd></div>
+              <div><dt data-etiqueta-minimo>Mínimo</dt><dd data-minimo></dd></div>
+              <div><dt data-etiqueta-muestra>Estaciones</dt><dd data-muestra></dd></div>
             </dl>
 
             <section class="evolucion-comparacion" data-comparacion-estacion hidden>

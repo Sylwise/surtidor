@@ -1721,7 +1721,9 @@ input {
   padding: 0 22px;
   gap: 18px;
   flex-wrap: nowrap;
-  background: var(--paper);
+  background: var(--petrol);
+  color: var(--paper);
+  border-bottom: 2px solid var(--signal);
 }
 
 .app { --hoja-ancho: 380px; }
@@ -1730,8 +1732,9 @@ input {
 .boton-zona,
 .boton-hoy {
   min-height: 38px;
-  background: var(--surface);
-  border-color: var(--line);
+  background: var(--surface-soft);
+  border-color: var(--surface-stroke);
+  color: var(--paper);
   border-radius: 7px;
   font-size: 12px;
 }
@@ -1817,18 +1820,17 @@ input {
 .panel-hoy {
   position: fixed;
   z-index: 18;
-  top: 94px;
-  right: 0;
-  bottom: 0;
-  width: 320px;
+  top: 106px;
+  right: 12px;
+  bottom: auto;
+  width: 324px;
   padding: 20px 16px;
-  border: 0;
-  border-left: 1px solid var(--line);
-  border-radius: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--surface);
-  box-shadow: -6px 0 18px color-mix(in srgb, var(--petrol) 12%, transparent);
+  box-shadow: none;
 }
-.app--hoy-abierto .layout { padding-right: 320px; }
+.app--hoy-abierto .layout { padding-right: 0; }
 .panel-hoy__asa { display: none; }
 .panel-hoy__cabecera { padding: 0 4px 10px; }
 .panel-hoy__cabecera > span {
@@ -1880,7 +1882,7 @@ input {
     padding: 0 14px;
     gap: 8px;
     box-shadow: none;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 2px solid var(--signal);
   }
   .marca__texto { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; }
   .marca { font-size: 16px; }
@@ -1897,8 +1899,9 @@ input {
     height:44px;
     min-height:44px;
     justify-content: flex-start;
-    border: 1px solid var(--line);
-    background: var(--surface);
+    border: 1px solid var(--surface-stroke);
+    background: var(--surface-soft);
+    color: var(--paper);
     padding: 3px 9px;
   }
   .boton-zona__nombre {
@@ -1911,6 +1914,7 @@ input {
   .boton-zona__flecha { margin-left: auto; }
   .navegacion-hoy { margin-left: 0; }
   .boton-hoy { width:44px; min-height:44px; padding:0; background:var(--petrol); color:var(--paper); border-color:var(--petrol); }
+  .cabecera-global__precios-app { display:none; }
   .boton-hoy__texto,
   .boton-hoy__flecha { display: none; }
   .boton-hoy__icono {

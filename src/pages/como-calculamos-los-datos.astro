@@ -1,0 +1,50 @@
+---
+import DocumentoEditorial from '../layouts/DocumentoEditorial.astro';
+
+const ruta = '/como-calculamos-los-datos/';
+const titulo = 'Cómo calculamos los datos · Surtidor';
+const descripcion = 'Fuentes, reglas de cálculo y limitaciones de los precios y análisis publicados por Surtidor.';
+---
+
+<DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
+  <header class="editorial-intro editorial-intro--metodo">
+    <p class="editorial-eyebrow">Metodología</p>
+    <h1 class="editorial-titulo">Cómo calculamos los datos</h1>
+    <p class="editorial-entradilla">Estas son las reglas que convierten el conjunto oficial de precios en mapas, medias y clasificaciones reproducibles.</p>
+  </header>
+
+  <div class="editorial-metodo-pagina">
+    <article class="editorial-metodo-pagina__principal">
+      <h2>Fuente y actualización</h2>
+      <p>Los precios proceden del Geoportal de Hidrocarburos del Ministerio para la Transición Ecológica y el Reto Demográfico. Surtidor conserva la fecha de actualización de la fuente y genera sus páginas estáticas con una única fotografía coherente de los datos.</p>
+
+      <h2>Qué estaciones intervienen</h2>
+      <p>Las comparaciones incluyen únicamente estaciones de venta al público. Una estación participa en un combustible solo cuando publica un precio válido para ese producto. Un valor ausente se excluye del cálculo y nunca se interpreta como cero.</p>
+
+      <h2>Medias, mínimos y empates</h2>
+      <ul>
+        <li>Las medias son aritméticas simples por estación, sin ponderar por volumen de venta.</li>
+        <li>Los mínimos son el menor precio publicado dentro del ámbito indicado.</li>
+        <li>Los empates exactos a tres decimales comparten posición y se conservan todos sus lugares de origen.</li>
+        <li>El tamaño de muestra se muestra junto a cada resultado para que pueda valorarse su cobertura.</li>
+      </ul>
+
+      <h2>Mercados fiscales</h2>
+      <p>Canarias, Ceuta y Melilla se presentan aparte del mercado general porque su fiscalidad de carburantes es distinta. En los rankings de rótulos, el umbral mínimo de 100 estaciones se aplica de nuevo dentro de cada mercado: si no se alcanza, se muestra una referencia, no una clasificación fingida.</p>
+
+      <h2>Limitaciones</h2>
+      <p>Los precios son los comunicados por cada estación al ministerio y pueden cambiar después de la actualización. Una media no describe distancias, horarios, servicios ni disponibilidad puntual. Surtidor ayuda a comparar; el precio visible en la estación es el que prevalece.</p>
+    </article>
+
+    <aside class="editorial-metodo-pagina__ficha" aria-label="Resumen metodológico">
+      <h2>Reglas en breve</h2>
+      <dl>
+        <div><dt>Fuente</dt><dd>Ministerio para la Transición Ecológica</dd></div>
+        <div><dt>Venta</dt><dd>Solo estaciones públicas</dd></div>
+        <div><dt>Ausencias</dt><dd>Se excluyen; nunca valen cero</dd></div>
+        <div><dt>Precisión</dt><dd>Tres decimales por litro</dd></div>
+        <div><dt>Mercado general</dt><dd>Península y Baleares</dd></div>
+      </dl>
+    </aside>
+  </div>
+</DocumentoEditorial>

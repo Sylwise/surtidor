@@ -1,0 +1,54 @@
+---
+import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+
+interface Props {
+  etiqueta?: string;
+}
+
+const { etiqueta = 'Seleccionar combustible' } = Astro.props;
+---
+
+<div class="editorial-selector" role="group" aria-label={etiqueta} data-selector-editorial>
+  {ORDEN_COMBUSTIBLES.map((combustible, indice) => (
+    <button
+      type="button"
+      class="editorial-selector__opcion"
+      data-combustible={combustible}
+      aria-controls={`panel-${combustible}`}
+      aria-pressed={indice === 0 ? 'true' : 'false'}
+    >
+      <span class="editorial-selector__larga">{ETIQUETA[combustible]}</span>
+      <span class="editorial-selector__corta">{ETIQUETA_CORTA[combustible]}</span>
+    </button>
+  ))}
+</div>
+
+<noscript>
+  <style is:global>
+    [data-editorial-ranking] [data-panel-combustible][hidden],
+    [data-editorial-ranking] [data-destacado-combustible]:first-of-type[hidden] { display: block !important; }
+    [data-editorial-ranking] [data-selector-editorial] { display: none; }
+  </style>
+  <p class="editorial-aviso-noscript">JavaScript está desactivado: se muestran seguidos los cuatro combustibles.</p>
+</noscript>
+
+<script>
+  for (const pagina of document.querySelectorAll<HTMLElement>('[data-editorial-ranking]')) {
+    if (pagina.dataset.selectorMontado) continue;
+    pagina.dataset.selectorMontado = 'true';
+    const botones = [...pagina.querySelectorAll<HTMLButtonElement>('[data-selector-editorial] [data-combustible]')];
+    const paneles = [...pagina.querySelectorAll<HTMLElement>('[data-panel-combustible]')];
+    const destacados = [...pagina.querySelectorAll<HTMLElement>('[data-destacado-combustible]')];
+    const estado = pagina.querySelector<HTMLElement>('[data-estado-selector]');
+    const activar = (combustible: string): void => {
+      botones.forEach((boton) => boton.setAttribute('aria-pressed', String(boton.dataset.combustible === combustible)));
+      paneles.forEach((panel) => { panel.hidden = panel.dataset.panelCombustible !== combustible; });
+      destacados.forEach((destacado) => { destacado.hidden = destacado.dataset.destacadoCombustible !== combustible; });
+      pagina.querySelectorAll<HTMLDetailsElement>('.editorial-detalles--ranking[open], .editorial-fiscal-movil[open]').forEach((detalle) => { detalle.open = false; });
+      const botonActivo = botones.find((boton) => boton.dataset.combustible === combustible);
+      if (estado && botonActivo) estado.textContent = `Mostrando ${botonActivo.textContent?.trim() ?? 'combustible'}`;
+    };
+    botones.forEach((boton) => boton.addEventListener('click', () => activar(boton.dataset.combustible ?? '')));
+    activar(botones.find((boton) => boton.getAttribute('aria-pressed') === 'true')?.dataset.combustible ?? 'gasolina95e5');
+  }
+</script>

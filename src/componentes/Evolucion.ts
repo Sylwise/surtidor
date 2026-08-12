@@ -231,15 +231,13 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = puesto > 0 ? `${puesto}ª de ${comparables.length}` : 'No comparable';
       } else {
-        etiquetaMedia.textContent = esMovil ? 'Media' : 'Media provincial';
-        etiquetaMinimo.textContent = esMovil ? 'Mínimo' : 'Más barata';
-        etiquetaMuestra.textContent = esMovil ? 'Estaciones' : 'Cobertura';
+        etiquetaMedia.textContent = 'Media';
+        etiquetaMinimo.textContent = 'Mínimo';
+        etiquetaMuestra.textContent = 'Estaciones';
         contenedor.querySelector<HTMLElement>('[data-media]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(ultimoAgregado[2]);
-        contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = esMovil ? String(ultimoAgregado[1]) : `${ultimoAgregado[1]} estaciones`;
+        contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = String(ultimoAgregado[1]);
       }
-      contenedor.querySelector<HTMLElement>('[data-minimo-contexto]')!.textContent = estacionActiva ? 'media de la provincia' : ultimoAgregado[2] === null || mediaProvincia.at(-1)?.milesimas === null ? '' : `−${centimos((mediaProvincia.at(-1)!.milesimas ?? 0) - ultimoAgregado[2])} cts vs. media`;
-      contenedor.querySelector<HTMLElement>('[data-muestra-contexto]')!.textContent = explicacion ? `${explicacion.amplitud.alineadas} con ${cambio && cambio.diferenciaMilesimas < 0 ? 'bajada' : 'subida'}` : '';
       const comparacionEstacion = contenedor.querySelector<HTMLElement>('[data-comparacion-estacion]')!;
       const estadoVacio = contenedor.querySelector<HTMLElement>('[data-evolucion-vacio]')!;
       const graficoCard = contenedor.querySelector<HTMLElement>('.evolucion-grafico-card')!;

@@ -8,13 +8,14 @@ interface Props {
   filas: FilaRanking<AgregadoRotulo>[];
   combustible: ClavePrecio;
   etiqueta?: string;
+  principal?: boolean;
 }
 
-const { filas, combustible, etiqueta } = Astro.props;
+const { filas, combustible, etiqueta, principal = false } = Astro.props;
 ---
 
 <div class="editorial-tabla-wrap">
-  <table class="editorial-tabla" aria-label={etiqueta}>
+  <table class:list={['editorial-tabla', { 'editorial-tabla--principal': principal }]} aria-label={etiqueta}>
     <thead>
       <tr>
         <th scope="col" class="editorial-tabla__posicion">Pos.</th>

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AgregadoRotulo } from './agregados.ts';
-import { rotulosQueVenden, seleccionarRotulos } from './rotulos.ts';
+import { rotulosQueVenden, seleccionarMercadosFiscales, seleccionarRotulos } from './rotulos.ts';
 
 function rotulo(nombre: string, estaciones: number): AgregadoRotulo {
   const combustible = { media: null, n: 0 };
@@ -47,5 +47,20 @@ describe('seleccionarRotulos', () => {
       rotulosQueVenden(rotulos, 'gasolina95e5').map(({ rotulo }) => rotulo),
       ['CON GASOLINA'],
     );
+  });
+
+  it('aplica el umbral dentro de cada mercado fiscal y etiqueta los que no tienen ranking', () => {
+    const mercados = seleccionarMercadosFiscales([
+      { id: 'canarias', nombre: 'Canarias', rotulos: [rotulo('A', 100), rotulo('B', 40)] },
+      { id: 'ceuta', nombre: 'Ceuta', rotulos: [rotulo('C', 99)] },
+      { id: 'melilla', nombre: 'Melilla', rotulos: [] },
+    ]);
+
+    assert.deepEqual(mercados.map(({ id, conRanking }) => [id, conRanking]), [
+      ['canarias', true],
+      ['ceuta', false],
+      ['melilla', false],
+    ]);
+    assert.deepEqual(mercados[0]?.seleccion.incluidos.map(({ rotulo }) => rotulo), ['A']);
   });
 });

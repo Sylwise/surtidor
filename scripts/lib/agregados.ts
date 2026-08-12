@@ -39,10 +39,16 @@ export interface PorAmbito<T> {
   canariasCeutaMelilla: T[];
 }
 
+export interface MercadoFiscalRotulos {
+  id: 'canarias' | 'ceuta' | 'melilla';
+  nombre: string;
+  rotulos: AgregadoRotulo[];
+}
+
 export interface AgregadosEditoriales {
   actualizado: string;
   zonas: PorAmbito<AgregadoZona>;
-  rotulos: PorAmbito<AgregadoRotulo>;
+  rotulos: PorAmbito<AgregadoRotulo> & { mercadosFiscales: MercadoFiscalRotulos[] };
 }
 
 interface AcumuladorPrecio {
@@ -119,6 +125,10 @@ function esAmbitoFiscalAparte(provincias: readonly string[]): boolean {
   return provincias.some((id) => PROVINCIAS_AMBITO_FISCAL_APARTE.has(id));
 }
 
+function estacionesPublicas(datos: DatosProvincia): Estacion[] {
+  return datos.estaciones.filter((estacion) => estacion.tipoVenta === 'P');
+}
+
 export function calcularAgregadosEditoriales(
   datosPorProvincia: readonly DatosProvincia[],
   zonas: readonly Zona[],
@@ -127,16 +137,16 @@ export function calcularAgregadosEditoriales(
   const datosPorId = new Map(datosPorProvincia.map((datos) => [datos.provincia.id, datos]));
   const estacionesGenerales = datosPorProvincia
     .filter((datos) => !PROVINCIAS_AMBITO_FISCAL_APARTE.has(datos.provincia.id))
-    .flatMap((datos) => datos.estaciones);
+    .flatMap(estacionesPublicas);
   const estacionesAmbitoFiscalAparte = datosPorProvincia
     .filter((datos) => PROVINCIAS_AMBITO_FISCAL_APARTE.has(datos.provincia.id))
-    .flatMap((datos) => datos.estaciones);
+    .flatMap(estacionesPublicas);
 
   const agregadosZona = zonas.map((zona): AgregadoZona => {
     const estaciones = zona.provincias.flatMap((idProvincia) => {
       const datos = datosPorId.get(idProvincia);
       if (!datos) throw new Error(`No se encontraron datos para la provincia ${idProvincia} de ${zona.nombre}`);
-      return datos.estaciones;
+      return estacionesPublicas(datos);
     });
 
     return {
@@ -157,6 +167,19 @@ export function calcularAgregadosEditoriales(
     rotulos: {
       general: resumirRotulos(estacionesGenerales),
       canariasCeutaMelilla: resumirRotulos(estacionesAmbitoFiscalAparte),
+      mercadosFiscales: [
+        { id: 'canarias', nombre: 'Canarias', provincias: ['35', '38'] },
+        { id: 'ceuta', nombre: 'Ceuta', provincias: ['51'] },
+        { id: 'melilla', nombre: 'Melilla', provincias: ['52'] },
+      ].map(({ id, nombre, provincias }) => ({
+        id: id as MercadoFiscalRotulos['id'],
+        nombre,
+        rotulos: resumirRotulos(
+          datosPorProvincia
+            .filter((datos) => provincias.includes(datos.provincia.id))
+            .flatMap(estacionesPublicas),
+        ),
+      })),
     },
   };
 }

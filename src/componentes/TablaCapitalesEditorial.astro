@@ -8,13 +8,15 @@ interface Props {
   filas: FilaRanking<AgregadoCapital>[];
   combustible: ClavePrecio;
   etiqueta?: string;
+  principal?: boolean;
+  duplicadas?: number;
 }
 
-const { filas, combustible, etiqueta } = Astro.props;
+const { filas, combustible, etiqueta, principal = false, duplicadas = 0 } = Astro.props;
 ---
 
 <div class="editorial-tabla-wrap">
-  <table class="editorial-tabla" aria-label={etiqueta}>
+  <table class:list={['editorial-tabla', { 'editorial-tabla--principal': principal }]} aria-label={etiqueta}>
     <thead>
       <tr>
         <th scope="col" class="editorial-tabla__posicion">Pos.</th>
@@ -24,10 +26,10 @@ const { filas, combustible, etiqueta } = Astro.props;
       </tr>
     </thead>
     <tbody>
-      {filas.map(({ elemento: capital, posicion }) => {
+      {filas.map(({ elemento: capital, posicion }, indice) => {
         const resumen = capital.combustibles[combustible];
         return (
-          <tr>
+          <tr class:list={{ 'editorial-continuacion__duplicada': indice < duplicadas }}>
             <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
             <td class="editorial-tabla__zona"><a href={capital.href}>{capital.nombre}</a></td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>

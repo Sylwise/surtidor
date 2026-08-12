@@ -26,6 +26,10 @@ function estacion(id: string, precios: Partial<Precios>, rotulo = 'ROTULO'): Est
   };
 }
 
+function estacionRestringida(id: string, precios: Partial<Precios>): Estacion {
+  return { ...estacion(id, precios), tipoVenta: 'R' };
+}
+
 function provincia(id: string, estaciones: Estacion[]): DatosProvincia {
   return {
     provincia: { id, nombre: `Provincia ${id}` },
@@ -137,5 +141,28 @@ describe('calcularAgregadosEditoriales', () => {
       media: 1.2,
       n: 3,
     });
+    assert.deepEqual(
+      resultado.rotulos.mercadosFiscales.map(({ id, rotulos }) => [id, rotulos[0]?.combustibles.gasolina95e5.n]),
+      [['canarias', 1], ['ceuta', 1], ['melilla', 1]],
+    );
+  });
+
+  it('excluye estaciones de venta no pública de medias, mínimos y rótulos', () => {
+    const resultado = calcular(
+      [
+        provincia('01', [
+          estacion('publica', { gasolina95e5: 1.5 }, 'PUBLICA'),
+          estacionRestringida('restringida', { gasolina95e5: 0.5 }),
+        ]),
+      ],
+      [zona('provincia-01', ['01'])],
+    );
+
+    assert.deepEqual(resultado.zonas.general[0]?.combustibles.gasolina95e5, {
+      media: 1.5,
+      minimo: 1.5,
+      n: 1,
+    });
+    assert.deepEqual(resultado.rotulos.general.map(({ rotulo }) => rotulo), ['PUBLICA']);
   });
 });

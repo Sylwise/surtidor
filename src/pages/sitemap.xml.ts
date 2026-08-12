@@ -13,6 +13,7 @@ import { MINIMO_ESTACIONES_MUNICIPIO, type Indice, type IndiceMunicipios } from 
 // RF-105: las editoriales se dan de alta a mano. Solo entran cuando existe
 // su página; no se anuncian rutas futuras que todavía devolverían 404.
 const RUTAS_EDITORIALES = [
+  '/como-calculamos-los-datos/',
   '/hoy/evolucion/',
   '/hoy/provincias-mas-baratas/',
   '/hoy/cuanto-te-juegas/',

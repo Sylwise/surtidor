@@ -146,6 +146,7 @@ export function montarControles(
   document.addEventListener('click', (evento) => {
     if (!panelHoy.hidden && !panelHoy.contains(evento.target as Node) && !botonHoy.contains(evento.target as Node)) {
       cerrarPanelHoy();
+      botonHoy.focus();
     }
   });
   document.addEventListener('keydown', (evento) => {
@@ -164,6 +165,7 @@ export function montarControles(
     panelHoy.hidden = false;
     fondoPanelHoy.hidden = false;
     document.querySelector('.app')?.classList.add('app--hoy-abierto');
+    document.body.classList.add('menu-hoy-abierto');
     botonHoy.setAttribute('aria-expanded', 'true');
     panelHoy.querySelector<HTMLAnchorElement>('a')?.focus();
   }
@@ -172,6 +174,7 @@ export function montarControles(
     panelHoy.hidden = true;
     fondoPanelHoy.hidden = true;
     document.querySelector('.app')?.classList.remove('app--hoy-abierto');
+    document.body.classList.remove('menu-hoy-abierto');
     botonHoy.setAttribute('aria-expanded', 'false');
   }
 
@@ -186,6 +189,21 @@ export function montarControles(
   fondoPanelHoy.addEventListener('click', () => {
     cerrarPanelHoy();
     botonHoy.focus();
+  });
+
+  panelHoy.addEventListener('keydown', (evento) => {
+    if (evento.key !== 'Tab') return;
+    const focables = Array.from(panelHoy.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    const primero = focables[0];
+    const ultimo = focables.at(-1);
+    if (!primero || !ultimo) return;
+    if (evento.shiftKey && document.activeElement === primero) {
+      evento.preventDefault();
+      ultimo.focus();
+    } else if (!evento.shiftKey && document.activeElement === ultimo) {
+      evento.preventDefault();
+      primero.focus();
+    }
   });
 
   // --- Selector de combustible: pestañas, un toque (RF-30) ---

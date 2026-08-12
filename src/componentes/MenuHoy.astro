@@ -5,15 +5,16 @@ interface Props { prefijo?: string; provinciaId?: string | null; autonomo?: bool
 const { prefijo = '', provinciaId = null, autonomo = false, variante = 'clara' } = Astro.props;
 const id = (base: string) => prefijo ? `${base}-${prefijo}` : base;
 const pathname = Astro.url.pathname;
+const hoyActivo = pathname.startsWith('/hoy/');
 ---
 <div class:list={['navegacion-hoy', `navegacion-hoy--${variante}`]} data-menu-hoy-autonomo={autonomo ? '' : undefined}>
-  <button id={id('boton-hoy')} type="button" class="boton-hoy" aria-expanded="false" aria-controls={id('panel-hoy')}>
+  <button id={id('boton-hoy')} type="button" class:list={['boton-hoy', { 'boton-hoy--activo': hoyActivo }]} aria-expanded="false" aria-controls={id('panel-hoy')} aria-haspopup="true">
     <span class="boton-hoy__texto">Hoy</span>
     <svg class="boton-hoy__icono" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" /></svg>
     <span class="boton-hoy__flecha" aria-hidden="true"></span>
   </button>
   <div id={id('fondo-panel-hoy')} class="panel-hoy__fondo" hidden></div>
-  <nav id={id('panel-hoy')} class="panel-hoy" aria-label="Análisis de precios de hoy" aria-modal="true" hidden>
+  <nav id={id('panel-hoy')} class="panel-hoy" aria-label="Análisis de precios de hoy" hidden>
     <span class="panel-hoy__asa" aria-hidden="true"></span>
     <div class="panel-hoy__cabecera">
       <span><span class="micro">ANÁLISIS DE HOY</span><strong class="panel-hoy__titulo">Descubre los datos</strong></span>
@@ -45,12 +46,20 @@ const pathname = Astro.url.pathname;
     const panel = raiz.querySelector<HTMLElement>('.panel-hoy')!;
     const fondo = raiz.querySelector<HTMLElement>('.panel-hoy__fondo')!;
     const cerrar = raiz.querySelector<HTMLButtonElement>('.boton-cerrar')!;
-    const ocultar = (devolverFoco = false) => { panel.hidden = true; fondo.hidden = true; boton.setAttribute('aria-expanded', 'false'); if (devolverFoco) boton.focus(); };
-    const mostrar = () => { panel.hidden = false; fondo.hidden = false; boton.setAttribute('aria-expanded', 'true'); panel.querySelector<HTMLAnchorElement>('a')?.focus(); };
+    const elementosFoco = () => Array.from(panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+    const ocultar = (devolverFoco = false) => { panel.hidden = true; fondo.hidden = true; document.body.classList.remove('menu-hoy-abierto'); boton.setAttribute('aria-expanded', 'false'); if (devolverFoco) boton.focus(); };
+    const mostrar = () => { panel.hidden = false; fondo.hidden = false; document.body.classList.add('menu-hoy-abierto'); boton.setAttribute('aria-expanded', 'true'); elementosFoco()[0]?.focus(); };
     boton.addEventListener('click', () => panel.hidden ? mostrar() : ocultar());
     cerrar.addEventListener('click', () => ocultar(true));
     fondo.addEventListener('click', () => ocultar(true));
-    document.addEventListener('pointerdown', (evento) => { if (!panel.hidden && !raiz.contains(evento.target as Node)) ocultar(); });
-    document.addEventListener('keydown', (evento) => { if (evento.key === 'Escape' && !panel.hidden) { evento.preventDefault(); ocultar(true); } });
+    document.addEventListener('pointerdown', (evento) => { if (!panel.hidden && !raiz.contains(evento.target as Node)) ocultar(true); });
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape' && !panel.hidden) { evento.preventDefault(); ocultar(true); return; }
+      if (evento.key !== 'Tab' || panel.hidden) return;
+      const focables = elementosFoco(); const primero = focables[0]; const ultimo = focables.at(-1);
+      if (!primero || !ultimo) return;
+      if (evento.shiftKey && document.activeElement === primero) { evento.preventDefault(); ultimo.focus(); }
+      else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primero.focus(); }
+    });
   }
 </script>}

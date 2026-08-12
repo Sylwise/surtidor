@@ -2,281 +2,157 @@
 
 Fecha de cierre de esta iteración: 12 de agosto de 2026.
 
-Este documento describe el estado real del trabajo en curso. No implica que el
-rediseño esté aprobado ni terminado. No se ha creado el commit final.
+La implementación descrita aquí está terminada y validada en el árbol de trabajo de `refactor-redisenio`. No se ha creado ningún commit final.
 
-## Archivos modificados
+## 1. Archivos modificados
 
-Implementación y estilos:
+Cabecera y navegación compartidas:
 
+- `src/componentes/CabeceraGlobal.astro`
+- `src/componentes/MenuHoy.astro`
 - `src/componentes/AppInteractiva.astro`
-- `src/componentes/CabeceraGlobal.astro` (nuevo)
 - `src/componentes/Controles.ts`
-- `src/componentes/Evolucion.ts`
-- `src/componentes/Lista.ts`
-- `src/componentes/Marca.astro` (nuevo)
-- `src/componentes/MenuHoy.astro` (nuevo)
-- `src/componentes/NavegacionApp.astro`
-- `src/datos/navegacion.ts` (nuevo)
-- `src/estilos/editorial.css`
-- `src/estilos/evolucion.css`
-- `src/estilos/interfaz.css`
-- `src/estilos/navegacion-global.css` (nuevo)
-- `src/layouts/DocumentoEditorial.astro`
-- `src/pages/hoy/cuanto-te-juegas.astro`
 - `src/pages/hoy/evolucion/[provincia].astro`
-- `src/pages/hoy/evolucion/index.astro`
-- `src/pages/index.astro`
+- `src/estilos/navegacion-global.css`
+- `src/estilos/interfaz.css`
 
-Documentación y utilidades presentes en el árbol de trabajo:
+Análisis y cálculos:
 
-- `docs/08-evolucion.md`
-- `scripts/capturar-estados-evolucion.mjs` (nuevo)
-- `scripts/capturar-estados-principal.mjs` (nuevo)
-- `scripts/capturar-viewport.mjs` (nuevo)
-- `scripts/comprobar-cabeceras.mjs` (nuevo)
-- `scripts/comprobar-teclado.mjs` (nuevo)
-- `scripts/medir-explicaciones.ts` (nuevo)
-- `artifacts/redesign-audit/*.png` (diez capturas nuevas)
-- `design-reference/IMPLEMENTATION-STATUS.md` (este archivo)
+- `scripts/lib/agregados.ts` y `scripts/lib/agregados.test.ts`
+- `scripts/lib/rotulos.ts` y `scripts/lib/rotulos.test.ts`
+- `src/componentes/SelectorCombustibleEditorial.astro` (nuevo)
+- `src/componentes/TablaCapitalesEditorial.astro`
+- `src/componentes/TablaMinimosEditorial.astro`
+- `src/componentes/TablaRotulosEditorial.astro`
+- `src/pages/hoy/provincias-mas-baratas.astro`
+- `src/pages/hoy/marcas-mas-baratas.astro`
+- `src/pages/hoy/capitales-de-provincia.astro`
+- `src/pages/hoy/la-mas-barata-de-espana.astro`
+- `src/estilos/editorial.css`
 
-`design-reference/` figura completo como no versionado en el estado actual de
-Git. Contiene las referencias facilitadas para el trabajo; no debe asumirse que
-todo el directorio fue generado por esta implementación.
+Arquitectura de información:
 
-## Arquitectura resultante
+- `src/layouts/DocumentoEditorial.astro`
+- `src/pages/como-calculamos-los-datos.astro` (nuevo)
+- `src/pages/sitemap.xml.ts`
 
-La navegación global comparte semántica y comportamiento sin imponer la misma
-composición visual en todos los contextos:
+Auditoría y validación:
 
-- `CabeceraGlobal.astro` admite los modos explícitos `principal`, `evolucion` y
-  `editorial`, además de las variantes clara y petróleo.
-- `Marca.astro` centraliza la marca y enlaza siempre a `/`.
-- `MenuHoy.astro` centraliza el catálogo, estados activos, apertura, cierre,
-  Escape y devolución de foco. Puede funcionar de forma autónoma o controlada
-  por la aplicación principal.
-- `src/datos/navegacion.ts` es la fuente compartida del catálogo Hoy y de la
-  resolución de rutas activas.
-- La Principal conserva zona y Hoy como controles propios de la aplicación.
-- Evolución desktop conserva las migas como contexto y Hoy como acción global.
-- Evolución móvil sustituye la navegación editorial por zona compacta y
-  “Explorar estaciones”.
-- El artículo conserva la variante petróleo; desktop muestra Precios,
-  Provincias y Hoy, mientras móvil muestra Hoy como acción única.
+- `scripts/capturar-estados-principal.mjs`
+- `scripts/comprobar-cabeceras.mjs`
+- `scripts/capturar-estado-editorial.mjs` (nuevo)
+- `scripts/comprobar-editoriales.mjs` (nuevo)
+- `scripts/comprobar-enlaces-build.mjs` (nuevo)
+- `scripts/comprobar-fallos-runtime.mjs` (nuevo)
+- `artifacts/redesign-audit-2026/` (capturas nuevas)
 
-No se han introducido React, Tailwind, librerías de iconos, fuentes externas ni
-dependencias nuevas.
+`design-reference/CODEX.md` y `design-reference/extract-design.py` ya estaban modificados antes de esta iteración y se han preservado sin revertirlos. `design-reference/IMPLEMENTATION-PROMPT.md` también era un fichero no versionado de entrada.
 
-## Pantallas implementadas
+## 2. Rutas terminadas
 
-- Principal desktop, referencia `d0yaSA`.
-- Principal móvil, referencia `coEwt`.
-- Selector de zona desktop, referencia `JYmYz`.
-- Selector de zona móvil, referencia `sHq6P`.
-- Panel Hoy móvil, usando el identificador existente en el manifiesto.
-- Evolución desktop, referencia `bi8Au`.
-- Evolución móvil, referencia `lLXW9`.
-- Artículo “Cuánto te juegas” desktop, referencia `wC99O`.
-- Artículo “Cuánto te juegas” móvil, referencia `Iqts8`.
-- Parte de los estados interactivos descritos por `SQ2EH`.
+- `/` y todas las vistas de zona: cabecera petróleo integrada, Precios activo y panel Hoy superpuesto sin reducir el mapa.
+- `/hoy/evolucion/` y `/hoy/evolucion/[provincia]/`: cabecera compartida y catálogo Hoy contextual.
+- `/hoy/provincias-mas-baratas/`: selector de cuatro combustibles, top 6 móvil/top 8 desktop, ranking completo, muestra y mercado fiscal separado.
+- `/hoy/marcas-mas-baratas/`: umbral de 100 estaciones, cobertura, exclusiones y desglose fiscal inline en desktop/bottom sheet en móvil.
+- `/hoy/capitales-de-provincia/`: 52 términos municipales validados, enlaces municipales reales y capitales fiscales aparte.
+- `/hoy/la-mas-barata-de-espana/`: mínimo nacional real, empates, resumen por combustible y ranking por comunidad.
+- `/como-calculamos-los-datos/`: fuente, reglas, fiscalidad y limitaciones en una página sustantiva.
+- `/sitemap.xml`: incluye la nueva página metodológica.
 
-El resto de artículos hereda la cabecera, navegación, tokens, ancho editorial y
-footer comunes, pero no se ha comparado visualmente cada artículo individual
-contra un frame específico.
+El footer editorial compartido queda reducido a `Precios`, `Análisis de hoy` y `Cómo calculamos los datos`, sin columnas artificiales ni enlace principal de privacidad.
 
-## Rutas y viewports comprobados
+## 3. Cálculos y pruebas añadidos
 
-| Ruta | Viewports |
-| --- | --- |
-| `/asturias/` | 1440×1024, 390×844, 360×800 |
-| `/hoy/evolucion/33/` | 1440×1024, 390×844, 360×800 |
-| `/hoy/cuanto-te-juegas/` | 1440×1024, 390×844, 360×800, 390×1204 |
+- Todos los agregados editoriales filtran estaciones con `tipoVenta === 'P'`.
+- El mercado general excluye los ids de provincia `35`, `38`, `51` y `52`.
+- Provincias calcula medias simples solo con estaciones que publican el combustible; el ranking general contiene 48 provincias.
+- Marcas agrupa por rótulo visible literal, aplica el umbral de 100 en el mercado general y de nuevo, independientemente, en Canarias, Ceuta y Melilla.
+- Capitales usa una lista fija de 52 nombres, exige su coincidencia en el catálogo y filtra por término municipal exacto.
+- Mínimos conserva todos los orígenes empatados y utiliza destino municipal o provincial según la navegación existente.
+- Se añadieron casos unitarios para excluir venta restringida y para la selección fiscal de rótulos.
 
-Las capturas están guardadas en `artifacts/redesign-audit/`:
+Resultado final de `npm test`: **31 ficheros de prueba, 31 aprobados, 0 fallos**.
 
-- `principal-1440x1024.png`
-- `principal-390x844.png`
-- `principal-360x800.png`
-- `evolucion-1440x1024.png`
-- `evolucion-390x844.png`
-- `evolucion-360x800.png`
-- `articulo-1440x1024.png`
-- `articulo-390x844.png`
-- `articulo-360x800.png`
-- `articulo-390x1204.png`
+## 4. Estados verificados
 
-Son capturas de la implementación real, no composiciones lado a lado con los
-PNG de referencia. La comparación se realizó inspeccionándolas contra los
-frames y las imágenes de `../surtidor-pics/`.
+- Gasolina 95 activa al entrar y cambio funcional a los otros combustibles.
+- Ranking resumido cerrado, apertura de la clasificación completa y nuevo cierre.
+- Estado sin datos real: Gasolina 98 en Melilla.
+- Bloque fiscal móvil de provincias, capitales y mínimos: cerrado, abierto con datos y cerrado de nuevo.
+- Marcas fiscal desktop: cerrado y desplegado en línea.
+- Marcas fiscal móvil: bottom sheet ajustado al contenido, fondo bloqueado, botón de cierre, Escape y retorno de foco.
+- Menú Hoy: apertura, primer foco, Escape, clic exterior, botón explícito y retorno de foco en aplicación, Evolución y editorial.
+- Selector de zona y explorador móvil de Evolución: apertura, Escape y retorno de foco.
+- Panel Hoy desktop: el ancho del mapa antes y después es idéntico.
+- Fallo inducido de WebGL/MapLibre: aparece el fallback y permanecen operativas 225 filas de lista.
+- Fallo total inducido de los JSON locales: aviso, estado de error de lista y botón Reintentar.
+- Sin JavaScript: el selector se oculta y el HTML ya renderizado permite mostrar consecutivamente los combustibles mediante fallback `noscript`.
+- Anchos 390 y 360: sin overflow horizontal de documento.
 
-## Problemas corregidos
+Las editoriales son páginas estáticas calculadas en build: no hacen una carga de datos en el navegador. Por tanto, su estado inicial ya es contenido estable y un error de datos invalida el build en vez de publicar una pantalla rota. Los estados de carga y error de red se verifican en la aplicación, que es el contexto donde sí existe fetch en cliente; en los artículos se mantienen los estados vacíos/combustible sin datos.
 
-- Tres cabeceras independientes sustituidas por componentes y datos comunes.
-- Estados activos de Hoy calculados a partir de la ruta actual.
-- Significado de Hoy mantenido entre Principal, Evolución y artículos.
-- Evolución móvil liberada de la navegación Precios/Provincias/Hoy comprimida.
-- Marca completa y controles específicos preservados en cada composición.
-- Rail de Principal desktop ajustado a 380 px y rail de Evolución a 330 px.
-- Iconos de Media provincial, Más barata y Cobertura restaurados.
-- Ranking de Evolución corregido para que nombres y direcciones largas no
-  ensanchen ni recorten el grid lateral.
-- Unidad `€/L` duplicada eliminada en móvil.
-- Tooltip del gráfico estabilizado, sin saltos y con textos que no se parten en
-  múltiples líneas innecesarias.
-- Gráfico contenido y alineado; etiquetas y líneas ya no se pisan.
-- Estados de subida, bajada y comparación económica diferenciados por datos.
-- Artículo reducido a una sección de combustible desarrollada y una progresión
-  accesible hacia el resto, manteniendo acceso a todos los datos.
-- Resumen, metodología, tabla, territorios especiales, transición y footer
-  reordenados según la composición editorial.
-- Selector de zona y panel Hoy corregidos en tamaño, capas, padding y cierre.
-- Ficha de estación móvil corregida; cambiar de estación con la ficha abierta
-  muestra la nueva selección y restablece el scroll interno a cero.
-- Anchuras táctiles internas corregidas sin perder los 44 px mínimos.
-- Documento y elementos visibles sin overflow horizontal a 360 px.
+## 5. Viewports capturados
 
-## Estados interactivos reproducidos
+Se inspeccionaron mediante `get_screenshot` y `execute/Get` los frames `tHmiP`, `H6Hff`, `qvNsS`, `rBOk6`, `PEvnN`, `sqQ5d`, `Y7RxG`, `ZN4E1`, `mflc5`, `HfY4I`, `KZy8w`, `i2enp` y las referencias complementarias indicadas en el prompt.
 
-Evolución:
+Capturas de rutas reales guardadas en `artifacts/redesign-audit-2026/`:
 
-- Sin bajadas.
-- Sin histórico.
-- Combustible no disponible.
-- Estación seleccionada.
-- Resultado de búsqueda.
-- “Ver todas” móvil.
-- Tooltip del gráfico.
+- Principal: 1440×1024, 390×844 y 360×800; selección, zona y Hoy abierto en desktop/móvil.
+- Provincias: 1440×1024, 390×844, 390×1204 y 360×800.
+- Marcas: 1440×1024 cerrado, 1440×1824 abierto, 390×844 cerrado y 390×1204 cerrado/abierto.
+- Capitales: 1440×1024, 390×844, 390×1204 y 360×800.
+- La más barata: 1440×1024, 390×844, 390×1204 y 360×800.
+- Metodología: 1440×1024 y 390×1204.
 
-Principal y navegación:
+## 6. Diferencias deliberadas frente al diseño
 
-- Estación seleccionada en desktop y móvil.
-- Cambio de estación mientras la ficha está abierta.
-- Selector de zona desktop y móvil.
-- Panel Hoy móvil.
-- Apertura con teclado, Escape y devolución del foco.
-- Cierre mediante fondo exterior para los paneles que lo incorporan.
-- Progresión entre combustibles del artículo y estado activo asociado.
+- Todos los importes, fechas, nombres y recuentos proceden del dataset actual; los números ilustrativos del canvas no se copiaron.
+- El ranking general no reproduce la aparición ilustrativa de Tenerife en algún mock móvil: se aplica la regla funcional vinculante que lo excluye junto con Las Palmas, Ceuta y Melilla.
+- En móvil, los datos fiscales de provincias, capitales y mínimos se mantienen inicialmente plegados para conservar la densidad del frame, pero tienen un `details` accesible en vez de quedar inaccesibles.
+- El footer se muestra en documentos editoriales. No se fuerza dentro de la aplicación de mapa porque su interfaz ocupa exactamente el viewport, usa scroll interno y los frames `tHmiP`/`H6Hff` no contienen pie; los mismos tres destinos siguen accesibles mediante Precios/Hoy y la página metodológica.
+- Los controles táctiles mantienen un mínimo de 44 px aunque algunos sean ligeramente mayores que el dibujo.
+- Cartografía y posición exacta dependen de las teselas cargadas durante cada captura.
 
-## Estados no reproducidos
+## 7. Problemas pendientes por severidad
 
-- No se guardó una captura específica del fallback visual con MapLibre fallando
-  o deshabilitado. La lista y sus datos no dependen de que el mapa se pinte,
-  pero esa degradación no se validó mediante una captura de fallo inducido.
-- No se guardó una captura con `prefers-reduced-motion`; las reglas se revisaron
-  en la implementación, pero no se capturó ese modo del sistema.
-- El cierre por clic en el fondo se comprobó funcionalmente, pero no genera una
-  diferencia visual persistente que pueda documentarse en una captura.
-- No se recorrieron visualmente todas las provincias, municipios ni todos los
-  artículos editoriales.
-- No se hicieron capturas específicas de foco visible sobre cada control; la
-  navegación y el elemento activo sí se comprobaron con automatización real de
-  teclado.
+### Alta
 
-## Diferencias deliberadas respecto a los frames
+- Ninguno conocido.
 
-- Precios, fechas, recuentos y estaciones proceden de los datos reales actuales;
-  no se sustituyeron por los valores estáticos de los frames.
-- La cartografía, etiquetas y posición exacta del mapa dependen de las teselas y
-  datos disponibles durante la captura.
-- Algunos controles visibles son algo mayores que en el dibujo para respetar el
-  objetivo táctil vinculante de 44 px.
-- Las direcciones extensas de la lista Principal mantienen el patrón compacto
-  del rail. Usan elipsis dentro de un ancho conocido; no provocan overflow del
-  documento. Esto debe revisarse si se interpreta la prohibición de truncado
-  como aplicable también a este patrón del frame, y no solo a errores de layout.
-- A 360×800 no existe un frame independiente para todas las pantallas; se validó
-  la adaptación responsive del frame móvil de 390 px.
+### Media
 
-## Fallos o dudas pendientes
+- El build conserva el aviso preexistente de un chunk JavaScript superior a 500 kB, ligado principalmente a MapLibre. No afecta al resultado ni justifica introducir una dependencia o un refactor de carga fuera de alcance.
 
-- `astro check` muestra dos hints, sin errores, por interfaces `Props` declaradas
-  y no usadas en `src/pages/[...zona]/index.astro` y
-  `src/pages/[provincia]/[municipio]/index.astro`.
-- El build avisa de chunks JavaScript superiores a 500 kB. No se inició otro
-  refactor de partición porque queda fuera del cierre visual solicitado.
-- La validación automatizada depende de un Firefox headless escuchando mediante
-  WebDriver BiDi en el puerto 9225. Los scripts no levantan el navegador por sí
-  solos.
-- El comando de Firefox dentro del sandbox terminó con código 139 y solo
-  imprimió `*** You are running in headless mode.`. Fuera del sandbox arrancó,
-  aunque emitió `[GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt`.
-  La conexión BiDi y las capturas sí funcionaron después del arranque externo.
-- No hay aprobación visual final del usuario para considerar resueltas las
-  diferencias deliberadas anteriores.
+### Baja
 
-## Riesgos conocidos
+- `npm run check` conserva dos hints preexistentes por interfaces `Props` no usadas en `src/pages/[...zona]/index.astro` y `src/pages/[provincia]/[municipio]/index.astro`; hay 0 errores y 0 warnings.
+- La lista desktop usa elipsis intencionada para rótulos/direcciones largas dentro de su rail de 380 px. No produce overflow del documento.
+- Los scripts BiDi requieren un Firefox headless ya iniciado en el puerto indicado.
 
-- La navegación está compartida, pero `MenuHoy` mantiene dos modos de montaje
-  —autónomo y controlado—. Comparten marcado y catálogo, aunque los listeners se
-  instalan en lugares diferentes. Cambios futuros deben probar ambos caminos.
-- La Principal sigue teniendo una composición y ciclo de vida más complejo que
-  las páginas estáticas. Cambios en el render de filas pueden invalidar
-  referencias DOM antiguas; la prueba de cambio de estación verifica el estado
-  resultante, no la identidad del nodo reemplazado.
-- El gráfico usa dimensiones calculadas en cliente. Cambios tipográficos o de
-  contenido podrían alterar tooltip y etiquetas y requieren nueva captura.
-- El artículo conserva todos los combustibles en el DOM, ocultando con `hidden`
-  los paneles inactivos. Actualmente no afectan dimensiones ni accesibilidad;
-  cualquier eliminación futura de `hidden` reintroduciría la página larga.
-- Las capturas contienen datos reales y pueden diferir en una futura generación
-  aunque el CSS no cambie.
-- `design-reference/` y `artifacts/` están sin versionar. Un commit selectivo mal
-  preparado podría omitir el estado de implementación o las capturas.
-- `docs/08-evolucion.md` aparece modificado en el árbol. Debe revisarse antes de
-  un commit para confirmar que el cambio documental pertenece al alcance y no
-  se usa para justificar una desviación visual.
-
-## No considerar terminado hasta validar
-
-- Aprobación visual humana de las diez capturas contra sus frames.
-- Fallback con fallo real o inducido del mapa, comprobando que filtros, lista y
-  detalle continúan operativos.
-- `prefers-reduced-motion` en un navegador configurado con reducción de
-  movimiento.
-- Navegación manual completa solo con teclado, además de la automatizada.
-- Contraste AA con una herramienta de contraste sobre los estados activos,
-  desactivados y de foco.
-- Comportamiento con nombres y direcciones extremos procedentes de otras zonas.
-- Revisión de todos los cambios no versionados antes de seleccionar archivos
-  para commit.
-- Confirmación explícita del usuario antes del commit final.
-
-## Comandos ejecutados
-
-Validación de proyecto:
+## 8. Comandos ejecutados y resultado
 
 ```sh
 npm run check
+# 0 errores, 0 warnings, 2 hints preexistentes
+
 npm test
+# 31/31 aprobados
+
 npm run build
-node --test --experimental-strip-types src/logica/evolucion.test.ts
+# datos reales comprobados, 1159 imágenes de ruta + 6 editoriales + 1 genérica,
+# 1221 páginas estáticas generadas; aviso no bloqueante de chunk >500 kB
+
+node scripts/comprobar-enlaces-build.mjs dist
+# 139321 referencias internas válidas en 1221 páginas HTML
+
+node scripts/comprobar-cabeceras.mjs http://127.0.0.1:4173 9225
+# menús, foco, Escape, exterior, cierre explícito y mapa sin encoger: correctos
+
+node scripts/comprobar-editoriales.mjs http://127.0.0.1:4173 9225
+# selectores, rankings, fiscal desktop/móvil y anchos 390/360: correctos
+
+node scripts/comprobar-fallos-runtime.mjs http://127.0.0.1:4173 9225
+# fallback de mapa, fallo de datos y combustible sin datos: correctos
 ```
 
-Captura y comportamiento:
-
-```sh
-node scripts/capturar-viewport.mjs URL ANCHO ALTO SALIDA 9225
-node scripts/capturar-estados-principal.mjs
-node scripts/capturar-estados-evolucion.mjs
-node scripts/comprobar-cabeceras.mjs
-node scripts/comprobar-teclado.mjs
-```
-
-Arranque usado para la automatización visual:
-
-```sh
-MOZ_ENABLE_WAYLAND=0 firefox --headless --remote-debugging-port 9225 --profile /tmp/surtidor-firefox-bidi-2 about:blank
-```
-
-## Decisiones provisionales
-
-- Se mantiene MapLibre como mejora opcional y no como requisito para acceder a
-  lista, filtros o detalle.
-- Se conserva el truncado compacto en la lista Principal hasta una decisión de
-  producto que determine si las filas deben crecer verticalmente.
-- Se mantienen los controles visibles de 44 px aunque difieran algunos píxeles
-  del frame.
-- No se aborda en esta iteración la partición de los chunks JavaScript.
-- No se realiza ninguna limpieza general ni refactor adicional antes de la
-  aprobación visual.
-- No se hace el commit final.
+No se ha hecho commit final.

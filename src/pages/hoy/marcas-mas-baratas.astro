@@ -1,28 +1,22 @@
 ---
+import SelectorCombustibleEditorial from '../../componentes/SelectorCombustibleEditorial.astro';
 import TablaRotulosEditorial from '../../componentes/TablaRotulosEditorial.astro';
 import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoRotulo } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
-import {
-  rotulosQueVenden,
-  seleccionarRotulos,
-  UMBRAL_ESTACIONES_ROTULO,
-} from '../../../scripts/lib/rotulos.ts';
+import { rotulosQueVenden, seleccionarMercadosFiscales, seleccionarRotulos, UMBRAL_ESTACIONES_ROTULO } from '../../../scripts/lib/rotulos.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
 import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/marcas-mas-baratas/';
 const titulo = 'Marcas de gasolineras más baratas de España hoy · Surtidor';
-const descripcion =
-  'Precio medio por rótulo para gasolina y diésel en península y Baleares, comparado entre marcas con al menos 100 estaciones.';
+const descripcion = 'Precio medio por rótulo en península y Baleares, con un mínimo de 100 estaciones y desglose fiscal separado.';
 const agregados = await leerAgregadosEditoriales();
 const seleccion = seleccionarRotulos(agregados.rotulos.general);
-const provincias = agregados.zonas.general
-  .filter((zona) => zona.tipo === 'provincia')
-  .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+const mercadosFiscales = seleccionarMercadosFiscales(agregados.rotulos.mercadosFiscales);
 
-function ranking(rotulos: AgregadoRotulo[], combustible: ClavePrecio) {
+function ranking(rotulos: readonly AgregadoRotulo[], combustible: ClavePrecio) {
   return ordenarRanking(
     rotulosQueVenden(rotulos, combustible),
     (rotulo) => rotulo.combustibles[combustible].media,
@@ -33,138 +27,105 @@ function ranking(rotulos: AgregadoRotulo[], combustible: ClavePrecio) {
 const rankingsGenerales = Object.fromEntries(
   ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(seleccion.incluidos, combustible)]),
 ) as Record<ClavePrecio, ReturnType<typeof ranking>>;
-const rankingsFiscales = Object.fromEntries(
-  ORDEN_COMBUSTIBLES.map((combustible) => [
-    combustible,
-    ranking(agregados.rotulos.canariasCeutaMelilla, combustible),
-  ]),
-) as Record<ClavePrecio, ReturnType<typeof ranking>>;
 const lideres = Object.fromEntries(
-  ORDEN_COMBUSTIBLES.map((combustible) => [
-    combustible,
-    rankingsGenerales[combustible].find(
-      ({ elemento }) => elemento.combustibles[combustible].media !== null,
-    )?.elemento ?? null,
-  ]),
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, rankingsGenerales[combustible][0]?.elemento ?? null]),
 ) as Record<ClavePrecio, AgregadoRotulo | null>;
-
 const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
 ---
 
 <DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta} imagenCompartir="/og/hoy/marcas-mas-baratas.png">
-  <header class="editorial-intro">
-    <p class="editorial-eyebrow">Precios de hoy</p>
-    <h1 class="editorial-titulo">Qué marcas tienen los precios más bajos</h1>
-    <p class="editorial-entradilla">
-      Comparamos lo que pone en el cartel de cada estación. Es un ranking de rótulos, no de
-      empresas: la media muestra qué nombres ofrecen hoy precios más bajos en península y Baleares.
-    </p>
-    <p class="editorial-actualizado">
-      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
-    </p>
-  </header>
+  <div class="editorial-pagina-ranking" data-editorial-ranking>
+    <header class="editorial-intro editorial-intro--ranking">
+      <p class="editorial-eyebrow">Rótulos · Precios de hoy</p>
+      <h1 class="editorial-titulo">Qué marcas tienen los precios medios más bajos</h1>
+      <p class="editorial-entradilla">Comparamos el nombre visible en el cartel, no la empresa propietaria. El ámbito general es península y Baleares.</p>
+      <p class="editorial-actualizado">Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.</p>
+      {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+        const lider = lideres[combustible]; const resumen = lider?.combustibles[combustible];
+        return <article class="editorial-destacado" data-destacado-combustible={combustible} hidden={indice > 0}>
+          <span>Menor media · {ETIQUETA[combustible]}</span>
+          <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
+          {lider && <span class="editorial-destacado__nombre">{lider.rotulo}</span>}
+          {resumen && <small>{numero(resumen.n)} estaciones con precio</small>}
+        </article>;
+      })}
+    </header>
 
-  <section class="editorial-resumen" aria-label="Rótulo con menor media por combustible">
-    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
-      const lider = lideres[combustible];
-      const resumen = lider?.combustibles[combustible] ?? null;
-      return (
-        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
-          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
-          <strong class="editorial-tarjeta__precio">
-            {resumen?.media === null || resumen === null ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}
-          </strong>
-          {lider && <span class="editorial-tarjeta__zona">{lider.rotulo}</span>}
-          {resumen && (
-            <span class="editorial-tarjeta__muestra">
-              Media calculada sobre {numero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}
-            </span>
-          )}
-        </article>
-      );
-    })}
-  </section>
+    <section class="editorial-umbral" aria-label="Criterio de inclusión">
+      <div><strong>Una clasificación con muestra mínima</strong><span>Solo entran rótulos con presencia suficiente en el mercado analizado.</span></div>
+      <b>≥ {UMBRAL_ESTACIONES_ROTULO} estaciones</b>
+    </section>
 
-  <section class="editorial-metodo" aria-label="Metodología">
-    <p class="editorial-metodo__resumen">
-      <strong>Ámbito: península y Baleares</strong> · mínimo {UMBRAL_ESTACIONES_ROTULO} estaciones
-      por rótulo · media simple por estación.
-    </p>
-    <p class="editorial-metodo__cobertura">
-      Entran {seleccion.incluidos.length} rótulos. Quedan fuera {numero(seleccion.estacionesFuera)}
-      de las {numero(seleccion.estacionesTotales)} estaciones porque sus rótulos no alcanzan el
-      umbral. El ranking no oculta esa parte del mercado.
-    </p>
-    <details class="editorial-detalles editorial-detalles--metodo">
-      <summary>Cómo se calcula</summary>
-      <div class="editorial-detalles__contenido">
-        <p>
-          Para cada combustible calculamos la media simple de las estaciones del rótulo que lo
-          venden. Un valor ausente queda fuera del divisor y nunca cuenta como cero. La columna
-          «Estaciones» muestra la muestra exacta de cada media.
-        </p>
-        <p>
-          Solo se recortan los espacios al principio y al final del rótulo. No se normalizan
-          mayúsculas ni tildes y no se mantiene una tabla de equivalencias entre marcas.
-        </p>
-        <p>
-          Canarias, Ceuta y Melilla no forman parte del cálculo nacional y aparecen aparte por su
-          régimen fiscal distinto en los carburantes.
-        </p>
-      </div>
-    </details>
-  </section>
+    <SelectorCombustibleEditorial />
+    <p class="sr-only" aria-live="polite" data-estado-selector></p>
 
-  <p class="editorial-aclaracion">
-    MOEVE y CEPSA aparecen por separado porque hoy son carteles distintos, aunque pertenezcan a la
-    misma compañía. PETRONOR, CAMPSA y REPSOL se mantienen separados por el mismo motivo.
-  </p>
-
-  {ORDEN_COMBUSTIBLES.map((combustible) => {
-    const fiscales = rankingsFiscales[combustible];
-    return (
-      <section class="editorial-combustible" id={combustible}>
-        <h2>{ETIQUETA[combustible]}</h2>
-        <p>Precio medio por rótulo, de menor a mayor, calculado con tres decimales.</p>
-
-        <TablaRotulosEditorial
-          filas={rankingsGenerales[combustible]}
-          combustible={combustible}
-        />
-
-        <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
-          <h3>Canarias, Ceuta y Melilla</h3>
-          <p>Ranking separado por su régimen fiscal distinto en los carburantes.</p>
-          <TablaRotulosEditorial filas={fiscales.slice(0, 10)} combustible={combustible} />
-          {fiscales.length > 10 && (
-            <details class="editorial-detalles editorial-detalles--ranking">
-              <summary>Ver los {fiscales.length} rótulos</summary>
-              <TablaRotulosEditorial
-                filas={fiscales.slice(10)}
-                combustible={combustible}
-                etiqueta={`Resto de rótulos de ${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}
-              />
-            </details>
-          )}
+    {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
+      const filas = rankingsGenerales[combustible];
+      return <section id={`panel-${combustible}`} class="editorial-panel-ranking" data-panel-combustible={combustible} hidden={indiceCombustible > 0} aria-labelledby={`titulo-marcas-${combustible}`}>
+        <aside class="editorial-claves">
+          <p class="micro">Cobertura del ranking</p>
+          <h2 id={`titulo-marcas-${combustible}`}>{filas.length} rótulos</h2>
+          <p>Los nombres se agrupan por coincidencia literal tras recortar espacios exteriores.</p>
+          <dl>
+            <div><dt>Estaciones analizadas</dt><dd>{numero(seleccion.estacionesTotales)}</dd></div>
+            <div><dt>Fuera por muestra</dt><dd>{numero(seleccion.estacionesFuera)}</dd></div>
+          </dl>
         </aside>
-      </section>
-    );
-  })}
 
-  <section class="editorial-territorios" aria-label="Precios por provincia">
-    <details>
-      <summary>
-        <span>Consultar precios por provincia</span>
-        <small>{provincias.length} provincias</small>
-      </summary>
-      <div class="editorial-territorios__contenido">
-        <p>El ranking compara rótulos a escala nacional. Para decidir dónde repostar, consulta las estaciones de tu provincia.</p>
-        <ul>
-          {provincias.map((provincia) => (
-            <li><a href={`/${provincia.id}/`}>{provincia.nombre}</a></li>
-          ))}
-        </ul>
-      </div>
-    </details>
-  </section>
+        <div class="editorial-ranking">
+          <div class="editorial-ranking__cabecera"><span class="micro">Ranking de rótulos · Top 6</span><span>{ETIQUETA[combustible]}</span></div>
+          {filas.length === 0 ? <section class="editorial-estado" role="status"><h3>Sin rótulos con muestra suficiente</h3><p>Ningún rótulo que supera el umbral publica {ETIQUETA[combustible].toLowerCase()} hoy.</p></section> : <>
+            <TablaRotulosEditorial filas={filas.slice(0, 8)} combustible={combustible} principal />
+            {filas.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver los {filas.length} rótulos</summary><TablaRotulosEditorial filas={filas.slice(6)} combustible={combustible} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
+          </>}
+        </div>
+
+        <section class="editorial-desglose-fiscal" data-desglose-fiscal>
+          <div class="editorial-desglose-fiscal__resumen">
+            <div><h3>Canarias, Ceuta y Melilla</h3><p>Sus rótulos se analizan sin mezclarlos con el mercado general.</p></div>
+            <button type="button" data-abrir-desglose aria-expanded="false" aria-controls={`desglose-${combustible}`}>Ver desglose fiscal <span aria-hidden="true">↓</span></button>
+          </div>
+          <div class="editorial-desglose-fiscal__fondo" data-fondo-desglose hidden></div>
+          <div id={`desglose-${combustible}`} class="editorial-desglose-fiscal__contenido" data-contenido-desglose hidden>
+            <header><div><span class="micro">Análisis por mercado</span><h3>Canarias, Ceuta y Melilla</h3></div><button type="button" class="boton-cerrar" data-cerrar-desglose aria-label="Cerrar desglose fiscal">✕</button></header>
+            <p>Mismo cálculo y umbral de {UMBRAL_ESTACIONES_ROTULO} estaciones, aplicado dentro de cada mercado fiscal.</p>
+            <ul>
+              {mercadosFiscales.map((mercado) => {
+                const clasificados = ranking(mercado.seleccion.incluidos, combustible);
+                const referencia = clasificados[0] ?? ranking(mercado.rotulos, combustible)[0] ?? null;
+                const resumen = referencia?.elemento.combustibles[combustible];
+                return <li><span><strong>{mercado.nombre}</strong><small>{referencia ? referencia.elemento.rotulo : 'Sin datos'} · {mercado.conRanking ? `${clasificados.length} en ranking` : 'sin ranking'}</small></span><b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b></li>;
+              })}
+            </ul>
+            <small>Ceuta y Melilla se muestran como referencia cuando no alcanzan la muestra mínima; no se finge una clasificación válida.</small>
+          </div>
+        </section>
+
+        <details class="editorial-metodologia-final"><summary>Metodología y limitaciones</summary><p>Media simple por estación pública y combustible. CEPSA/MOEVE y REPSOL/CAMPSA/PETRONOR permanecen separados cuando el rótulo visible es distinto. Los valores ausentes no entran en el divisor.</p></details>
+      </section>;
+    })}
+
+    <script>
+      for (const bloque of document.querySelectorAll<HTMLElement>('[data-desglose-fiscal]')) {
+        const abrir = bloque.querySelector<HTMLButtonElement>('[data-abrir-desglose]')!;
+        const cerrar = bloque.querySelector<HTMLButtonElement>('[data-cerrar-desglose]')!;
+        const contenido = bloque.querySelector<HTMLElement>('[data-contenido-desglose]')!;
+        const fondo = bloque.querySelector<HTMLElement>('[data-fondo-desglose]')!;
+        const focables = () => [...contenido.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')];
+        const ocultar = (devolverFoco = true): void => { contenido.hidden = true; fondo.hidden = true; abrir.setAttribute('aria-expanded', 'false'); abrir.querySelector('span')!.textContent = '↓'; abrir.firstChild!.textContent = 'Ver desglose fiscal '; document.body.classList.remove('desglose-fiscal-abierto'); if (devolverFoco) abrir.focus(); };
+        const mostrar = (): void => { contenido.hidden = false; fondo.hidden = false; abrir.setAttribute('aria-expanded', 'true'); abrir.querySelector('span')!.textContent = '↑'; abrir.firstChild!.textContent = 'Ocultar desglose '; document.body.classList.add('desglose-fiscal-abierto'); if (matchMedia('(max-width: 700px)').matches) cerrar.focus(); };
+        abrir.addEventListener('click', () => contenido.hidden ? mostrar() : ocultar());
+        cerrar.addEventListener('click', () => ocultar());
+        fondo.addEventListener('click', () => ocultar());
+        document.addEventListener('keydown', (evento) => {
+          if (contenido.hidden) return;
+          if (evento.key === 'Escape') { evento.preventDefault(); ocultar(); return; }
+          if (evento.key !== 'Tab' || !matchMedia('(max-width: 700px)').matches) return;
+          const elementos = focables(); const primero = elementos[0]; const ultimo = elementos.at(-1);
+          if (evento.shiftKey && document.activeElement === primero) { evento.preventDefault(); ultimo?.focus(); }
+          else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primero?.focus(); }
+        });
+      }
+    </script>
+  </div>
 </DocumentoEditorial>

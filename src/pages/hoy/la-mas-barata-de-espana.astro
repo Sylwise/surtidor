@@ -1,4 +1,5 @@
 ---
+import SelectorCombustibleEditorial from '../../componentes/SelectorCombustibleEditorial.astro';
 import TablaMinimosEditorial from '../../componentes/TablaMinimosEditorial.astro';
 import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosMinimos, type MinimosZona } from '../../../scripts/lib/minimos.ts';
@@ -9,111 +10,91 @@ import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/la-mas-barata-de-espana/';
 const titulo = 'La gasolina más barata de España hoy · Surtidor';
-const descripcion =
-  'Dónde está hoy la gasolina y el diésel más baratos de España, con el mínimo de cada comunidad autónoma.';
+const descripcion = 'Dónde está hoy la gasolina y el diésel más baratos de España, con el mínimo de cada comunidad autónoma.';
 const agregados = await leerAgregadosMinimos();
 
 function ranking(zonas: MinimosZona[], combustible: ClavePrecio) {
-  return ordenarRanking(
-    zonas,
-    (zona) => zona.combustibles[combustible].minimo,
-    (zona) => zona.nombre,
-  );
+  return ordenarRanking(zonas, (zona) => zona.combustibles[combustible].minimo, (zona) => zona.nombre);
 }
 
 const rankingsGenerales = Object.fromEntries(
   ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(agregados.comunidades, combustible)]),
 ) as Record<ClavePrecio, ReturnType<typeof ranking>>;
 const rankingsFiscales = Object.fromEntries(
-  ORDEN_COMBUSTIBLES.map((combustible) => [
-    combustible,
-    ranking(agregados.canariasCeutaMelilla, combustible),
-  ]),
+  ORDEN_COMBUSTIBLES.map((combustible) => [combustible, ranking(agregados.canariasCeutaMelilla, combustible)]),
 ) as Record<ClavePrecio, ReturnType<typeof ranking>>;
 ---
 
 <DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta} imagenCompartir="/og/hoy/la-mas-barata-de-espana.png">
-  <header class="editorial-intro">
-    <p class="editorial-eyebrow">Precios de hoy</p>
-    <h1 class="editorial-titulo">Dónde está el combustible más barato de España</h1>
-    <p class="editorial-entradilla">
-      Localizamos el precio mínimo nacional y el de cada comunidad autónoma. Cada cifra enlaza al
-      municipio donde se publica para que puedas consultar sus estaciones.
-    </p>
-    <p class="editorial-actualizado">
-      Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
-    </p>
-  </header>
+  <div class="editorial-pagina-ranking" data-editorial-ranking>
+    <header class="editorial-intro editorial-intro--ranking">
+      <p class="editorial-eyebrow">Mínimos · Precios de hoy</p>
+      <h1 class="editorial-titulo">La estación más barata de España, hoy</h1>
+      <p class="editorial-entradilla">Localizamos el menor precio publicado y lo situamos en su municipio. Si hay un empate exacto, mostramos todos los lugares que comparten el mínimo.</p>
+      <p class="editorial-actualizado">Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.</p>
+      {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+        const resumen = agregados.nacional[combustible];
+        return <article class="editorial-destacado editorial-destacado--minimo" data-destacado-combustible={combustible} hidden={indice > 0}>
+          <span>Mínimo nacional · {ETIQUETA[combustible]}</span>
+          <strong>{resumen.minimo === null ? 'sin datos' : `${formatearPrecio(resumen.minimo)} €/L`}</strong>
+          <div>
+            <span>{resumen.origenes.length === 1 ? 'Dónde' : `${resumen.origenes.length} municipios empatados`}</span>
+            {resumen.origenes.map((origen) => <a href={origen.href}>{origen.municipio}{origen.destino === 'provincia' && ` · ${origen.provinciaNombre}`}</a>)}
+            <small class="editorial-destacado__muestra-movil">Entre {resumen.n} estaciones</small>
+          </div>
+        </article>;
+      })}
+    </header>
 
-  <section class="editorial-resumen" aria-label="Precio mínimo nacional por combustible">
-    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
-      const resumen = agregados.nacional[combustible];
-      return (
-        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+    <section class="editorial-resumen editorial-resumen--minimos" aria-label="Mínimos nacionales para los cuatro combustibles">
+      {ORDEN_COMBUSTIBLES.map((combustible) => {
+        const resumen = agregados.nacional[combustible];
+        return <article class="editorial-tarjeta editorial-tarjeta--secundaria">
           <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
-          <strong class="editorial-tarjeta__precio">
-            {resumen.minimo === null ? 'sin datos' : `${formatearPrecio(resumen.minimo)} €/L`}
-          </strong>
-          {resumen.origenes.map((origen) => (
-            <a class="editorial-tarjeta__zona" href={origen.href}>
-              {origen.municipio}
-              {origen.destino === 'provincia' && ` · ${origen.provinciaNombre}`}
-            </a>
-          ))}
-          <span class="editorial-tarjeta__muestra">
-            Mínimo entre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
-          </span>
-        </article>
-      );
-    })}
-  </section>
-
-  <section class="editorial-metodo" aria-label="Metodología">
-    <p class="editorial-metodo__resumen">
-      <strong>Precio mínimo publicado</strong> · solo estaciones públicas que venden el combustible
-      · municipio de origen visible.
-    </p>
-    <details class="editorial-detalles editorial-detalles--metodo">
-      <summary>Cómo se calcula</summary>
-      <div class="editorial-detalles__contenido">
-        <p>
-          Buscamos el menor precio publicado entre las estaciones públicas que venden cada
-          combustible. La muestra indica cuántas estaciones participan en la comparación. Una
-          estación sin ese producto queda fuera y nunca cuenta como cero.
-        </p>
-        <p>
-          Si varias estaciones de municipios distintos publican el mismo mínimo con los tres
-          decimales del ministerio, se muestran todos los municipios empatados. No existe una URL de
-          estación: el enlace lleva a la página municipal que contiene el precio de origen. Si esa
-          página no existe por el umbral mínimo de estaciones, lleva a la provincia que contiene la
-          estación sin ocultar el nombre del municipio.
-        </p>
-        <p>
-          Canarias, Ceuta y Melilla se presentan aparte porque su fiscalidad de carburantes es
-          distinta. No se comparan como si fueran el mercado nacional más barato.
-        </p>
-      </div>
-    </details>
-  </section>
-
-  {ORDEN_COMBUSTIBLES.map((combustible) => (
-    <section class="editorial-combustible" id={combustible}>
-      <h2>{ETIQUETA[combustible]}</h2>
-      <p>Precio mínimo de cada comunidad autónoma, de menor a mayor.</p>
-
-      <TablaMinimosEditorial
-        filas={rankingsGenerales[combustible]}
-        combustible={combustible}
-      />
-
-      <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
-        <h3>Canarias, Ceuta y Melilla</h3>
-        <p>Resultados separados por su régimen fiscal distinto en los carburantes.</p>
-        <TablaMinimosEditorial
-          filas={rankingsFiscales[combustible]}
-          combustible={combustible}
-        />
-      </aside>
+          <strong class="editorial-tarjeta__precio">{resumen.minimo === null ? 'sin datos' : `${formatearPrecio(resumen.minimo)} €/L`}</strong>
+          {resumen.origenes[0] && <a class="editorial-tarjeta__zona" href={resumen.origenes[0].href}>{resumen.origenes[0].municipio}{resumen.origenes.length > 1 && ` +${resumen.origenes.length - 1}`}</a>}
+          <span class="editorial-tarjeta__muestra">Mínimo entre {resumen.n} estaciones</span>
+        </article>;
+      })}
     </section>
-  ))}
+
+    <SelectorCombustibleEditorial />
+    <p class="sr-only" aria-live="polite" data-estado-selector></p>
+
+    {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
+      const filas = rankingsGenerales[combustible];
+      const conDatos = filas.filter(({ elemento }) => elemento.combustibles[combustible].minimo !== null);
+      return <section id={`panel-${combustible}`} class="editorial-panel-ranking" data-panel-combustible={combustible} hidden={indiceCombustible > 0} aria-labelledby={`titulo-minimos-${combustible}`}>
+        <aside class="editorial-claves">
+          <p class="micro">Qué se compara</p>
+          <h2 id={`titulo-minimos-${combustible}`}>{ETIQUETA[combustible]}</h2>
+          <p>El mínimo de cada comunidad se obtiene entre estaciones públicas con un precio publicado.</p>
+          <dl>
+            <div><dt>Comunidades comparadas</dt><dd>{filas.length}</dd></div>
+            <div><dt>Empates nacionales</dt><dd>{agregados.nacional[combustible].origenes.length}</dd></div>
+          </dl>
+        </aside>
+
+        <div class="editorial-ranking">
+          <div class="editorial-ranking__cabecera"><span class="micro">Mínimo por comunidad · Top 6</span><span>Precio publicado</span></div>
+          {conDatos.length === 0 ? <section class="editorial-estado" role="status"><h3>Sin datos para {ETIQUETA[combustible]}</h3><p>Ninguna estación del mercado general publica este combustible hoy.</p></section> : <>
+            <TablaMinimosEditorial filas={conDatos.slice(0, 8)} combustible={combustible} principal />
+            {conDatos.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver las {filas.length} comunidades</summary><TablaMinimosEditorial filas={conDatos.slice(6)} combustible={combustible} duplicadas={2} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
+          </>}
+        </div>
+
+        <aside class="editorial-fiscal editorial-fiscal--compacta">
+          <div><h3>Canarias, Ceuta y Melilla</h3><p>Resultados separados por su fiscalidad.</p></div>
+          <TablaMinimosEditorial filas={rankingsFiscales[combustible]} combustible={combustible} etiqueta={`${ETIQUETA[combustible]} en territorios fiscales`} />
+        </aside>
+        <details class="editorial-fiscal-movil">
+          <summary>Canarias, Ceuta y Melilla</summary>
+          <p>Resultados separados por su fiscalidad.</p>
+          <TablaMinimosEditorial filas={rankingsFiscales[combustible]} combustible={combustible} etiqueta={`${ETIQUETA[combustible]} en territorios fiscales`} />
+        </details>
+
+        <details class="editorial-metodologia-final"><summary>Metodología y limitaciones</summary><p>Se toma el menor precio publicado por una estación pública. Los valores ausentes se excluyen y los empates exactos a tres decimales se conservan. Si un municipio no tiene página propia por tamaño de muestra, el enlace conduce a su provincia y mantiene visible el municipio de origen.</p></details>
+      </section>;
+    })}
+  </div>
 </DocumentoEditorial>
