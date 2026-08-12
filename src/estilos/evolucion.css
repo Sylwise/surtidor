@@ -94,15 +94,7 @@ button, input { font: inherit; }
   font-weight: 500;
 }
 .evolucion-app { display: flex; height: 100dvh; flex-direction: column; }
-.evolucion-barra { display: flex; min-height: 64px; align-items: center; gap: 28px; padding: 0 28px; border-bottom: 1px solid var(--hair); background: var(--paper); }
-.evolucion-marca { display: flex; align-items: center; gap: 10px; color: var(--petrol); font-size: 18px; text-decoration: none; }
-.evolucion-marca span, .evolucion-marca svg { display: block; width: 20px; height: 20px; }
-.evolucion-migas { display: flex; align-items: center; gap: 14px; font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
-.evolucion-migas a { color: var(--muted); text-decoration: none; }
-.evolucion-migas i { color: var(--muted); font-size: 20px; font-style: normal; }
-.evolucion-hoy { margin-left: auto; padding: 10px 14px; border: 1px solid var(--hair); border-radius: var(--radio); color: var(--petrol); font-size: 13px; text-decoration: none; }
-.evolucion-hoy span { margin-left: 8px; }
-.evolucion-zona-movil, .evolucion-abrir-explorador { display: none; }
+.evolucion-abrir-explorador { display: none; }
 .evolucion-shell { position: relative; min-height: 0; flex: 1; }
 .evolucion-estado { position: absolute; z-index: 10; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--paper); color: var(--muted); }
 .evolucion-estado[hidden], .evolucion-workbench[hidden], [hidden] { display: none !important; }
@@ -273,10 +265,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
     font-size: 14px;
   }
   .evolucion-app { height: auto; min-height: 100dvh; }
-  .evolucion-barra { min-height: 56px; gap: 10px; padding: 0 16px; }
-  .evolucion-marca { font-size: 20px; }
-  .evolucion-migas, .evolucion-hoy { display: none; }
-  .evolucion-zona-movil { display: flex; margin-left: auto; min-height: 42px; align-items: center; gap: 10px; padding: 0 12px; border: 1px solid var(--hair); border-radius: var(--radio); color: var(--petrol); font-size: 12px; font-weight: 750; text-decoration: none; text-transform: uppercase; }
   .evolucion-abrir-explorador { display: grid; width: 44px; height: 44px; border: 0; border-radius: var(--radio); background: var(--petrol); color: var(--surface); cursor: pointer; place-items: center; }
   .evolucion-abrir-explorador svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .evolucion-shell { min-height: auto; }
