@@ -1947,9 +1947,8 @@ input {
   .hoja__asa { height: 24px; }
   .hoja__asa::before { width: 28px; background: var(--line); }
   .controles__pestana { border-radius: 6px; }
-  .panel-fondo,
-  .panel-hoy__fondo { position: fixed; z-index: 19; inset: 0; display: block; background: color-mix(in srgb, var(--petrol) 40%, transparent); }
-  .panel-fondo[hidden], .panel-hoy__fondo[hidden] { display: none; }
+  .panel-fondo { position: fixed; z-index: 19; inset: 0; display: block; background: color-mix(in srgb, var(--petrol) 40%, transparent); }
+  .panel-fondo[hidden] { display: none; }
   .panel-zona {
     top: 96px;
     left: 0;
