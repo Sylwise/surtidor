@@ -19,6 +19,7 @@ import { cajaDeTitulo, formatearEuros, formatearPrecio } from '../logica/formato
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
 import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
+import { multiProvinciaDe } from '../logica/municipios.ts';
 import { cargarHistoricoProvincia } from '../logica/datosEvolucion.ts';
 import { cambioEnPeriodo, serieDeEstacion } from '../logica/evolucion.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
@@ -260,7 +261,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       return;
     }
 
-    const multiProvincia = new Set(visiblesTipoVenta.map((e) => e.provinciaId)).size > 1;
+    const multiProvincia = multiProvinciaDe(visiblesTipoVenta);
 
     // RF-86: el rótulo es el cartel de la gasolinera y se muestra verbatim;
     // dirección y municipio son prosa y se pasan a caja de título; la
