@@ -191,16 +191,17 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       contenedor.querySelector<HTMLElement>('[data-etiqueta-precio]')!.textContent = estacionActiva ? 'Precio actual' : 'Último cierre';
       contenedor.querySelector<HTMLElement>('[data-precio]')!.textContent = estacionActiva ? (precioActualEstacion === null ? 'no vende' : eur(Math.round(precioActualEstacion * 1000))) : eur(seriePrincipal.at(-1)?.milesimas ?? null);
       const cambioElemento = contenedor.querySelector<HTMLElement>('[data-cambio]')!;
+      const cambioMovilElemento = contenedor.querySelector<HTMLElement>('[data-cambio-movil]')!;
       const fraseDesktop = contenedor.querySelector<HTMLElement>('[data-frase-desktop]')!;
       const fraseMovil = contenedor.querySelector<HTMLElement>('[data-frase-movil]')!;
-      if (!cambio) { cambioElemento.textContent = '—'; fraseDesktop.textContent = 'Aún no hay histórico suficiente'; fraseMovil.textContent = 'Sin histórico suficiente'; }
+      if (!cambio) { cambioElemento.textContent = '—'; cambioMovilElemento.textContent = '—'; fraseDesktop.textContent = 'Aún no hay histórico suficiente'; fraseMovil.textContent = 'Sin histórico suficiente'; }
       else {
         cambioElemento.textContent = cambio.diferenciaMilesimas === 0 ? 'Sin cambio' : `${cambio.diferenciaMilesimas > 0 ? '↗ +' : '↘ −'}${centimos(cambio.diferenciaMilesimas)} cts`;
+        cambioMovilElemento.textContent = cambio.diferenciaMilesimas === 0 ? 'Sin cambio' : `${cambio.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(cambio.diferenciaMilesimas)} cts`;
         const verbo = cambio.diferenciaMilesimas > 0 ? 'subido' : cambio.diferenciaMilesimas < 0 ? 'bajado' : 'seguido estable';
         fraseDesktop.textContent = `${estacionActiva ? estacionActiva.rotulo : `La ${ETIQUETA[combustible]}`} ha ${verbo} en los últimos ${periodo} días`;
-        fraseMovil.textContent = `en los últimos ${periodo} días`;
+        fraseMovil.textContent = `en ${periodo} días`;
       }
-      contenedor.querySelectorAll<HTMLElement>('[data-periodo-texto]').forEach((el) => { el.textContent = String(periodo); });
       const contextoTexto = contenedor.querySelector<HTMLElement>('[data-contexto]')!;
       contextoTexto.textContent = estacionActiva ? `Compárala con la media de ${actual.provincia.nombre} para saber si es un caso aislado.` : explicacion && explicacion.amplitud.proporcionAlineada !== null && explicacion.amplitud.comparables > 0
         ? `${explicacion.amplitud.alineadas} de ${explicacion.amplitud.comparables} estaciones ${cambio && cambio.diferenciaMilesimas < 0 ? 'bajaron' : 'subieron'} en la misma dirección.`
@@ -223,6 +224,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const etiquetaMedia = contenedor.querySelector<HTMLElement>('[data-etiqueta-media]')!;
       const etiquetaMinimo = contenedor.querySelector<HTMLElement>('[data-etiqueta-minimo]')!;
       const etiquetaMuestra = contenedor.querySelector<HTMLElement>('[data-etiqueta-muestra]')!;
+      const resumenGraficoMovil = contenedor.querySelector<HTMLElement>('[data-resumen-grafico-movil]')!;
       if (estacionActiva) {
         const comparables = estaciones.filter((e) => e.precios[combustible] !== null).sort((a, b) => (a.precios[combustible] ?? Infinity) - (b.precios[combustible] ?? Infinity));
         const puesto = comparables.findIndex((e) => e.id === estacionActiva!.id) + 1;
@@ -230,6 +232,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-media]')!.textContent = eur(seriePrincipal.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = puesto > 0 ? `${puesto}ª de ${comparables.length}` : 'No comparable';
+        resumenGraficoMovil.textContent = `Media ${eur(mediaProvincia.at(-1)?.milesimas ?? null).replace(' €/L', '')} · ${puesto > 0 ? `${puesto}ª de ${comparables.length}` : 'No comparable'}`;
       } else {
         etiquetaMedia.textContent = 'Media';
         etiquetaMinimo.textContent = 'Mínimo';
@@ -237,6 +240,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-media]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(ultimoAgregado[2]);
         contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = String(ultimoAgregado[1]);
+        resumenGraficoMovil.textContent = `Mín. ${eur(ultimoAgregado[2]).replace(' €/L', '')} · ${ultimoAgregado[1]} est.`;
       }
       const comparacionEstacion = contenedor.querySelector<HTMLElement>('[data-comparacion-estacion]')!;
       const estadoVacio = contenedor.querySelector<HTMLElement>('[data-evolucion-vacio]')!;

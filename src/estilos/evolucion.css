@@ -12,7 +12,7 @@ button, input { font: inherit; }
 }
 .evolucion-intro {
   display: grid;
-  max-width: 820px;
+  max-width: 1120px;
   gap: 14px;
 }
 .evolucion-intro p,
@@ -28,7 +28,7 @@ button, input { font: inherit; }
   text-transform: uppercase;
 }
 .evolucion-intro h1 {
-  max-width: 720px;
+  max-width: none;
   font-size: clamp(40px, 4vw, 56px);
   line-height: .98;
   letter-spacing: -.035em;
@@ -126,8 +126,10 @@ button, input { font: inherit; }
 .evolucion-explorar h2, .evolucion-ranking h2 { margin: 0 0 12px; font-size: 15px; font-weight: 500; }
 .evolucion-explorar output { min-width:0; color:var(--muted); font-family:var(--mono); font-size:9px; overflow-wrap:anywhere; }
 .evolucion-busqueda { display: flex; min-height: 42px; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--hair); border-radius: var(--radio); background: var(--surface); color: var(--muted); }
+.evolucion-busqueda:focus-within { border-color: var(--muted); box-shadow: 0 0 0 1px var(--muted); }
 .evolucion-busqueda > svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .evolucion-busqueda input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--petrol); font-size: 12px; }
+.evolucion-busqueda input:focus-visible { outline: 0; }
 .evolucion-busqueda input::-webkit-search-cancel-button { display: none; }
 .evolucion-busqueda button { display: grid; width: 24px; height: 24px; flex: none; padding: 0; border: 1px solid var(--muted); border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; line-height: 1; place-items: center; }
 .evolucion-explorar ul, .evolucion-ranking ol, .evolucion-movimientos-movil ol, .evolucion-sheet ol { margin: 8px 0 0; padding: 0; list-style: none; }
@@ -165,6 +167,7 @@ button, input { font: inherit; }
 .evolucion-conclusion { display: flex; grid-column: 1 / -1; align-items: center; gap: 12px; margin: 24px 0 0 !important; font-size: clamp(20px, 2vw, 27px); }
 .evolucion-conclusion b { padding: 8px 10px; border-radius: var(--radio); background: color-mix(in srgb, var(--signal) 20%, var(--surface)); color: color-mix(in srgb, var(--signal) 58%, var(--petrol)); font-family: var(--mono); font-size: 14px; white-space: nowrap; }
 [data-frase-movil] { display: none; }
+.evolucion-cambio--movil, .evolucion-grafico-resumen-movil { display: none; }
 .evolucion-contexto { grid-column: 1 / -1; margin-top: 12px !important; color: var(--muted); font-size: 13px; }
 [data-claves] { display: none !important; }
 .evolucion-hitos { display: grid; height: 70px; margin: 18px 0; overflow: hidden; border: 1px solid var(--hair); border-radius: var(--radio); background: var(--paper); grid-template-columns: repeat(3,1fr); }
@@ -279,36 +282,29 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .evolucion-shell { min-height: auto; }
   .evolucion-workbench { display: block; height: auto; }
   .evolucion-rail { display: none; }
-  .evolucion-canvas { padding: 16px; overflow: visible; }
+  .evolucion-canvas { padding: 12px 16px 14px; overflow: visible; }
   .evolucion-controles--movil { display: block; }
-  .evolucion-contexto-movil { display: flex; align-items: center; margin-bottom: 8px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
-  .evolucion-contexto-movil b { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--hair); color: var(--petrol); }
-  .evolucion-contexto-movil strong { margin-left: auto; }
-  .evolucion-contexto-movil i { font-style: normal; }
-  .evolucion-controles--movil .evolucion-combustibles { grid-template-columns: repeat(4,1fr); gap: 5px; }
-  .evolucion-controles--movil .evolucion-combustibles button { min-width: 0; padding: 0 2px; }
-  .evolucion-controles--movil .evolucion-periodos { margin-top: 7px; gap: 5px; }
-  .evolucion-controles--movil .evolucion-periodos button { min-height: 34px; }
-  .evolucion-controles--movil .evolucion-periodos button::before { inset:-5px 0; }
-  .evolucion-resumen { min-height:118px; height:auto; margin-top:14px; }
-  .evolucion-resumen__titulo p { font-size: 11px; }
-  .evolucion-resumen h1 { font-size: 28px; }
-  .evolucion-panel__precio span { font-size: 9px; }
-  .evolucion-panel__precio strong { font-size: 26px; }
-  .evolucion-conclusion { gap: 9px; margin-top: 6px !important; font-size: 14px; }
-  .evolucion-conclusion b { padding: 8px; font-size: 12px; }
+  .evolucion-contexto-movil { display: flex; align-items: center; margin-bottom: 6px; color: var(--muted); font-size: 10px; font-weight: 750; letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; }
+  .evolucion-contexto-movil b { color: var(--petrol); }
+  .evolucion-contexto-movil i { margin: 0 7px; font-style: normal; }
+  .evolucion-controles--movil .evolucion-combustibles { grid-template-columns: repeat(4,1fr); gap: 6px; }
+  .evolucion-controles--movil .evolucion-combustibles button { min-width: 0; min-height: 38px; padding: 0 2px; }
+  .evolucion-controles--movil .evolucion-combustibles button::before { inset: -3px 0; }
+  .evolucion-controles--movil .evolucion-periodos { margin-top: 6px; gap: 6px; }
+  .evolucion-controles--movil .evolucion-periodos button { min-height: 32px; }
+  .evolucion-controles--movil .evolucion-periodos button::before { inset: -6px 0; }
+  .evolucion-resumen { height: 84px; min-height: 84px; margin-top: 10px; grid-template-rows: 27px 24px minmax(0, 1fr); }
+  .evolucion-resumen__titulo p, .evolucion-panel__precio span { display: none; }
+  .evolucion-resumen h1 { margin: 0; font-size: 25px; }
+  .evolucion-panel__precio strong { margin-top: 0; font-size: 21px; white-space: nowrap; }
+  .evolucion-conclusion { gap: 7px; margin-top: 3px !important; font-size: 12px; }
+  .evolucion-conclusion b { padding: 5px 7px; font-size: 10px; }
+  .evolucion-cambio--desktop { display: none; }
+  .evolucion-cambio--movil { display: inline; }
   [data-frase-desktop] { display: none; }
   [data-frase-movil] { display: inline; }
-  .evolucion-contexto { margin-top: 10px !important; font-size: 11px; }
-  .evolucion-hitos { min-height:70px; height:auto; margin:14px 0; }
-  .evolucion-hitos div { padding:10px 4px; text-align:center; }
-  .evolucion-hitos div + div { border-left: 1px solid var(--hair); }
-  .evolucion-hitos dt { overflow-wrap:anywhere; font-size:8px; }
-  .evolucion-hitos dd { font-size: 14px; }
-  .evolucion-hitos dd { white-space:nowrap; }
-  @media (max-width:375px) {
-    .evolucion-hitos dd { font-size:13px; }
-  }
+  .evolucion-contexto { margin-top: 5px !important; overflow: hidden; color: var(--muted); font-size: 9px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+  .evolucion-hitos { display: none; }
   .evolucion-comparacion { margin: 14px 0; }
   .evolucion-comparacion__tarjeta { min-height: 128px; padding: 16px; grid-template-columns: minmax(0,1fr) 130px; gap: 10px; }
   .evolucion-comparacion__tarjeta h2 { font-size: 15px; }
@@ -316,10 +312,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .evolucion-comparacion__tarjeta > div:last-child { padding: 10px; }
   .evolucion-comparacion__tarjeta > div:last-child strong { font-size: 14px; }
   .evolucion-comparacion__barras > div { grid-template-columns: 70px minmax(0,1fr) 70px; gap: 6px; }
-  .evolucion-grafico-card { height: 296px; padding: 16px 16px 10px; }
+  .evolucion-grafico-card { height: 296px; margin-top: 10px; padding: 16px 16px 10px; }
   .evolucion-grafico-card > header { align-items: center; }
   .evolucion-grafico-card h2 { font-size: 14px; }
   .evolucion-grafico-card header p { font-size: 9px; }
+  .evolucion-grafico-card .evolucion-grafico-resumen-movil { display: block; margin: 0 0 0 auto; color: var(--surface); font-size: 9px; font-weight: 800; letter-spacing: .04em; text-align: right; white-space: nowrap; }
   .evolucion-tramo { display: none; }
   .evolucion-grafico-wrap { height: 220px; min-height: 0; }
   .evolucion-grafico__eje, .evolucion-grafico__fecha { font-size: 10px; }

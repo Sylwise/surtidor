@@ -61,7 +61,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
 
           <article class="evolucion-canvas evolucion-panel">
             <section class="evolucion-controles evolucion-controles--movil">
-              <div class="evolucion-contexto-movil"><span>{nombre}</span><b>Evolución</b><strong>Últimos <i data-periodo-texto>30</i> días</strong></div>
+              <div class="evolucion-contexto-movil"><span>{nombre}</span><i aria-hidden="true">·</i><b>Evolución</b></div>
               <div class="evolucion-combustibles" data-combustibles aria-label="Combustible"></div>
               <div class="evolucion-periodos" aria-label="Periodo"><button data-periodo="7" aria-pressed="false">7 d</button><button data-periodo="30" aria-pressed="true">30 d</button><button data-periodo="90" aria-pressed="false">90 d</button></div>
             </section>
@@ -69,7 +69,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
             <header class="evolucion-resumen">
               <div class="evolucion-resumen__titulo"><p data-ambito>Media provincial</p><h1 data-titulo-panel></h1></div>
               <div class="evolucion-panel__precio"><span data-etiqueta-precio>Último cierre</span><strong data-precio></strong></div>
-              <p class="evolucion-conclusion"><b data-cambio></b><span data-frase-desktop></span><span data-frase-movil></span></p>
+              <p class="evolucion-conclusion"><b class="evolucion-cambio--desktop" data-cambio></b><b class="evolucion-cambio--movil" data-cambio-movil></b><span data-frase-desktop></span><span data-frase-movil></span></p>
               <p class="evolucion-contexto" data-contexto></p>
               <ol data-claves hidden></ol>
             </header>
@@ -92,7 +92,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
             </section>
 
             <section class="evolucion-grafico-card">
-              <header><div><h2>Precio medio diario</h2><p data-rango-fechas></p></div><div class="evolucion-tramo"><span>Tramo más intenso</span><strong data-tramo></strong></div></header>
+              <header><div><h2>Precio medio diario</h2><p data-rango-fechas></p></div><p class="evolucion-grafico-resumen-movil" data-resumen-grafico-movil></p><div class="evolucion-tramo"><span>Tramo más intenso</span><strong data-tramo></strong></div></header>
               <div class="evolucion-grafico-wrap"><svg class="evolucion-grafico" viewBox="0 0 900 360" role="img"></svg><output class="evolucion-tooltip" data-tooltip hidden></output></div>
               <div class="evolucion-leyenda"><span><i class="estacion"></i><b data-leyenda-principal>Media provincial</b></span><span><i class="provincia"></i><b data-leyenda-secundaria>Precio mínimo</b></span></div>
             </section>
