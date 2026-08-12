@@ -64,6 +64,7 @@ async function main(): Promise<void> {
     estaciones: estado.estaciones.length,
     estado: nombreEstado,
     sha256: createHash('sha256').update(estadoGzip).digest('hex'),
+    ...(estado.mock ? { mock: true as const } : {}),
   };
   await escribirJsonCompactoAtomico(join(directorioSalida, 'manifiesto.json'), manifiesto);
 

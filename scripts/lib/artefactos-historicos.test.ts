@@ -52,3 +52,16 @@ test('agrega suma, n y mínimo en el territorio observado de cada día', () => {
   assert.equal(provincias.get('01')!.estaciones.find((serie) => serie[0] === '1')?.[1], '01059');
   assert.equal(provincias.get('28')!.estaciones.find((serie) => serie[0] === '1')?.[1], '28079');
 });
+
+test('propaga mock:true del estado nacional a cada provincia materializada (RNF-43)', () => {
+  const limpio = construirHistoricosProvincia(
+    construirEstadoHistorico([dia('2026-08-01', [['1', '01', '01059', 1400, null, null, null]])]),
+  );
+  assert.equal(limpio.get('01')!.mock, undefined);
+
+  const estadoMock = construirEstadoHistorico([
+    { ...dia('2026-08-01', [['1', '01', '01059', 1400, null, null, null]]), mock: true },
+  ]);
+  const provincias = construirHistoricosProvincia(estadoMock);
+  assert.equal(provincias.get('01')!.mock, true);
+});

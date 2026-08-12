@@ -144,3 +144,14 @@ test('valida instantáneas recuperadas y detecta IDEESS repetidos', () => {
   duplicada.estaciones.push(duplicada.estaciones[0]!);
   assert.throws(() => parsearInstantaneaHistorica(duplicada), /IDEESS duplicado/);
 });
+
+test('conserva mock:true al validar y lo rechaza si no es exactamente true (RNF-43)', () => {
+  const instantanea = normalizarRespuestaHistorica(respuesta(), '2026-08-09');
+  const marcada = { ...instantanea, mock: true as const };
+  assert.deepEqual(parsearInstantaneaHistorica(JSON.parse(JSON.stringify(marcada))), marcada);
+
+  assert.throws(
+    () => parsearInstantaneaHistorica({ ...instantanea, mock: false }),
+    /no cumple el contrato/,
+  );
+});

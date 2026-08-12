@@ -24,6 +24,9 @@ export interface HistoricoProvincia {
   version: 1;
   provinciaId: string;
   fechas: string[];
+  /** Copia de `EstadoHistorico.mock`: `comprobar-datos-reales.ts` la detecta
+   *  igual que `DatosProvincia.mock` (RNF-43/RNF-44). */
+  mock?: true;
   estaciones: SerieHistoricaPublica[];
   provincia: AgregadoHistorico;
   municipios: Record<string, AgregadoHistorico>;
@@ -121,6 +124,7 @@ export function construirHistoricosProvincia(
         version: 1,
         provinciaId,
         fechas: estado.fechas,
+        ...(estado.mock ? { mock: true as const } : {}),
         estaciones: valor.estaciones,
         provincia: valor.provincia,
         municipios: Object.fromEntries([...valor.municipios.entries()].sort(([a], [b]) => a.localeCompare(b))),

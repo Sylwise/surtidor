@@ -27,6 +27,9 @@ export type EstacionHistorica = [
 export interface InstantaneaHistorica {
   version: 1;
   fecha: string;
+  /** RNF-43/RNF-44: marca una instantánea de prueba, igual que `DatosProvincia.mock`
+   *  (`scripts/lib/tipos.ts`). Ausente o `true`, nunca `false`. */
+  mock?: true;
   estaciones: EstacionHistorica[];
 }
 
@@ -34,6 +37,7 @@ const PrecioCompactoEsquema = z.number().int().min(0).max(10_000).nullable();
 const InstantaneaHistoricaEsquema = z.object({
   version: z.literal(1),
   fecha: z.string(),
+  mock: z.literal(true).optional(),
   estaciones: z.array(
     z.tuple([
       z.string().min(1),

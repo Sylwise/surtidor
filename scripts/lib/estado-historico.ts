@@ -25,6 +25,11 @@ export type SerieHistoricaEstacion = [
 export interface EstadoHistorico {
   version: 1;
   fechas: string[];
+  /** Verdadero si alguna instantánea que compone la ventana era de prueba
+   *  (`InstantaneaHistorica.mock`). Contamina el estado: una vez presente,
+   *  solo `--reconstruir` (siempre contra el MITECO real) lo limpia; el día
+   *  de prueba puede salir de la ventana sin que la marca se borre sola. */
+  mock?: true;
   estaciones: SerieHistoricaEstacion[];
 }
 
@@ -52,6 +57,7 @@ const SerieHistoricaEstacionEsquema = z.tuple([
 const EstadoHistoricoEsquema = z.object({
   version: z.literal(1),
   fechas: z.array(z.string()).min(1).max(DIAS_HISTORICO),
+  mock: z.literal(true).optional(),
   estaciones: z.array(SerieHistoricaEstacionEsquema),
 });
 
@@ -182,6 +188,7 @@ export function construirEstadoHistorico(instantaneas: InstantaneaHistorica[]): 
   });
 
   const estado: EstadoHistorico = { version: 1, fechas, estaciones };
+  if (instantaneas.some((instantanea) => instantanea.mock)) estado.mock = true;
   validarEstadoHistorico(estado);
   return estado;
 }
@@ -231,6 +238,7 @@ export function avanzarEstadoHistorico(
   }
 
   const siguiente: EstadoHistorico = { version: 1, fechas, estaciones };
+  if (estado.mock || instantanea.mock) siguiente.mock = true;
   validarEstadoHistorico(siguiente);
   return siguiente;
 }

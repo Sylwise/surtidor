@@ -87,6 +87,31 @@ test('valida el contrato al recuperar estado y rechaza precios imposibles', () =
   assert.throws(() => parsearEstadoHistorico(roto), /no cumple el contrato/);
 });
 
+test('mock contamina el estado y se conserva aunque el día de prueba salga de la ventana (RNF-43)', () => {
+  const limpio = construirEstadoHistorico([dia('2026-08-01', [fila('1')])]);
+  assert.equal(limpio.mock, undefined);
+
+  const construidoConMock = construirEstadoHistorico([
+    dia('2026-08-01', [fila('1')]),
+    { ...dia('2026-08-02', [fila('1', '01', '01059', 1390)]), mock: true },
+  ]);
+  assert.equal(construidoConMock.mock, true);
+
+  const avanzadoLimpio = avanzarEstadoHistorico(limpio, {
+    ...dia('2026-08-02', [fila('1', '01', '01059', 1390)]),
+    mock: true,
+  });
+  assert.equal(avanzadoLimpio.mock, true);
+
+  // El día marcado como mock sale de la ventana en el siguiente avance, pero
+  // la marca no se limpia sola: solo --reconstruir (siempre contra datos
+  // reales) produce un estado sin ella.
+  const siguiente = avanzarEstadoHistorico(avanzadoLimpio, dia('2026-08-03', [fila('1', '01', '01059', 1380)]));
+  assert.equal(siguiente.mock, true);
+
+  assert.deepEqual(parsearEstadoHistorico(JSON.parse(JSON.stringify(construidoConMock))), construidoConMock);
+});
+
 test('parte por toda provincia observada sin perder cambios ni ausencias', () => {
   const estado = construirEstadoHistorico([
     dia('2026-08-01', [fila('1', '01'), fila('2', '48')]),

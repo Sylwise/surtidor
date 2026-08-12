@@ -12,6 +12,9 @@ export interface ManifiestoHistorico {
   estaciones: number;
   estado: string;
   sha256: string;
+  /** Copia de `EstadoHistorico.mock`: permite detectar un despliegue de
+   *  prueba leyendo solo el manifiesto, sin descomprimir el estado. */
+  mock?: true;
 }
 
 const ManifiestoHistoricoEsquema = z.object({
@@ -22,6 +25,7 @@ const ManifiestoHistoricoEsquema = z.object({
   estaciones: z.number().int().min(0),
   estado: z.string().regex(/^[a-zA-Z0-9._-]+$/),
   sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  mock: z.literal(true).optional(),
 });
 
 export class ErrorRecuperacionHistorico extends Error {
@@ -94,7 +98,8 @@ export async function recuperarEstadoDesplegado(
     estado.fechas[0] !== manifiesto.desde ||
     estado.fechas.at(-1) !== manifiesto.hasta ||
     estado.fechas.length !== manifiesto.dias ||
-    estado.estaciones.length !== manifiesto.estaciones
+    estado.estaciones.length !== manifiesto.estaciones ||
+    Boolean(estado.mock) !== Boolean(manifiesto.mock)
   ) {
     throw new ErrorRecuperacionHistorico('El manifiesto no describe el estado histórico descargado.');
   }
