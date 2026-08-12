@@ -80,6 +80,7 @@ export function montarControles(
   const panelHoy = exigir<HTMLElement>('#panel-hoy');
   const fondoPanelHoy = exigir<HTMLElement>('#fondo-panel-hoy');
   const cerrarHoy = exigir<HTMLButtonElement>('#cerrar-panel-hoy');
+  const enlaceEvolucionZona = document.querySelector<HTMLAnchorElement>('[data-enlace-evolucion-zona]');
   const opcionesZona = Array.from(
     contenedorIdentidad.querySelectorAll<HTMLLIElement>('[data-opcion-zona]'),
     (fila) => ({ fila, textoBusqueda: normalizar(fila.dataset.busqueda ?? '') }),
@@ -208,6 +209,12 @@ export function montarControles(
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
+    if (enlaceEvolucionZona && zonaActual) {
+      const provinciaId = zonaActual.provincias.length === 1 ? zonaActual.provincias[0] : null;
+      enlaceEvolucionZona.href = provinciaId
+        ? '/hoy/evolucion/' + encodeURIComponent(provinciaId) + '/'
+        : '/hoy/evolucion/';
+    }
     // RF-88: mientras se cargan los datos de una zona —incluido un cambio de
     // zona sin recargar (ADR-0016)— el botón lo dice, para que la interfaz
     // no se quede congelada sin señal mientras el resto (mapa, lista,
