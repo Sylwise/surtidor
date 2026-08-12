@@ -369,6 +369,7 @@ input {
   display: flex;
   flex-direction: column;
   background: var(--paper);
+  color: var(--petrol);
   border: 1px solid var(--hair);
   border-radius: 14px;
   box-shadow: 0 18px 48px color-mix(in srgb, var(--petrol) 30%, transparent);
@@ -2252,4 +2253,61 @@ input {
   content: '';
   position: absolute;
   inset: -3px 0;
+}
+
+/* Portada sin zona: el mapa nacional sigue permitiendo cambiar el combustible
+   de sus píldoras, pero no reserva espacio para una lista de estaciones que
+   todavía no existe. En escritorio el selector se comporta como un control
+   del mapa; en móvil conserva la banda territorial bajo la cabecera. */
+.app--sin-zona .layout { position:relative; }
+.app--sin-zona .hoja {
+  position:absolute;
+  z-index:3;
+  top:16px;
+  left:16px;
+  display:block;
+  width:316px;
+  height:auto;
+  min-height:0;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--petrol) 16%,transparent);
+}
+.app--sin-zona .hoja__asa,
+.app--sin-zona .hoja__cuerpo { display:none; }
+.app--sin-zona .hoja__rapidos {
+  width:100%;
+  padding:10px;
+  border:0;
+  gap:7px;
+}
+.app--sin-zona .hoja__rapidos::before {
+  content:'Precio de';
+  display:block;
+  width:100%;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+@media (max-width:760px) {
+  .app--sin-zona .hoja {
+    position:static;
+    width:0;
+    height:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+  .app--sin-zona .hoja__rapidos {
+    width:100%;
+    padding:7px 8px 7px 84px;
+    border-bottom:1px solid var(--line);
+    gap:8px;
+  }
+  .app--sin-zona .hoja__rapidos::before { display:none; }
 }

@@ -2,7 +2,7 @@
 .marca-global--petroleo { color:var(--paper); }
 .marca-global__icono, .marca-global__icono svg { display:block; width:22px; height:22px; }
 .cabecera-global { position:relative; z-index:30; display:flex; height:64px; align-items:center; gap:24px; padding:0 28px; border-bottom:1px solid var(--hair); background:var(--paper); color:var(--petrol); }
-.cabecera-global--principal { padding:0 22px; gap:18px; }
+.cabecera-global--principal { padding:0 28px 0 22px; gap:18px; }
 .cabecera-global--evolucion { padding-inline:24px; }
 .cabecera-global--petroleo { border-bottom:2px solid var(--signal); background:var(--petrol); color:var(--paper); }
 .cabecera-global__contexto { display:flex; align-items:center; gap:10px; font-size:12px; }
@@ -12,17 +12,17 @@
 .cabecera-global__precios-evolucion { display:flex; height:100%; align-items:center; margin-left:auto; color:var(--muted); font-size:13px; font-weight:650; text-decoration:none; }
 .cabecera-global--petroleo .cabecera-global__precios-evolucion { color:var(--muted-light); }
 .cabecera-global__hoy-evolucion { margin-left:0; }
-.cabecera-global__precios-app { order:3; display:flex; height:100%; align-items:center; margin-left:auto; color:var(--muted-light); font-size:12px; font-weight:700; text-decoration:none; }
+.cabecera-global__precios-app { order:3; display:flex; height:100%; align-items:center; margin-left:auto; color:var(--muted-light); font-size:13px; font-weight:650; text-decoration:none; }
 .cabecera-global__precios-app[aria-current='page'], .boton-hoy--activo { color:inherit; box-shadow:inset 0 -2px var(--signal); }
 .cabecera-global--principal .marca-global { order:1; }
 .cabecera-global--principal .controles-identidad { order:2; flex:0 1 auto; }
-.cabecera-global--principal .navegacion-hoy { order:4; margin-left:0; }
+.cabecera-global--principal .navegacion-hoy { order:4; margin-left:10px; }
 .cabecera-global--principal .insignia-mock { order:5; }
 .cabecera-global__nav { display:flex; height:100%; align-items:center; gap:28px; margin-left:auto; }
 .cabecera-global__nav > a { display:flex; height:100%; align-items:center; color:var(--muted); font-size:13px; font-weight:650; text-decoration:none; }
 .cabecera-global--petroleo .cabecera-global__nav > a { color:var(--muted-light); }
 .cabecera-global__nav > a[aria-current='page'] { color:inherit; box-shadow:inset 0 -2px var(--signal); }
-.cabecera-global--evolucion .boton-hoy, .cabecera-global--editorial .boton-hoy { min-height:44px; }
+.cabecera-global--principal .boton-hoy, .cabecera-global--evolucion .boton-hoy, .cabecera-global--editorial .boton-hoy { min-height:44px; font-size:13px; font-weight:650; }
 .cabecera-global--evolucion .panel-hoy,
 .cabecera-global--editorial .panel-hoy { top:calc(100% + 8px); right:0; }
 .cabecera-global .panel-hoy__fondo { display:none; }
@@ -52,6 +52,9 @@
   .cabecera-global .marca-global__icono,
   .cabecera-global .marca-global__icono svg { width:20px; height:20px; }
   .cabecera-global__contexto { display:none; }
+  .cabecera-global--principal .cabecera-global__precios-app { min-height:44px; height:44px; margin-left:0; padding:0 5px; font-size:10px; }
+  .cabecera-global--principal .navegacion-hoy { margin-left:0; }
+  .cabecera-global--principal .boton-hoy { min-height:44px; padding:0 5px; font-size:10px; font-weight:700; }
   .cabecera-global--evolucion .cabecera-global__zona-movil { display:none; }
   .cabecera-global--evolucion .cabecera-global__precios-evolucion { display:flex; min-height:44px; height:44px; margin-left:0; padding:0 5px; color:var(--muted-light); font-size:10px; }
   .cabecera-global--evolucion .cabecera-global__hoy-evolucion { display:block; }

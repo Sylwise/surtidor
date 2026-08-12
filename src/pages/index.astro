@@ -1,6 +1,7 @@
 ---
 import '../estilos/tokens.css';
 import '../estilos/interfaz.css';
+import '../estilos/navegacion-global.css';
 import NavegacionApp from '../componentes/NavegacionApp.astro';
 import CabeceraGlobal from '../componentes/CabeceraGlobal.astro';
 
@@ -37,9 +38,9 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <div class="app">
+    <div class="app app--sin-zona">
       <CabeceraGlobal modo="principal" variante="petroleo">
-        <NavegacionApp />
+        <NavegacionApp tituloSelector="Elige tu zona" ayudaSelector="Selecciona una provincia o comunidad autónoma, o cierra para explorar el mapa" />
         <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
       </CabeceraGlobal>
 
@@ -51,7 +52,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
              arrastrable con tres estados sobre el mapa (interfaz.css +
              src/componentes/Hoja.ts); el orden en el DOM deja de importar
              porque ambas pasan a position:fixed. -->
-        <aside class="hoja" id="hoja" data-estado="media">
+        <aside class="hoja" id="hoja" data-estado="media" aria-label="Precios por combustible">
           <button type="button" class="hoja__asa" id="hoja-asa" aria-label="Panel de estaciones: media. Flecha arriba o abajo para cambiar de tamaño." aria-expanded="true">
             <span class="hoja__asa-barra" aria-hidden="true"></span>
             <span class="hoja__resumen-minimizado">ESTACIONES · <span data-contador-hoja>0</span></span>
