@@ -7,7 +7,9 @@
 3. **Comprobación visual:** los PNG de `../surtidor-pics/`.
 4. **Tokens reutilizables:** `src/estilos/tokens.css`. No introduzcas CDN, fuentes remotas ni un segundo sistema de estilos.
 
-Los JSON son una especificación estructural, no código para copiar. Conservan jerarquía, nombres de capas, tamaños, espaciados, colores, tipografía y variantes desktop/móvil del archivo `../surtidor.pen`.
+Los JSON son una especificación estructural, no código para copiar. Conservan jerarquía, nombres de capas, tamaños, espaciados, colores, tipografía y variantes desktop/móvil del archivo `surtidor.pen`.
+
+`frames/` y `manifest.json` no se versionan: son derivados de `surtidor.pen` y se regeneran con `python3 design-reference/extract-design.py` desde la raíz del repositorio.
 
 ## Correspondencia
 
@@ -23,6 +25,23 @@ Los JSON son una especificación estructural, no código para copiar. Conservan 
 | Artículo Hoy desktop | `wC99O` | `../surtidor-pics/art-culo-hoy-redise-o.png` |
 | Artículo Hoy móvil | `Iqts8` | `../surtidor-pics/art-culo-hoy-m-vil.png` |
 | Estados interactivos | `SQ2EH` | `../surtidor-pics/estados-interactivos.png` |
+
+### Referencias nuevas en el canvas activo
+
+Estas referencias se inspeccionan directamente en `/home/pencho/Development/surtidor.pen` mediante `get_screenshot` y `execute`/`Get`:
+
+| Pantalla/estado | Desktop | Móvil |
+|---|---:|---:|
+| Principal con cabecera integrada | `tHmiP` | `H6Hff` |
+| Provincias más baratas | `qvNsS` | `rBOk6` |
+| Marcas más baratas | `PEvnN` | `sqQ5d` |
+| Marcas: análisis fiscal abierto | `Y7RxG` | `ZN4E1` |
+| Capitales de provincia | `mflc5` | `HfY4I` |
+| La más barata de España | `KZy8w` | `i2enp` |
+
+La cabecera de `tHmiP`/`H6Hff` sustituye a la cabecera blanca anterior, pero conserva el cuerpo funcional de Principal. El prompt detallado para implementar este bloque está en `design-reference/IMPLEMENTATION-PROMPT.md`.
+
+La referencia móvil final usa `j6NWM` (Precios con hoja media), `GOGAZ` (mapa activo y hoja minimizada), `iWVJM` (Evolución), `RxZwu` (Hoy) y `SWKCj` (selector abierto desde un artículo). Sustituye las variantes intermedias `WSBn6`, `UKDm4` y `x2LAz`. El encargo definitivo y acotado está en `design-reference/ULTIMO-PROMPT-NAVEGACION-MOVIL-Y-HOJA.md`.
 
 ## Prompt recomendado
 

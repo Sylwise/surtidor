@@ -36,3 +36,10 @@ datos-historicos/
 # Se regeneran en cada build igual que public/data/; llevarlos en el
 # historial de git sería ~35 MB de binarios repetidos cada dos horas.
 public/og/
+
+# Frames de referencia visual (~15.000 líneas de JSON), derivados
+# mecánicamente de design-reference/surtidor.pen por extract-design.py. La
+# fuente se versiona; su extracción no — ver design-reference/CODEX.md para
+# el comando de regeneración.
+design-reference/frames/
+design-reference/manifest.json
