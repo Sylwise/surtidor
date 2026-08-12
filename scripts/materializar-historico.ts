@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 import { construirHistoricosProvincia } from './lib/artefactos-historicos.ts';
-import { construirEstadoHistorico, parsearEstadoHistorico } from './lib/estado-historico.ts';
+import { comprobarVentanaCompleta, construirEstadoHistorico, parsearEstadoHistorico } from './lib/estado-historico.ts';
 import {
   escribirBufferAtomico,
   escribirJsonCompactoAtomico,
@@ -39,6 +39,11 @@ async function main(): Promise<void> {
   const estado = entrada.isFile()
     ? parsearEstadoHistorico(JSON.parse(await readFile(directorioEntrada, 'utf8')) as unknown)
     : construirEstadoHistorico(await leerInstantaneas(directorioEntrada));
+
+  // Este es el punto de publicación real: nada por debajo de esta línea debe
+  // poder escribir un estado a medias.
+  comprobarVentanaCompleta(estado);
+
   const provincias = construirHistoricosProvincia(estado);
 
   const estadoJson = JSON.stringify(estado);

@@ -3,13 +3,14 @@ import { test } from 'node:test';
 
 import {
   avanzarEstadoHistorico,
+  comprobarVentanaCompleta,
   construirEstadoHistorico,
   expandirTerritorios,
   parsearEstadoHistorico,
   partirEstadoPorProvincia,
   validarEstadoHistorico,
 } from './estado-historico.ts';
-import type { EstacionHistorica, InstantaneaHistorica } from './historico.ts';
+import { desplazarFecha, DIAS_HISTORICO, type EstacionHistorica, type InstantaneaHistorica } from './historico.ts';
 
 function fila(
   id: string,
@@ -110,6 +111,35 @@ test('mock contamina el estado y se conserva aunque el día de prueba salga de l
   assert.equal(siguiente.mock, true);
 
   assert.deepEqual(parsearEstadoHistorico(JSON.parse(JSON.stringify(construidoConMock))), construidoConMock);
+});
+
+test('comprobarVentanaCompleta exige exactamente DIAS_HISTORICO días, con el conteo en el mensaje (materializar-historico.ts)', () => {
+  const completo = construirEstadoHistorico(
+    Array.from({ length: DIAS_HISTORICO }, (_, indice) => dia(desplazarFecha('2026-01-01', indice), [fila('1')])),
+  );
+  assert.doesNotThrow(() => comprobarVentanaCompleta(completo));
+
+  const corto = construirEstadoHistorico([dia('2026-08-01', [fila('1')])]);
+  assert.throws(() => comprobarVentanaCompleta(corto), /tiene 1 días; se esperaban 90/);
+
+  // El caso concreto que motivó el guardián: una reconstrucción que se
+  // detiene a mitad de camino (p. ej. en el día 60 de 90) no puede llegar a
+  // materializar-historico.ts y publicarse como si fuera una ventana válida.
+  const sesentaDias = construirEstadoHistorico(
+    Array.from({ length: 60 }, (_, indice) => dia(desplazarFecha('2026-01-01', indice), [fila('1')])),
+  );
+  assert.throws(() => comprobarVentanaCompleta(sesentaDias), /tiene 60 días; se esperaban 90/);
+});
+
+test('una ventana con un día menos de los esperados no pasa comprobarVentanaCompleta (protege reconstruir())', () => {
+  // Simula lo que produciría reconstruir() si un futuro refactor capturase
+  // el fallo de un día y siguiera en vez de abortar: una instantánea menos
+  // en la lista que se pasa a construirEstadoHistorico.
+  const casiCompleto = construirEstadoHistorico(
+    Array.from({ length: DIAS_HISTORICO - 1 }, (_, indice) => dia(desplazarFecha('2026-01-01', indice), [fila('1')])),
+  );
+  assert.equal(casiCompleto.fechas.length, DIAS_HISTORICO - 1);
+  assert.throws(() => comprobarVentanaCompleta(casiCompleto), /tiene 89 días; se esperaban 90/);
 });
 
 test('parte por toda provincia observada sin perder cambios ni ausencias', () => {

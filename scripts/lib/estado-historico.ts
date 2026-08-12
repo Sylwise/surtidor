@@ -129,6 +129,24 @@ export function validarEstadoHistorico(estado: EstadoHistorico): void {
   }
 }
 
+/**
+ * Exige que la ventana esté completa: exactamente `DIAS_HISTORICO` días.
+ * Deliberadamente separada de `validarEstadoHistorico`, que acepta ventanas
+ * de 1 a `DIAS_HISTORICO` días a propósito — la usan pruebas con ventanas
+ * cortas y el propio contrato de esquema, que no distingue una ventana en
+ * construcción de una lista para publicarse. Esta función sí distingue: se
+ * llama en los puntos donde una ventana incompleta no debe poder avanzar
+ * — al terminar `--reconstruir` y al empezar a materializar los artefactos
+ * públicos —, no en la validación estructural general.
+ */
+export function comprobarVentanaCompleta(estado: EstadoHistorico): void {
+  if (estado.fechas.length !== DIAS_HISTORICO) {
+    throw new Error(
+      `El estado histórico tiene ${estado.fechas.length} días; se esperaban ${DIAS_HISTORICO}.`,
+    );
+  }
+}
+
 export function parsearEstadoHistorico(valor: unknown): EstadoHistorico {
   const resultado = EstadoHistoricoEsquema.safeParse(valor);
   if (!resultado.success) {

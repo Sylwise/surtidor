@@ -86,6 +86,17 @@ territoriales en 90 días es una medición, no una garantía; el contrato conser
 ausencia y territorio por día y los agregados usan el territorio de cada
 observación.
 
+El validador de esquema (`validarEstadoHistorico`) acepta a propósito ventanas
+de entre 1 y 90 días: lo necesitan las pruebas con ventanas cortas y una
+ventana todavía en construcción no es un error de forma. Que la ventana esté
+**completa** es una exigencia distinta y se comprueba aparte
+(`comprobarVentanaCompleta`), en el punto de publicación real: al terminar
+`--reconstruir` y al empezar a materializar los artefactos por provincia. Así,
+una reconstrucción que se detiene a mitad de camino —por ejemplo en el día 60
+de 90— no escribe nada (la escritura es atómica y ocurre una sola vez, al
+final) y tampoco puede llegar a materializarse ni desplegarse como si fuera
+una ventana válida.
+
 La implementación medida genera 54 ficheros: manifiesto, estado nacional
 comprimido y 52 provincias. Los provinciales suman 3.832.088 B con gzip; la
 mediana es 63.322 B, el percentil 95 es 153.624 B y el máximo, Barcelona, 274.725

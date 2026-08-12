@@ -1,6 +1,11 @@
 import { resolve } from 'node:path';
 
-import { avanzarEstadoHistorico, construirEstadoHistorico, type EstadoHistorico } from './lib/estado-historico.ts';
+import {
+  avanzarEstadoHistorico,
+  comprobarVentanaCompleta,
+  construirEstadoHistorico,
+  type EstadoHistorico,
+} from './lib/estado-historico.ts';
 import { escribirJsonCompactoAtomico } from './lib/escritura.ts';
 import {
   ErrorPeticionMiteco,
@@ -43,7 +48,14 @@ async function reconstruir(fechaFinal: string): Promise<EstadoHistorico> {
     console.log(`${fecha}: reconstruyendo…`);
     instantaneas.push(await obtenerInstantaneaHistorica(fecha));
   }
-  return construirEstadoHistorico(instantaneas);
+  const estado = construirEstadoHistorico(instantaneas);
+  // Hoy es redundante: el bucle de arriba es todo-o-nada, así que
+  // `instantaneas` ya tiene DIAS_HISTORICO elementos o la función nunca llega
+  // aquí. Se deja como aserción explícita para que un futuro refactor que
+  // capture el fallo de un día y siga (en vez de abortar) no pueda producir
+  // en silencio una ventana corta.
+  comprobarVentanaCompleta(estado);
+  return estado;
 }
 
 async function main(): Promise<void> {
