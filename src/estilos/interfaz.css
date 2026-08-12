@@ -1581,7 +1581,7 @@ input {
 }
 .fila:hover { background: var(--subtle); }
 .fila--activa { background: var(--subtle); }
-.fila__rotulo { font-size: 12px; font-weight: 700; }
+.fila__rotulo { font-size: 12px; font-weight: 650; }
 .fila__direccion { font-size: 10px; }
 .fila__precio {
   min-width: 72px;
@@ -1831,6 +1831,8 @@ input {
   font-size: 12px;
 }
 
+.estado-datos__movil { display: none; }
+
 .panel-zona {
   top: 50%;
   left: 50%;
@@ -1908,7 +1910,7 @@ input {
   stroke-linejoin: round;
 }
 .panel-hoy__texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-.panel-hoy__texto strong { font-size: 12px; font-weight: 750; }
+.panel-hoy__texto strong { font-size: 12px; font-weight: 650; }
 .panel-hoy__texto small { margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 500; }
 
 @media (max-width: 760px) {
@@ -1947,7 +1949,7 @@ input {
     justify-content: flex-start;
     padding: 3px 7px;
     border: 0;
-    border-right: 1px solid var(--line);
+    border-right: 0;
     border-radius: 0;
     background: var(--paper);
     color: var(--petrol);
@@ -1969,7 +1971,30 @@ input {
   .cabecera-global--principal .boton-hoy__texto,
   .cabecera-global--principal .boton-hoy__flecha { display: inline; }
   .cabecera-global--principal .boton-hoy__icono { display: none; }
-  .estado-datos { display: none; }
+  .estado-datos {
+    position: fixed;
+    /* Por encima del mapa, pero debajo de la hoja cuando esta sube a
+       completa: la actualización no debe tapar el asa ni la lista. */
+    z-index: 2;
+    top: 108px;
+    left: 8px;
+    display: flex;
+    min-height: 0;
+    height: 22px;
+    padding: 0 7px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 650;
+    letter-spacing: .04em;
+    pointer-events: none;
+  }
+  .estado-datos::before,
+  .estado-datos__completo { display: none; }
+  .estado-datos__movil { display: inline; }
   .layout { padding-top: 52px; }
   .mapa-hueco { top: 52px; }
   .app--hoy-abierto .layout { padding-right: 0; }
@@ -2095,7 +2120,6 @@ input {
     padding-inline: 10px;
     border-bottom: 1px solid var(--line);
   }
-  .panel-hoy__lista li:first-child a { border-bottom-color: transparent; }
   .totem__evolucion-cambio { display: none; }
   .totem__ahorro {
     grid-area: cambio;
@@ -2155,7 +2179,7 @@ input {
 }
 
 .enlaces-bloque__nombre {
-  font-weight: 700;
+  font-weight: 650;
   font-size: var(--fs-3);
   overflow: hidden;
   text-overflow: ellipsis;

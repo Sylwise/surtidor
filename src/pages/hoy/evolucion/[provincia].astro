@@ -64,12 +64,12 @@ const zonaCompacta = nombre.trim().toLocaleUpperCase('es') === 'ARABA/ALAVA'
 
           <article class="evolucion-canvas evolucion-panel">
             <section class="evolucion-controles evolucion-controles--movil">
-              <div class="evolucion-combustibles" data-combustibles aria-label="Combustible"></div>
-              <div class="evolucion-periodos" aria-label="Periodo"><button data-periodo="7" aria-pressed="false">7 d</button><button data-periodo="30" aria-pressed="true">30 d</button><button data-periodo="90" aria-pressed="false">90 d</button></div>
+              <p class="evolucion-contexto-movil"><b>{zonaCompacta}</b><i aria-hidden="true">·</i><span>Evolución</span></p>
+              <div class="evolucion-combustibles" data-combustibles role="group" aria-label="Combustible"></div>
+              <div class="evolucion-periodos" role="group" aria-label="Periodo"><button data-periodo="7" aria-label="7 días" aria-pressed="false">7 d</button><button data-periodo="30" aria-label="30 días" aria-pressed="true">30 d</button><button data-periodo="90" aria-label="90 días" aria-pressed="false">90 d</button></div>
             </section>
 
             <header class="evolucion-resumen">
-              <a class="evolucion-resumen__zona" href={`/${zonaId}/`} aria-label={`Cambiar zona. Zona actual: ${nombre}`}>{zonaCompacta}<span aria-hidden="true">⌄</span></a>
               <div class="evolucion-resumen__titulo"><p data-ambito>Media provincial</p><h1 data-titulo-panel></h1></div>
               <div class="evolucion-panel__precio"><span data-etiqueta-precio>Último cierre</span><strong data-precio></strong></div>
               <p class="evolucion-conclusion"><b class="evolucion-cambio--desktop" data-cambio></b><b class="evolucion-cambio--movil" data-cambio-movil></b><span data-frase-desktop></span><span data-frase-movil></span></p>

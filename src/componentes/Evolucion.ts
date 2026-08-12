@@ -139,7 +139,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const destinosCombustible = [...contenedor.querySelectorAll<HTMLElement>('[data-combustibles]')];
     const etiquetaCompacta: Record<ClavePrecio, string> = { gasolina95e5: '95', gasoleoA: 'Diésel', gasolina98e5: '98', gasoleoPremium: 'Diésel +' };
     const etiquetaControl: Record<ClavePrecio, string> = { ...ETIQUETA, gasoleoPremium: 'Diésel +' };
-    const botonesCombustible = destinosCombustible.flatMap((destino) => ORDEN_COMBUSTIBLES.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
+    const botonesCombustible = destinosCombustible.flatMap((destino) => ORDEN_COMBUSTIBLES.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.ariaLabel = etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
     const botonesPeriodo = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-periodo]')];
     const resultados = contenedor.querySelector<HTMLElement>('[data-resultados-estacion]')!;
     const buscar = contenedor.querySelector<HTMLInputElement>('[data-buscar-estacion]')!;
@@ -153,7 +153,15 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     contenedor.querySelectorAll<HTMLButtonElement>('[data-abrir-todas], [data-abrir-explorador]').forEach((boton) => { boton.onclick = abrirSheet; });
     contenedor.querySelector<HTMLButtonElement>('[data-cerrar-sheet]')!.onclick = cerrarSheet;
     fondoSheet.onclick = cerrarSheet;
-    sheet.onkeydown = (evento) => { if (evento.key === 'Escape') { evento.preventDefault(); cerrarSheet(); } };
+    sheet.onkeydown = (evento) => {
+      if (evento.key === 'Escape') { evento.preventDefault(); cerrarSheet(); return; }
+      if (evento.key !== 'Tab') return;
+      const focables = [...sheet.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href]')].filter((elemento) => elemento.offsetParent !== null);
+      const primero = focables[0]; const ultimo = focables.at(-1);
+      if (!primero || !ultimo) return;
+      if (evento.shiftKey && document.activeElement === primero) { evento.preventDefault(); ultimo.focus(); }
+      else if (!evento.shiftKey && document.activeElement === ultimo) { evento.preventDefault(); primero.focus(); }
+    };
 
     const actualizarUrl = (): void => { const url = new URL(location.href); if (estacionActiva) url.searchParams.set('estacion', estacionActiva.id); else url.searchParams.delete('estacion'); history.replaceState(null, '', url); };
     const abrirEstacion = (estacion: Estacion): void => { estacionActiva = estacion; actualizarUrl(); buscar.value = ''; resultados.replaceChildren(); resumenBusqueda.hidden = true; limpiarBusqueda.hidden = true; render(); };
@@ -301,7 +309,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       contenedor.querySelector<HTMLElement>('.evolucion-ranking')!.hidden = false;
       const movimientosMovil = contenedor.querySelector<HTMLOListElement>('[data-movimientos-movil]')!; movimientosMovil.replaceChildren();
       const destacados = [cambios.filter((c) => c.diferenciaMilesimas > 0).at(-1), cambios.find((c) => c.diferenciaMilesimas < 0)].filter((c): c is CambioEstacion => Boolean(c));
-      destacados.forEach((movimiento) => { const estacion = estaciones.find((e) => e.id === movimiento.estacionId); if (!estacion) return; const li = document.createElement('li'); const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = cajaDeTitulo(estacion.municipio); identidad.append(nombre, lugar); const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts`; li.append(identidad, cifra); li.onclick = () => abrirEstacion(estacion); movimientosMovil.append(li); });
+      destacados.forEach((movimiento) => { const estacion = estaciones.find((e) => e.id === movimiento.estacionId); if (!estacion) return; const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; boton.ariaLabel = `Ver evolución de ${estacion.rotulo}, ${cajaDeTitulo(estacion.municipio)}`; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = cajaDeTitulo(estacion.municipio); identidad.append(nombre, lugar); const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(estacion); li.append(boton); movimientosMovil.append(li); });
       const estacionesCombustible = estaciones.filter((e) => e.precios[combustible] !== null).sort((a, b) => (a.precios[combustible] ?? Infinity) - (b.precios[combustible] ?? Infinity));
       contenedor.querySelector<HTMLElement>('[data-sheet-contador]')!.textContent = `${estacionesCombustible.length} resultados · ordenadas por precio`;
       const listaSheet = contenedor.querySelector<HTMLOListElement>('[data-sheet-lista]')!; listaSheet.replaceChildren();

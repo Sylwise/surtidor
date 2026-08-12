@@ -9,7 +9,9 @@
   --line: #d7dede;
   --hair: #d7dede;
   --hair-dark: rgba(255, 255, 255, 0.13);
-  --muted: #6b7b82;
+  /* Secundario auditado: mantiene AA sobre papel y superficie sin perder la
+     separación jerárquica respecto a --petrol. */
+  --muted: #526870;
   --muted-light: rgba(255, 255, 255, 0.58);
   /* Retroalimentación de toque sobre fondo oscuro: un velo casi
      imperceptible, solo para :active (ver .totem__fila-combustible-boton en

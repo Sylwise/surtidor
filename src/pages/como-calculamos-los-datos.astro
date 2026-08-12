@@ -1,50 +1,115 @@
 ---
 import DocumentoEditorial from '../layouts/DocumentoEditorial.astro';
+import { leerAgregadosEditoriales } from '../../scripts/lib/agregados.ts';
+import { formatearFechaHora } from '../logica/formato.ts';
 
 const ruta = '/como-calculamos-los-datos/';
 const titulo = 'Cómo calculamos los datos · Surtidor';
 const descripcion = 'Fuentes, reglas de cálculo y limitaciones de los precios y análisis publicados por Surtidor.';
+const { actualizado } = await leerAgregadosEditoriales();
 ---
 
 <DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta}>
   <header class="editorial-intro editorial-intro--metodo">
     <p class="editorial-eyebrow">Metodología</p>
     <h1 class="editorial-titulo">Cómo calculamos los datos</h1>
-    <p class="editorial-entradilla">Estas son las reglas que convierten el conjunto oficial de precios en mapas, medias y clasificaciones reproducibles.</p>
+    <p class="editorial-entradilla">
+      Las reglas con las que convertimos la fuente oficial en precios, medias y clasificaciones
+      comparables.
+    </p>
+    <p class="editorial-actualizado">
+      Datos actualizados <time datetime={actualizado}>{formatearFechaHora(actualizado)}</time>.
+    </p>
   </header>
 
-  <div class="editorial-metodo-pagina">
-    <article class="editorial-metodo-pagina__principal">
-      <h2>Fuente y actualización</h2>
-      <p>Los precios proceden del Geoportal de Hidrocarburos del Ministerio para la Transición Ecológica y el Reto Demográfico. Surtidor conserva la fecha de actualización de la fuente y genera sus páginas estáticas con una única fotografía coherente de los datos.</p>
+  <section class="metodologia-resumen" aria-labelledby="reglas-breve">
+    <h2 id="reglas-breve">Reglas en breve</h2>
+    <ul>
+      <li><strong>Fuente oficial</strong><span>Ministerio para la Transición Ecológica</span></li>
+      <li><strong>Venta al público</strong><span>Solo intervienen estaciones públicas</span></li>
+      <li><strong>Datos ausentes</strong><span>Se excluyen; nunca significan cero</span></li>
+      <li><strong>Precisión</strong><span>Tres decimales y empates compartidos</span></li>
+    </ul>
+  </section>
 
-      <h2>Qué estaciones intervienen</h2>
-      <p>Las comparaciones incluyen únicamente estaciones de venta al público. Una estación participa en un combustible solo cuando publica un precio válido para ese producto. Un valor ausente se excluye del cálculo y nunca se interpreta como cero.</p>
+  <div class="metodologia-lectura">
+    <article class="metodologia-principal">
+      <section aria-labelledby="fuente-actualizacion">
+        <p class="editorial-eyebrow">01 · Los datos</p>
+        <h2 id="fuente-actualizacion">Fuente y actualización</h2>
+        <p>
+          Los precios proceden del Geoportal de Hidrocarburos del Ministerio para la Transición
+          Ecológica y el Reto Demográfico. Conservamos la fecha declarada por la fuente y generamos
+          cada página con una única fotografía coherente de los datos.
+        </p>
+        <p>
+          Las actualizaciones pueden llegar después de un cambio en una estación. Por eso mostramos
+          siempre la hora real de los datos, no la hora a la que se abrió la página.
+        </p>
+      </section>
 
-      <h2>Medias, mínimos y empates</h2>
-      <ul>
-        <li>Las medias son aritméticas simples por estación, sin ponderar por volumen de venta.</li>
-        <li>Los mínimos son el menor precio publicado dentro del ámbito indicado.</li>
-        <li>Los empates exactos a tres decimales comparten posición y se conservan todos sus lugares de origen.</li>
-        <li>El tamaño de muestra se muestra junto a cada resultado para que pueda valorarse su cobertura.</li>
-      </ul>
+      <section aria-labelledby="estaciones-intervienen">
+        <p class="editorial-eyebrow">02 · La muestra</p>
+        <h2 id="estaciones-intervienen">Qué estaciones intervienen</h2>
+        <p>
+          Incluimos únicamente estaciones de venta al público. Cada estación participa en el cálculo
+          de un combustible solo cuando publica un precio válido para ese producto.
+        </p>
+        <p>
+          Un precio ausente significa que la estación no vende ese combustible. Se excluye tanto de
+          la suma como del número de observaciones y nunca se convierte en cero.
+        </p>
+      </section>
 
-      <h2>Mercados fiscales</h2>
-      <p>Canarias, Ceuta y Melilla se presentan aparte del mercado general porque su fiscalidad de carburantes es distinta. En los rankings de rótulos, el umbral mínimo de 100 estaciones se aplica de nuevo dentro de cada mercado: si no se alcanza, se muestra una referencia, no una clasificación fingida.</p>
-
-      <h2>Limitaciones</h2>
-      <p>Los precios son los comunicados por cada estación al ministerio y pueden cambiar después de la actualización. Una media no describe distancias, horarios, servicios ni disponibilidad puntual. Surtidor ayuda a comparar; el precio visible en la estación es el que prevalece.</p>
+      <section aria-labelledby="medias-minimos-empates">
+        <p class="editorial-eyebrow">03 · El cálculo</p>
+        <h2 id="medias-minimos-empates">Medias, mínimos y empates</h2>
+        <p>
+          La media es aritmética simple por estación y combustible; no se pondera por volumen de
+          venta porque la fuente no publica ese dato. El mínimo es el menor precio comunicado dentro
+          del ámbito indicado.
+        </p>
+        <p>
+          Comparamos los tres decimales publicados por el ministerio. Los resultados con el mismo
+          valor comparten posición y se ordenan alfabéticamente para que el orden sea estable.
+        </p>
+      </section>
     </article>
 
-    <aside class="editorial-metodo-pagina__ficha" aria-label="Resumen metodológico">
-      <h2>Reglas en breve</h2>
-      <dl>
-        <div><dt>Fuente</dt><dd>Ministerio para la Transición Ecológica</dd></div>
-        <div><dt>Venta</dt><dd>Solo estaciones públicas</dd></div>
-        <div><dt>Ausencias</dt><dd>Se excluyen; nunca valen cero</dd></div>
-        <div><dt>Precisión</dt><dd>Tres decimales por litro</dd></div>
-        <div><dt>Mercado general</dt><dd>Península y Baleares</dd></div>
-      </dl>
+    <aside class="metodologia-lateral" aria-label="Fiscalidad y limitaciones">
+      <section class="metodologia-fiscal" aria-labelledby="mercados-fiscales">
+        <p class="editorial-eyebrow">Ámbitos comparables</p>
+        <h2 id="mercados-fiscales">Mercados fiscales</h2>
+        <dl>
+          <div><dt>Península y Baleares</dt><dd>Forman el mercado general de los rankings nacionales.</dd></div>
+          <div><dt>Canarias</dt><dd>Aplica un impuesto autonómico específico sobre los combustibles derivados del petróleo.</dd></div>
+          <div><dt>Ceuta y Melilla</dt><dd>Aplican el IPSI y pueden gravar los carburantes con un complemento propio.</dd></div>
+        </dl>
+        <p>
+          No mezclamos estos mercados en una misma clasificación porque la diferencia observada no
+          responde solo a competencia o costes comerciales: también incorpora regímenes tributarios
+          distintos.
+        </p>
+      </section>
+
+      <section class="metodologia-limitaciones" aria-labelledby="limitaciones">
+        <p class="editorial-eyebrow">Antes de decidir</p>
+        <h2 id="limitaciones">Limitaciones</h2>
+        <blockquote>El precio visible en la estación es el que prevalece.</blockquote>
+        <p>
+          Un precio puede cambiar después de la actualización. Una media tampoco describe la
+          distancia, el horario, los servicios ni la disponibilidad puntual de cada combustible.
+        </p>
+      </section>
     </aside>
   </div>
+
+  <section class="metodologia-cierre" aria-labelledby="como-leer-resultados">
+    <p class="editorial-eyebrow">Cómo leer los resultados</p>
+    <h2 id="como-leer-resultados">La muestra acompaña a cada cifra</h2>
+    <p>
+      Indicamos cuántas estaciones sostienen cada resultado. Cuando un dato no es comparable, lo
+      separamos en su ámbito correspondiente o no lo clasificamos.
+    </p>
+  </section>
 </DocumentoEditorial>

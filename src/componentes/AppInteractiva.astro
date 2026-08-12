@@ -139,7 +139,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
             <h2 class="lista__titulo">Más baratas</h2>
             {' · '}
             <span class="lista__contador">{listasPorCombustible[COMBUSTIBLE_POR_DEFECTO].length}</span>
-            <button type="button" class="controles__pestana lista__filtro" aria-pressed="false">Abiertas ahora</button>
+            <button type="button" class="controles__pestana lista__filtro" aria-pressed="false">Solo abiertas</button>
           </div>
         </div>
         <section id="totem" class="totem" aria-label="Ficha de la estación seleccionada"></section>
@@ -385,11 +385,23 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
     const estaDesactualizado = actualizadoZona
       ? datosDesactualizados(actualizadoZona, new Date())
       : false;
-    contenedorEstadoDatos.textContent = actualizadoZona
+    const textoCompleto = actualizadoZona
       ? `Datos del ${formatearFechaHora(actualizadoZona)} · ${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}${estaDesactualizado ? ' · Pueden estar desactualizados' : ''}`
       : estado.cargando
         ? 'Cargando datos de la zona…'
         : `${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}`;
+    const textoMovil = actualizadoZona
+      ? `ACT. ${new Date(actualizadoZona).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+      : estado.cargando
+        ? 'ACTUALIZANDO…'
+        : `${estado.estaciones.length} EST.`;
+    const completo = document.createElement('span');
+    completo.className = 'estado-datos__completo';
+    completo.textContent = textoCompleto;
+    const movil = document.createElement('span');
+    movil.className = 'estado-datos__movil';
+    movil.textContent = textoMovil;
+    contenedorEstadoDatos.replaceChildren(completo, movil);
 
     if (estado.error) {
       contenedorAvisos.append(crearAviso(estado.error, 'error', true));

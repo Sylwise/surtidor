@@ -90,7 +90,7 @@ function crearCabecera(estado: EstadoApp, contador: number): HTMLDivElement {
   filtro.classList.toggle('controles__pestana--activa', estado.soloAbiertas);
   filtro.setAttribute('aria-pressed', String(estado.soloAbiertas));
   filtro.setAttribute('aria-label', 'Filtrar solo estaciones abiertas ahora');
-  filtro.textContent = 'Abiertas ahora';
+  filtro.textContent = 'Solo abiertas';
   filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !estado.soloAbiertas }));
 
   cabecera.append(titulo, document.createTextNode(' · '), contadorEl, document.createTextNode(' · '), filtro);

@@ -54,7 +54,7 @@
   .cabecera-global__contexto { display:none; }
   .cabecera-global--principal .cabecera-global__precios-app { min-height:44px; height:44px; margin-left:0; padding:0 5px; font-size:10px; }
   .cabecera-global--principal .navegacion-hoy { margin-left:0; }
-  .cabecera-global--principal .boton-hoy { min-height:44px; padding:0 5px; font-size:10px; font-weight:700; }
+  .cabecera-global--principal .boton-hoy { min-height:44px; padding:0 5px; font-size:10px; font-weight:650; }
   .cabecera-global--evolucion .cabecera-global__zona-movil { display:none; }
   .cabecera-global--evolucion .cabecera-global__precios-evolucion { display:flex; min-height:44px; height:44px; margin-left:0; padding:0 5px; color:var(--muted-light); font-size:10px; }
   .cabecera-global--evolucion .cabecera-global__hoy-evolucion { display:block; }
@@ -66,8 +66,38 @@
   .cabecera-global__nav > a { min-height:44px; height:44px; padding:0 5px; font-size:10px; }
   .cabecera-global--evolucion .boton-hoy,
   .cabecera-global--editorial .boton-hoy { width:auto; min-width:44px; min-height:44px; padding:0 5px; border-color:transparent; background:transparent; color:var(--muted-light); font-size:10px; font-weight:700; letter-spacing:0; text-transform:none; }
+  /* La caja visible es más apaisada que el objetivo táctil. El pseudo-elemento
+     conserva 44 px de alto sin obligar al fondo del botón a ocuparlos. */
+  .cabecera-global .navegacion-hoy .boton-hoy {
+    position:relative;
+    width:auto;
+    min-width:0;
+    min-height:36px;
+    height:36px;
+    padding:0 10px;
+    border:1px solid var(--hair);
+    border-radius:6px;
+    background:var(--surface);
+  }
+  .cabecera-global--petroleo .navegacion-hoy .boton-hoy {
+    border-color:var(--surface-stroke);
+    background:var(--surface-soft);
+  }
+  .cabecera-global .navegacion-hoy .boton-hoy::before {
+    position:absolute;
+    content:'';
+    inset:-4px 0;
+  }
   .cabecera-global--evolucion .boton-hoy__flecha,
   .cabecera-global--editorial .boton-hoy__flecha { display:block; }
+  /* En móvil el panel nace del borde inferior: cerrado invita a subirlo y,
+     una vez abierto, el indicador apunta hacia abajo para cerrarlo. */
+  .cabecera-global .boton-hoy__flecha {
+    transform:translateY(2px) rotate(225deg);
+  }
+  .cabecera-global .boton-hoy[aria-expanded='true'] .boton-hoy__flecha {
+    transform:translateY(-2px) rotate(45deg);
+  }
   .cabecera-global .boton-hoy--activo { color:var(--paper); }
   .cabecera-global .boton-hoy__texto { display:inline; }
   .cabecera-global .boton-hoy__icono { display:none; }
