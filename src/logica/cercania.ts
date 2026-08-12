@@ -36,3 +36,19 @@ export function formatearDistancia(km: number): string {
   if (km < 10) return `${km.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
   return `${Math.round(km).toLocaleString('es-ES')} km`;
 }
+
+/** Mensaje de error legible para el usuario a partir de un `GeolocationPositionError`.
+ *  Función pura y compartida: el botón "mi ubicación" del mapa (RF-17) y el
+ *  filtro "Cerca de mí" de la evolución la usan igual, para que no diverjan. */
+export function mensajeErrorGeolocalizacion(error: GeolocationPositionError): string {
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      return 'Permiso de ubicación denegado.';
+    case error.POSITION_UNAVAILABLE:
+      return 'No se ha podido determinar tu ubicación.';
+    case error.TIMEOUT:
+      return 'La ubicación ha tardado demasiado en responder.';
+    default:
+      return 'No se ha podido obtener tu ubicación.';
+  }
+}

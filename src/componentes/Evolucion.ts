@@ -2,6 +2,8 @@ import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { cajaDeTitulo } from '../logica/formato.ts';
 import { cambioEnPeriodo, cambiosDeEstaciones, serieDeEstacion, serieMedia, validarHistoricoPublico, type CambioEstacion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
+import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
+import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -134,6 +136,9 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const estaciones = actual.estaciones.filter((e) => historico.estaciones.some((s) => s[0] === e.id));
     if (!estaciones.length) throw new Error('No hay estaciones con histórico en esta provincia.');
     let combustible: ClavePrecio = 'gasolina95e5'; let periodo: 7 | 30 | 90 = 30;
+    let filtroSheet: 'baratas' | 'cercanas' | 'abiertas' = 'baratas';
+    let ubicacionUsuario: PosicionUsuario | null = null;
+    let pidiendoUbicacion = false;
     const estacionSolicitada = new URLSearchParams(location.search).get('estacion');
     let estacionActiva: Estacion | null = estaciones.find((e) => e.id === estacionSolicitada) ?? null;
     const destinosCombustible = [...contenedor.querySelectorAll<HTMLElement>('[data-combustibles]')];
@@ -141,6 +146,8 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const etiquetaControl: Record<ClavePrecio, string> = { ...ETIQUETA, gasoleoPremium: 'Diésel +' };
     const botonesCombustible = destinosCombustible.flatMap((destino) => ORDEN_COMBUSTIBLES.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.ariaLabel = etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
     const botonesPeriodo = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-periodo]')];
+    const botonesFiltroSheet = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-filtro-sheet]')];
+    const contadorSheet = contenedor.querySelector<HTMLElement>('[data-sheet-contador]')!;
     const resultados = contenedor.querySelector<HTMLElement>('[data-resultados-estacion]')!;
     const buscar = contenedor.querySelector<HTMLInputElement>('[data-buscar-estacion]')!;
     const resumenBusqueda = contenedor.querySelector<HTMLOutputElement>('[data-busqueda-resumen]')!;
@@ -184,6 +191,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const esMovil = window.matchMedia('(max-width: 760px)').matches;
       botonesCombustible.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.clave === combustible)));
       botonesPeriodo.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.periodo) === periodo)));
+      botonesFiltroSheet.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filtroSheet === filtroSheet)));
       const mediaProvincia = serieMedia(historico.provincia, historico.fechas, combustible);
       const minimoProvincia = historico.fechas.map((fechaDia, i) => ({ fecha: fechaDia, milesimas: historico.provincia[combustible][i]?.[2] ?? null }));
       const seriePrincipal = estacionActiva ? serieDeEstacion(historico, estacionActiva.id, combustible)! : mediaProvincia;
@@ -310,12 +318,20 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const movimientosMovil = contenedor.querySelector<HTMLOListElement>('[data-movimientos-movil]')!; movimientosMovil.replaceChildren();
       const destacados = [cambios.filter((c) => c.diferenciaMilesimas > 0).at(-1), cambios.find((c) => c.diferenciaMilesimas < 0)].filter((c): c is CambioEstacion => Boolean(c));
       destacados.forEach((movimiento) => { const estacion = estaciones.find((e) => e.id === movimiento.estacionId); if (!estacion) return; const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; boton.ariaLabel = `Ver evolución de ${estacion.rotulo}, ${cajaDeTitulo(estacion.municipio)}`; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = cajaDeTitulo(estacion.municipio); identidad.append(nombre, lugar); const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(estacion); li.append(boton); movimientosMovil.append(li); });
-      const estacionesCombustible = estaciones.filter((e) => e.precios[combustible] !== null).sort((a, b) => (a.precios[combustible] ?? Infinity) - (b.precios[combustible] ?? Infinity));
-      contenedor.querySelector<HTMLElement>('[data-sheet-contador]')!.textContent = `${estacionesCombustible.length} resultados · ordenadas por precio`;
+      let estacionesCombustible = estaciones.filter((e) => e.precios[combustible] !== null);
+      if (filtroSheet === 'abiertas') estacionesCombustible = estacionesCombustible.filter((e) => estaAbierta(e.horario, new Date()));
+      const ordenarPorCercania = filtroSheet === 'cercanas' && ubicacionUsuario !== null;
+      estacionesCombustible = ordenarPorCercania
+        ? [...estacionesCombustible].sort((a, b) => distanciaKm(ubicacionUsuario!, a) - distanciaKm(ubicacionUsuario!, b) || a.id.localeCompare(b.id, 'es'))
+        : [...estacionesCombustible].sort((a, b) => (a.precios[combustible] ?? Infinity) - (b.precios[combustible] ?? Infinity));
+      contadorSheet.textContent = `${estacionesCombustible.length} resultados · ${ordenarPorCercania ? 'ordenadas por cercanía' : filtroSheet === 'abiertas' ? 'abiertas ahora' : 'ordenadas por precio'}`;
       const listaSheet = contenedor.querySelector<HTMLOListElement>('[data-sheet-lista]')!; listaSheet.replaceChildren();
+      if (estacionesCombustible.length === 0) {
+        const li = document.createElement('li'); const texto = document.createElement('small'); texto.textContent = filtroSheet === 'abiertas' ? 'Ninguna abierta ahora.' : 'Ninguna estación vende este combustible.'; li.append(texto); listaSheet.append(li);
+      }
       estacionesCombustible.forEach((estacion, indice) => {
         const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button';
-        const posicion = document.createElement('i'); posicion.textContent = String(indice + 1);
+        const posicion = document.createElement('i'); posicion.textContent = ordenarPorCercania ? formatearDistancia(distanciaKm(ubicacionUsuario!, estacion)) : String(indice + 1);
         const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = cajaDeTitulo(estacion.municipio); identidad.append(nombre, lugar);
         const precio = document.createElement('b'); precio.textContent = (estacion.precios[combustible] ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 3 });
         boton.append(posicion, identidad, precio); boton.onclick = () => { cerrarSheet(); abrirEstacion(estacion); }; li.append(boton); listaSheet.append(li);
@@ -325,6 +341,22 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     };
     botonesCombustible.forEach((b) => b.onclick = () => { combustible = b.dataset.clave as ClavePrecio; render(); });
     botonesPeriodo.forEach((b) => b.onclick = () => { periodo = Number(b.dataset.periodo) as 7 | 30 | 90; render(); });
+    const pedirUbicacion = (): void => {
+      if (pidiendoUbicacion) return;
+      if (!('geolocation' in navigator)) { contadorSheet.textContent = 'Este navegador no admite geolocalización.'; return; }
+      pidiendoUbicacion = true;
+      navigator.geolocation.getCurrentPosition(
+        (posicion) => { pidiendoUbicacion = false; ubicacionUsuario = { lat: posicion.coords.latitude, lon: posicion.coords.longitude }; render(); },
+        (error) => { pidiendoUbicacion = false; filtroSheet = 'baratas'; render(); contadorSheet.textContent = mensajeErrorGeolocalizacion(error); },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 },
+      );
+    };
+    botonesFiltroSheet.forEach((b) => b.onclick = () => {
+      const filtro = b.dataset.filtroSheet as 'baratas' | 'cercanas' | 'abiertas';
+      filtroSheet = filtro;
+      if (filtro === 'cercanas' && !ubicacionUsuario) { render(); pedirUbicacion(); return; }
+      render();
+    });
     const actualizarBusqueda = (): void => {
       const consulta = buscar.value.trim(); const q = consulta.toLocaleLowerCase('es'); resultados.replaceChildren();
       limpiarBusqueda.hidden = consulta.length === 0;

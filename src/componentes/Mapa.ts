@@ -28,6 +28,7 @@ import {
 } from '../logica/colisiones.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
+import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
 import { formatearPrecio } from '../logica/formato.ts';
 import { estacionesQueVenden, estacionesVisibles } from '../logica/visibilidad.ts';
 import {
@@ -153,19 +154,6 @@ const DURACION_AVISO_UBICACION_MS = 6000;
 // regla dura 1 de CLAUDE.md aunque no sea una petición de red — sin límite,
 // un GPS que no responde deja el botón pendiente para siempre.
 const TIEMPO_ESPERA_GEOLOCALIZACION_MS = 10000;
-
-function mensajeErrorGeolocalizacion(error: GeolocationPositionError): string {
-  switch (error.code) {
-    case error.PERMISSION_DENIED:
-      return 'Permiso de ubicación denegado.';
-    case error.POSITION_UNAVAILABLE:
-      return 'No se ha podido determinar tu ubicación.';
-    case error.TIMEOUT:
-      return 'La ubicación ha tardado demasiado en responder.';
-    default:
-      return 'No se ha podido obtener tu ubicación.';
-  }
-}
 
 /** Control de MapLibre para el botón "mi ubicación" (RF-17). Va con el resto
  *  de controles del mapa (docs/05-diseno.md: nada de controles nuevos en la
