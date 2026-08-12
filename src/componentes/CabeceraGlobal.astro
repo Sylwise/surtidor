@@ -1,0 +1,35 @@
+---
+import Marca from './Marca.astro';
+import MenuHoy from './MenuHoy.astro';
+
+interface Props {
+  modo: 'principal' | 'evolucion' | 'editorial';
+  variante?: 'clara' | 'petroleo';
+  provinciaId?: string | null;
+  zonaHref?: string | null;
+  zonaNombre?: string | null;
+  contexto?: string | null;
+}
+const { modo, variante = 'clara', provinciaId = null, zonaHref = null, zonaNombre = null, contexto = null } = Astro.props;
+const pathname = Astro.url.pathname;
+const preciosActivo = !pathname.startsWith('/hoy/');
+const provinciasActivo = pathname.startsWith('/hoy/provincias-mas-baratas/');
+---
+<header class:list={['cabecera-global', `cabecera-global--${variante}`, `cabecera-global--${modo}`, { cabecera: modo === 'principal' }]}>
+  <Marca variante={variante} />
+
+  {modo === 'principal' && <slot />}
+
+  {modo === 'evolucion' && <>
+    {zonaHref && zonaNombre && <nav class="cabecera-global__contexto" aria-label="Migas de pan"><a href={zonaHref}>{zonaNombre}</a>{contexto && <><i aria-hidden="true">›</i><strong>{contexto}</strong></>}</nav>}
+    {zonaHref && zonaNombre && <a class="cabecera-global__zona-movil" href={zonaHref}>{zonaNombre.replace('ARABA/', '')}<span aria-hidden="true">⌄</span></a>}
+    <div class="cabecera-global__hoy-evolucion"><MenuHoy prefijo="evolucion" provinciaId={provinciaId} autonomo variante="clara" /></div>
+    <slot name="accion-movil" />
+  </>}
+
+  {modo === 'editorial' && <nav class="cabecera-global__nav" aria-label="Navegación principal">
+    <a href="/" aria-current={preciosActivo ? 'page' : undefined}>Precios</a>
+    <a href="/hoy/provincias-mas-baratas/" aria-current={provinciasActivo ? 'page' : undefined}>Provincias</a>
+    <MenuHoy prefijo="editorial" provinciaId={provinciaId} autonomo variante={variante} />
+  </nav>}
+</header>

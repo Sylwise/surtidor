@@ -1,0 +1,2517 @@
+{
+  "type": "frame",
+  "id": "wC99O",
+  "x": 0,
+  "y": 1144,
+  "name": "Artículo Hoy · Rediseño",
+  "clip": true,
+  "width": 1440,
+  "height": 1780,
+  "fill": "$paper",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "tEO1J",
+      "name": "Cabecera editorial",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$ink",
+      "stroke": "$accent",
+      "strokeWidth": {
+        "bottom": 2
+      },
+      "padding": [
+        0,
+        28
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "HmP4l",
+          "name": "Marca editorial",
+          "gap": 9,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "gonyV",
+              "name": "Icono marca editorial",
+              "width": 22,
+              "height": 22,
+              "icon": "local_gas_station",
+              "library": "Material Symbols Rounded",
+              "fill": "$paper"
+            },
+            {
+              "type": "text",
+              "id": "Xe7kw",
+              "name": "Surtidor editorial",
+              "fill": "$paper",
+              "content": "Surtidor",
+              "fontFamily": "$font",
+              "fontSize": 18,
+              "fontWeight": "750"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zGnIl",
+          "name": "Navegación editorial",
+          "gap": 26,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tVGYs",
+              "name": "Precios navegación",
+              "stroke": "#00000000",
+              "padding": [
+                9,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LU2L8",
+                  "name": "Precios texto navegación",
+                  "fill": "#B8C4C6",
+                  "content": "Precios",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w7YVN8",
+              "name": "Provincias navegación",
+              "stroke": "#00000000",
+              "padding": [
+                9,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "w9o0F",
+                  "name": "Provincias texto navegación",
+                  "fill": "#B8C4C6",
+                  "content": "Provincias",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "WYrge",
+              "name": "Hoy navegación",
+              "stroke": "$accent",
+              "strokeWidth": {
+                "bottom": 2
+              },
+              "padding": [
+                9,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "p0aSb",
+                  "name": "Hoy texto navegación",
+                  "fill": "$paper",
+                  "content": "Hoy",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "h7I8bN",
+      "name": "Documento editorial",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$paper",
+      "layout": "vertical",
+      "gap": 34,
+      "padding": [
+        48,
+        96,
+        64,
+        96
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "uNNuP",
+          "name": "Hero del artículo",
+          "width": "fill_container",
+          "height": 270,
+          "gap": 72,
+          "justifyContent": "space_between",
+          "children": [
+            {
+              "type": "frame",
+              "id": "jkGLF",
+              "name": "Introducción editorial",
+              "width": 780,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NWkd4",
+                  "name": "Categoría editorial",
+                  "fill": "$muted",
+                  "content": "PRECIOS DE HOY  ·  5 MIN DE LECTURA",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.4
+                },
+                {
+                  "type": "text",
+                  "id": "rlmBl",
+                  "name": "Título artículo",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Cuánto puedes ahorrar al llenar el depósito",
+                  "lineHeight": 1.02,
+                  "fontFamily": "$font",
+                  "fontSize": 54,
+                  "fontWeight": "800",
+                  "letterSpacing": -1.8
+                },
+                {
+                  "type": "text",
+                  "id": "u2MHW",
+                  "name": "Entradilla artículo",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": 700,
+                  "content": "Llenar 50 litros en la gasolinera más barata de tu provincia puede costar bastante menos que hacerlo al precio medio.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$font",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "g7WH16",
+                  "name": "Actualización",
+                  "gap": 7,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "GkLKV",
+                      "name": "Icono actualización",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "clock-3",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SFX0I",
+                      "name": "Fecha actualización",
+                      "fill": "$muted",
+                      "content": "Actualizado hoy, 18:51",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZpwxU",
+              "name": "Dato principal",
+              "width": 320,
+              "height": 238,
+              "fill": "$ink",
+              "cornerRadius": 10,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WsFhr",
+                  "name": "Etiqueta dato principal",
+                  "fill": "#AEBBBE",
+                  "content": "MAYOR AHORRO POSIBLE",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.2
+                },
+                {
+                  "type": "text",
+                  "id": "K4TCEC",
+                  "name": "Ahorro principal",
+                  "fill": "$accent",
+                  "content": "31,15 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 44,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "gOATY",
+                  "name": "Contexto ahorro",
+                  "fill": "$paper",
+                  "content": "por un depósito de 50 L",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "EWJYV",
+                  "name": "Separador dato principal",
+                  "fill": "#FFFFFF28",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "frame",
+                  "id": "FSnIp",
+                  "name": "Lugar destacado",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rRKGx",
+                      "name": "Lugar textos",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "GLVhQ",
+                          "name": "Combustible destacado",
+                          "fill": "#AEBBBE",
+                          "content": "DIÉSEL",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "800",
+                          "letterSpacing": 1
+                        },
+                        {
+                          "type": "text",
+                          "id": "O8BI5",
+                          "name": "Provincia destacada",
+                          "fill": "$paper",
+                          "content": "Huesca",
+                          "fontFamily": "$font",
+                          "fontSize": 18,
+                          "fontWeight": "750"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "icon",
+                      "id": "kfiT9",
+                      "name": "Flecha provincia",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-up-right",
+                      "library": "lucide",
+                      "fill": "$accent"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "b6BOR",
+                  "name": "Muestra principal",
+                  "fill": "#AEBBBE",
+                  "content": "Calculado sobre 122 estaciones",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jhVkH",
+          "name": "Resumen de ahorros",
+          "width": "fill_container",
+          "height": 142,
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "y9k7v",
+              "name": "GASOLINA 95 resumen",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$ink",
+              "cornerRadius": 9,
+              "stroke": "$ink",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 7,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GtTMn",
+                  "name": "GASOLINA 95 etiqueta",
+                  "fill": "#AEBBBE",
+                  "content": "GASOLINA 95",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "mYOHU",
+                  "name": "GASOLINA 95 ahorro",
+                  "fill": "$paper",
+                  "content": "12,53 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 25,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "xaPwH",
+                  "name": "GASOLINA 95 provincia",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "xE1T9",
+                      "name": "GASOLINA 95 lugar",
+                      "fill": "$accent",
+                      "content": "Tarragona",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "zNXL4",
+                      "name": "GASOLINA 95 enlace",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "arrow-up-right",
+                      "library": "lucide",
+                      "fill": "$accent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Gti6w",
+              "name": "DIÉSEL resumen",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$ink",
+              "cornerRadius": 9,
+              "stroke": "$ink",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 7,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qNdf0",
+                  "name": "DIÉSEL etiqueta",
+                  "fill": "#AEBBBE",
+                  "content": "DIÉSEL",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "lv7t5",
+                  "name": "DIÉSEL ahorro",
+                  "fill": "$paper",
+                  "content": "31,15 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 25,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "yvkaM",
+                  "name": "DIÉSEL provincia",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "iDO8t",
+                      "name": "DIÉSEL lugar",
+                      "fill": "$accent",
+                      "content": "Huesca",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Z6zVs",
+                      "name": "DIÉSEL enlace",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "arrow-up-right",
+                      "library": "lucide",
+                      "fill": "$accent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ULFSQ",
+              "name": "GASOLINA 98 resumen",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 9,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 7,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "t4nnx7",
+                  "name": "GASOLINA 98 etiqueta",
+                  "fill": "$muted",
+                  "content": "GASOLINA 98",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "Xr3bB",
+                  "name": "GASOLINA 98 ahorro",
+                  "fill": "$ink",
+                  "content": "18,44 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 25,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "EHfrw",
+                  "name": "GASOLINA 98 provincia",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "R4gUlY",
+                      "name": "GASOLINA 98 lugar",
+                      "fill": "$ink",
+                      "content": "Barcelona",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "j6FoH1",
+                      "name": "GASOLINA 98 enlace",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "arrow-up-right",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ldyCy",
+              "name": "DIÉSEL PREMIUM resumen",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 9,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 7,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "CoSHb",
+                  "name": "DIÉSEL PREMIUM etiqueta",
+                  "fill": "$muted",
+                  "content": "DIÉSEL PREMIUM",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "nvMLA",
+                  "name": "DIÉSEL PREMIUM ahorro",
+                  "fill": "$ink",
+                  "content": "16,80 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 25,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "jSC3g",
+                  "name": "DIÉSEL PREMIUM provincia",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lDFCP",
+                      "name": "DIÉSEL PREMIUM lugar",
+                      "fill": "$ink",
+                      "content": "Castellón",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "S9gwRp",
+                      "name": "DIÉSEL PREMIUM enlace",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "arrow-up-right",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Zthmx",
+          "name": "Metodología resumida",
+          "width": "fill_container",
+          "height": 74,
+          "fill": "#FFF7DF",
+          "cornerRadius": 8,
+          "stroke": "#E7D391",
+          "strokeWidth": 1,
+          "gap": 18,
+          "padding": [
+            0,
+            20
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "msnPZ",
+              "name": "Icono metodología",
+              "width": 22,
+              "height": 22,
+              "icon": "calculator",
+              "library": "lucide",
+              "fill": "#8A6200"
+            },
+            {
+              "type": "frame",
+              "id": "k57jk",
+              "name": "Texto metodología",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wVJYX",
+                  "name": "Título metodología",
+                  "fill": "$ink",
+                  "content": "Cómo calculamos el ahorro",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "lE5sC",
+                  "name": "Resumen metodología",
+                  "fill": "$muted",
+                  "content": "Diferencia entre el precio medio y el mínimo de cada provincia, multiplicada por un depósito de 50 litros.",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xcj6U",
+              "name": "Abrir metodología",
+              "gap": 5,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "DsQOV",
+                  "name": "Leer metodología",
+                  "fill": "$ink",
+                  "content": "Ver detalle",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "icon",
+                  "id": "zmEJ7",
+                  "name": "Flecha metodología",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$ink"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KVs1b",
+          "name": "Contenido del ranking",
+          "width": "fill_container",
+          "height": 800,
+          "gap": 48,
+          "children": [
+            {
+              "type": "frame",
+              "id": "MXZ6X",
+              "name": "Índice del artículo",
+              "width": 220,
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "s7kDM",
+                  "name": "Título índice",
+                  "fill": "$muted",
+                  "content": "EN ESTE ARTÍCULO",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.2
+                },
+                {
+                  "type": "frame",
+                  "id": "N9kAM2",
+                  "name": "Gasolina 95 índice",
+                  "gap": 9,
+                  "padding": [
+                    8,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "WieGR",
+                      "name": "Gasolina 95 marcador",
+                      "fill": "$accent",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "text",
+                      "id": "T3uuc",
+                      "name": "Gasolina 95 índice texto",
+                      "fill": "$ink",
+                      "content": "Gasolina 95",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "750"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zZ8j7",
+                  "name": "Diésel índice",
+                  "gap": 9,
+                  "padding": [
+                    8,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "RQCUu",
+                      "name": "Diésel marcador",
+                      "fill": "#00000000",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "text",
+                      "id": "a6aKlC",
+                      "name": "Diésel índice texto",
+                      "fill": "$muted",
+                      "content": "Diésel",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "MLDpA",
+                  "name": "Gasolina 98 índice",
+                  "gap": 9,
+                  "padding": [
+                    8,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "KOw61",
+                      "name": "Gasolina 98 marcador",
+                      "fill": "#00000000",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "text",
+                      "id": "wLADL",
+                      "name": "Gasolina 98 índice texto",
+                      "fill": "$muted",
+                      "content": "Gasolina 98",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YBWms",
+                  "name": "Diésel premium índice",
+                  "gap": 9,
+                  "padding": [
+                    8,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "SHt1V",
+                      "name": "Diésel premium marcador",
+                      "fill": "#00000000",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "text",
+                      "id": "aTP0c",
+                      "name": "Diésel premium índice texto",
+                      "fill": "$muted",
+                      "content": "Diésel premium",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gpGX7",
+                  "name": "Canarias, Ceuta y Melilla índice",
+                  "gap": 9,
+                  "padding": [
+                    8,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "QQkTm",
+                      "name": "Canarias, Ceuta y Melilla marcador",
+                      "fill": "#00000000",
+                      "width": 3,
+                      "height": 18
+                    },
+                    {
+                      "type": "text",
+                      "id": "k2EJR",
+                      "name": "Canarias, Ceuta y Melilla índice texto",
+                      "fill": "$muted",
+                      "content": "Canarias, Ceuta y Melilla",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jpJeU",
+              "name": "Ranking Gasolina 95",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "z5RG7w",
+                  "name": "Cabecera ranking",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "K0cBf",
+                      "name": "Títulos ranking",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "keDKs",
+                          "name": "Título Gasolina 95",
+                          "fill": "$ink",
+                          "content": "Gasolina 95",
+                          "fontFamily": "$font",
+                          "fontSize": 32,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "UHF2o",
+                          "name": "Descripción ranking",
+                          "fill": "$muted",
+                          "content": "Dónde más puedes ahorrar al llenar 50 litros.",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Y6Jun",
+                      "name": "Filtro ranking",
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "gap": 7,
+                      "padding": [
+                        9,
+                        11
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "MyHjD",
+                          "name": "Icono filtro",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "sliders-horizontal",
+                          "library": "lucide",
+                          "fill": "$muted"
+                        },
+                        {
+                          "type": "text",
+                          "id": "gnCAZ",
+                          "name": "Filtro texto",
+                          "fill": "$ink",
+                          "content": "Top 10 provincias",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DVQnu",
+                  "name": "Tabla ranking",
+                  "clip": true,
+                  "width": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 8,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "I8j7S",
+                      "name": "Cabecera tabla",
+                      "width": "fill_container",
+                      "height": 42,
+                      "fill": "#E9EDEC",
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "TuJFg",
+                          "name": "Posición cabecera",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bODNb",
+                              "name": "Posición cabecera texto",
+                              "fill": "$muted",
+                              "content": "POS.",
+                              "fontFamily": "$mono",
+                              "fontSize": 9,
+                              "fontWeight": "800",
+                              "letterSpacing": 0.9
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "m6z05",
+                          "name": "Provincia cabecera",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CjyBr",
+                              "name": "Provincia cabecera texto",
+                              "fill": "$muted",
+                              "content": "PROVINCIA",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "800",
+                              "letterSpacing": 0.9
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "knGUi",
+                          "name": "Ahorro cabecera",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "zrfP0",
+                              "name": "Ahorro cabecera texto",
+                              "fill": "$muted",
+                              "content": "AHORRO 50 L",
+                              "fontFamily": "$mono",
+                              "fontSize": 9,
+                              "fontWeight": "800",
+                              "letterSpacing": 0.9
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "k04Sq3",
+                          "name": "Estaciones cabecera",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "kPunq",
+                              "name": "Estaciones cabecera texto",
+                              "fill": "$muted",
+                              "content": "ESTACIONES",
+                              "fontFamily": "$mono",
+                              "fontSize": 9,
+                              "fontWeight": "800",
+                              "letterSpacing": 0.9
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "M2OqwD",
+                      "name": "Fila TARRAGONA",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "oIsZS",
+                          "name": "Posición TARRAGONA",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NiKFf",
+                              "name": "Posición TARRAGONA texto",
+                              "fill": "$muted",
+                              "content": "1",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "HfDHt",
+                          "name": "Provincia TARRAGONA",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "eSD72",
+                              "name": "Provincia TARRAGONA texto",
+                              "fill": "$ink",
+                              "content": "TARRAGONA",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "I3VASj",
+                          "name": "Ahorro TARRAGONA",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "XslWC",
+                              "name": "Ahorro TARRAGONA texto",
+                              "fill": "$ink",
+                              "content": "12,53 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YjaFR",
+                          "name": "Estaciones TARRAGONA",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bcSdq",
+                              "name": "Estaciones TARRAGONA texto",
+                              "fill": "$muted",
+                              "content": "214",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Q90sM",
+                      "name": "Fila HUELVA",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Xe0un",
+                          "name": "Posición HUELVA",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "RrZVz",
+                              "name": "Posición HUELVA texto",
+                              "fill": "$muted",
+                              "content": "2",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "r174Mb",
+                          "name": "Provincia HUELVA",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "p1L32",
+                              "name": "Provincia HUELVA texto",
+                              "fill": "$ink",
+                              "content": "HUELVA",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PBn0x",
+                          "name": "Ahorro HUELVA",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "IyUcF",
+                              "name": "Ahorro HUELVA texto",
+                              "fill": "$ink",
+                              "content": "12,47 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "q3DZ0",
+                          "name": "Estaciones HUELVA",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "suowP",
+                              "name": "Estaciones HUELVA texto",
+                              "fill": "$muted",
+                              "content": "136",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ymukt",
+                      "name": "Fila ALBACETE",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aWj5A",
+                          "name": "Posición ALBACETE",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MH6By",
+                              "name": "Posición ALBACETE texto",
+                              "fill": "$muted",
+                              "content": "3",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "XNMm6",
+                          "name": "Provincia ALBACETE",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "v9QiDa",
+                              "name": "Provincia ALBACETE texto",
+                              "fill": "$ink",
+                              "content": "ALBACETE",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "FAe0p",
+                          "name": "Ahorro ALBACETE",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rLTFO",
+                              "name": "Ahorro ALBACETE texto",
+                              "fill": "$ink",
+                              "content": "12,24 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yO8tp",
+                          "name": "Estaciones ALBACETE",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mOmaW",
+                              "name": "Estaciones ALBACETE texto",
+                              "fill": "$muted",
+                              "content": "143",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "W220kJ",
+                      "name": "Fila BURGOS",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "FnnaJ",
+                          "name": "Posición BURGOS",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lKMpp",
+                              "name": "Posición BURGOS texto",
+                              "fill": "$muted",
+                              "content": "3",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yb1j2",
+                          "name": "Provincia BURGOS",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "KpjAH",
+                              "name": "Provincia BURGOS texto",
+                              "fill": "$ink",
+                              "content": "BURGOS",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "tq4nt",
+                          "name": "Ahorro BURGOS",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Ld1eo",
+                              "name": "Ahorro BURGOS texto",
+                              "fill": "$ink",
+                              "content": "12,24 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "H3AUk",
+                          "name": "Estaciones BURGOS",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Z9ENtN",
+                              "name": "Estaciones BURGOS texto",
+                              "fill": "$muted",
+                              "content": "134",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GO4br",
+                      "name": "Fila GIRONA",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "fcJvO",
+                          "name": "Posición GIRONA",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "QukhZ",
+                              "name": "Posición GIRONA texto",
+                              "fill": "$muted",
+                              "content": "5",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "J2K627",
+                          "name": "Provincia GIRONA",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "t9ACu",
+                              "name": "Provincia GIRONA texto",
+                              "fill": "$ink",
+                              "content": "GIRONA",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ZPYpT",
+                          "name": "Ahorro GIRONA",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "nEKiY",
+                              "name": "Ahorro GIRONA texto",
+                              "fill": "$ink",
+                              "content": "12,19 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "E824T",
+                          "name": "Estaciones GIRONA",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "vb9vM",
+                              "name": "Estaciones GIRONA texto",
+                              "fill": "$muted",
+                              "content": "259",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Qfuhm",
+                      "name": "Fila MADRID",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "F3QvAD",
+                          "name": "Posición MADRID",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bVQni",
+                              "name": "Posición MADRID texto",
+                              "fill": "$muted",
+                              "content": "5",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "T57hr",
+                          "name": "Provincia MADRID",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lZXB9",
+                              "name": "Provincia MADRID texto",
+                              "fill": "$ink",
+                              "content": "MADRID",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "PSKU8",
+                          "name": "Ahorro MADRID",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ZTY17",
+                              "name": "Ahorro MADRID texto",
+                              "fill": "$ink",
+                              "content": "12,19 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "VixAi",
+                          "name": "Estaciones MADRID",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "m4NH6F",
+                              "name": "Estaciones MADRID texto",
+                              "fill": "$muted",
+                              "content": "853",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "W8hSqc",
+                      "name": "Fila ZARAGOZA",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "O2bb1Z",
+                          "name": "Posición ZARAGOZA",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "y2QHqL",
+                              "name": "Posición ZARAGOZA texto",
+                              "fill": "$muted",
+                              "content": "7",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "XquA2",
+                          "name": "Provincia ZARAGOZA",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "o9LzDq",
+                              "name": "Provincia ZARAGOZA texto",
+                              "fill": "$ink",
+                              "content": "ZARAGOZA",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yebiq",
+                          "name": "Ahorro ZARAGOZA",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "yFobF",
+                              "name": "Ahorro ZARAGOZA texto",
+                              "fill": "$ink",
+                              "content": "12,14 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "Dnx19",
+                          "name": "Estaciones ZARAGOZA",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "UJGcu",
+                              "name": "Estaciones ZARAGOZA texto",
+                              "fill": "$muted",
+                              "content": "219",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "D4iOo",
+                      "name": "Fila CASTELLÓN / CASTELLÓ",
+                      "width": "fill_container",
+                      "height": 48,
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "CLCuI",
+                          "name": "Posición CASTELLÓN / CASTELLÓ",
+                          "width": 56,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bhjU2",
+                              "name": "Posición CASTELLÓN / CASTELLÓ texto",
+                              "fill": "$muted",
+                              "content": "8",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "kWtTy",
+                          "name": "Provincia CASTELLÓN / CASTELLÓ",
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "eOfaK",
+                              "name": "Provincia CASTELLÓN / CASTELLÓ texto",
+                              "fill": "$ink",
+                              "content": "CASTELLÓN / CASTELLÓ",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bkt8e",
+                          "name": "Ahorro CASTELLÓN / CASTELLÓ",
+                          "width": 150,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "cEHJI",
+                              "name": "Ahorro CASTELLÓN / CASTELLÓ texto",
+                              "fill": "$ink",
+                              "content": "11,93 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "750"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "S11166",
+                          "name": "Estaciones CASTELLÓN / CASTELLÓ",
+                          "width": 120,
+                          "height": "fill_container",
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "IM7Yu",
+                              "name": "Estaciones CASTELLÓN / CASTELLÓ texto",
+                              "fill": "$muted",
+                              "content": "192",
+                              "fontFamily": "$mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "G3Hnd",
+                  "name": "Ver ranking completo",
+                  "gap": 7,
+                  "padding": [
+                    10,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tbqY4",
+                      "name": "Ver 48 provincias",
+                      "fill": "$ink",
+                      "content": "Ver las 48 provincias",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "nfelh",
+                      "name": "Desplegar ranking",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "chevron-down",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "MDIbv",
+                  "name": "Canarias Ceuta y Melilla",
+                  "width": "fill_container",
+                  "height": 120,
+                  "fill": "$surface",
+                  "cornerRadius": 8,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 24,
+                  "padding": 18,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wlOje",
+                      "name": "Introducción regional",
+                      "width": 260,
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "q7e0L2",
+                          "name": "Título regional",
+                          "fill": "$ink",
+                          "content": "Canarias, Ceuta y Melilla",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "f7k6IW",
+                          "name": "Explicación regional",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Se muestran aparte por su régimen fiscal distinto.",
+                          "lineHeight": 1.35,
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GqCNz",
+                      "name": "Datos regionales",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "lq2N7",
+                          "name": "Tenerife regional",
+                          "width": "fill_container",
+                          "fill": "$paper",
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "gap": 5,
+                          "padding": [
+                            12,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "B22VIQ",
+                              "name": "Tenerife nombre",
+                              "fill": "$muted",
+                              "content": "Tenerife",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "O6iyIx",
+                              "name": "Tenerife ahorro",
+                              "fill": "$ink",
+                              "content": "9,88 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "jjD47",
+                          "name": "Las Palmas regional",
+                          "width": "fill_container",
+                          "fill": "$paper",
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "gap": 5,
+                          "padding": [
+                            12,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Ybx6x",
+                              "name": "Las Palmas nombre",
+                              "fill": "$muted",
+                              "content": "Las Palmas",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "x4ULWh",
+                              "name": "Las Palmas ahorro",
+                              "fill": "$ink",
+                              "content": "9,27 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "fhCuF",
+                          "name": "Ceuta regional",
+                          "width": "fill_container",
+                          "fill": "$paper",
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "gap": 5,
+                          "padding": [
+                            12,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "DJPOt",
+                              "name": "Ceuta nombre",
+                              "fill": "$muted",
+                              "content": "Ceuta",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "GWDfM",
+                              "name": "Ceuta ahorro",
+                              "fill": "$ink",
+                              "content": "0,78 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "d0eoF",
+                          "name": "Melilla regional",
+                          "width": "fill_container",
+                          "fill": "$paper",
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "gap": 5,
+                          "padding": [
+                            12,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "D8Rfm",
+                              "name": "Melilla nombre",
+                              "fill": "$muted",
+                              "content": "Melilla",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "hZWBK",
+                              "name": "Melilla ahorro",
+                              "fill": "$ink",
+                              "content": "0,82 €",
+                              "fontFamily": "$mono",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hpCoz",
+                  "name": "Siguiente combustible",
+                  "width": "fill_container",
+                  "height": 78,
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "top": 1
+                  },
+                  "padding": [
+                    0,
+                    2
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YW1FV",
+                      "name": "Siguiente textos",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "e8fFT",
+                          "name": "Siguiente etiqueta",
+                          "fill": "$muted",
+                          "content": "SIGUIENTE",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "800",
+                          "letterSpacing": 1
+                        },
+                        {
+                          "type": "text",
+                          "id": "eA4av",
+                          "name": "Siguiente título",
+                          "fill": "$ink",
+                          "content": "Diésel",
+                          "fontFamily": "$font",
+                          "fontSize": 23,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "icon",
+                      "id": "OYFKq",
+                      "name": "Flecha siguiente",
+                      "width": 21,
+                      "height": 21,
+                      "icon": "arrow-down",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Evsz6",
+      "name": "Footer editorial",
+      "width": "fill_container",
+      "height": 180,
+      "fill": "$ink",
+      "stroke": "$accent",
+      "strokeWidth": {
+        "top": 2
+      },
+      "padding": [
+        34,
+        96
+      ],
+      "justifyContent": "space_between",
+      "children": [
+        {
+          "type": "frame",
+          "id": "QmTbi",
+          "name": "Marca footer",
+          "width": 520,
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "F5kW58",
+              "name": "Logo footer",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "iS8TQ",
+                  "name": "Icono footer",
+                  "width": 19,
+                  "height": 19,
+                  "icon": "local_gas_station",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$paper"
+                },
+                {
+                  "type": "text",
+                  "id": "l50aUW",
+                  "name": "Surtidor footer",
+                  "fill": "$paper",
+                  "content": "Surtidor",
+                  "fontFamily": "$font",
+                  "fontSize": 16,
+                  "fontWeight": "750"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "fqUhP",
+              "name": "Descripción footer",
+              "fill": "#AEBBBE",
+              "content": "Precios de carburantes de España, sin anuncios ni registro.",
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "H2K3YI",
+              "name": "Fuente footer",
+              "fill": "#82969B",
+              "content": "Datos abiertos del Ministerio para la Transición Ecológica.",
+              "fontFamily": "$font",
+              "fontSize": 9,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NHiRN",
+          "name": "Enlaces footer",
+          "gap": 70,
+          "children": [
+            {
+              "type": "frame",
+              "id": "XrPkp",
+              "name": "EXPLORAR footer",
+              "layout": "vertical",
+              "gap": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "aomam",
+                  "name": "EXPLORAR título footer",
+                  "fill": "#82969B",
+                  "content": "EXPLORAR",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "text",
+                  "id": "jSH6e",
+                  "name": "Precios de hoy footer",
+                  "fill": "$paper",
+                  "content": "Precios de hoy",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "OUruU",
+                  "name": "Provincias footer",
+                  "fill": "$paper",
+                  "content": "Provincias",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "wky97",
+                  "name": "Marcas más baratas footer",
+                  "fill": "$paper",
+                  "content": "Marcas más baratas",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ClZrg",
+              "name": "INFORMACIÓN footer",
+              "layout": "vertical",
+              "gap": 9,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mGVnW",
+                  "name": "INFORMACIÓN título footer",
+                  "fill": "#82969B",
+                  "content": "INFORMACIÓN",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "text",
+                  "id": "CykJD",
+                  "name": "Metodología footer",
+                  "fill": "$paper",
+                  "content": "Metodología",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "l1p0Ng",
+                  "name": "Fuentes de datos footer",
+                  "fill": "$paper",
+                  "content": "Fuentes de datos",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "text",
+                  "id": "Ay7SV",
+                  "name": "Privacidad footer",
+                  "fill": "$paper",
+                  "content": "Privacidad",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

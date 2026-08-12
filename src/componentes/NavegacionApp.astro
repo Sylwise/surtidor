@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { cajaDeTitulo } from '../logica/formato.ts';
 import { estacionesDeZona } from '../logica/zona.ts';
 import type { Indice, Zona } from '../../scripts/lib/tipos.ts';
+import MenuHoy from './MenuHoy.astro';
 
 interface Props {
   zonaId?: string | null;
@@ -29,14 +30,6 @@ const estacionesZonaActual = zonaActual
   ? estacionesDeZona(zonaActual, indice.provincias)
   : null;
 const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provincias[0] : null;
-const editoriales = [
-  { href: provinciaEvolucion ? `/hoy/evolucion/${provinciaEvolucion}/` : '/hoy/evolucion/', nombre: 'Evolución de precios', descripcion: 'Cambios en los últimos 30 días' },
-  { href: '/hoy/provincias-mas-baratas/', nombre: 'Provincias más baratas', descripcion: 'Compara medias y mínimos' },
-  { href: '/hoy/cuanto-te-juegas/', nombre: 'Cuánto puedes ahorrar', descripcion: 'Ahorro posible por depósito' },
-  { href: '/hoy/marcas-mas-baratas/', nombre: 'Marcas más baratas', descripcion: 'Ranking por cadenas' },
-  { href: '/hoy/capitales-de-provincia/', nombre: 'Capitales de provincia', descripcion: 'Precios en grandes ciudades' },
-  { href: '/hoy/la-mas-barata-de-espana/', nombre: 'La más barata de España', descripcion: 'El mínimo nacional de hoy' },
-];
 ---
 
 <div id="controles-identidad" class="controles-identidad" aria-label="Zona">
@@ -116,43 +109,4 @@ const editoriales = [
   </div>
 </div>
 
-<div class="navegacion-hoy">
-  <button id="boton-hoy" type="button" class="boton-hoy" aria-expanded="false" aria-controls="panel-hoy">
-    <span class="boton-hoy__texto">Hoy</span>
-    <svg class="boton-hoy__icono" aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" />
-    </svg>
-    <span class="boton-hoy__flecha" aria-hidden="true"></span>
-  </button>
-  <div id="fondo-panel-hoy" class="panel-hoy__fondo" hidden></div>
-  <nav id="panel-hoy" class="panel-hoy" aria-label="Análisis de precios de hoy" aria-modal="true" hidden>
-    <span class="panel-hoy__asa" aria-hidden="true"></span>
-    <div class="panel-hoy__cabecera">
-      <span>
-        <span class="micro">ANÁLISIS DE HOY</span>
-        <strong class="panel-hoy__titulo">Descubre los datos</strong>
-      </span>
-      <button id="cerrar-panel-hoy" type="button" class="boton-cerrar" aria-label="Cerrar análisis de hoy">✕</button>
-    </div>
-    <ul class="panel-hoy__lista">
-      {editoriales.map((editorial, indice) => (
-        <li>
-          <a href={editorial.href} class:list={{ 'panel-hoy__enlace--activo': indice === 0 }}>
-            <span class="panel-hoy__icono" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                {indice === 0 && <path d="M4 19V9m5 10V5m5 14v-7m5 7V3M3 8l5-4 5 4 7-7" />}
-                {indice === 1 && <path d="m3 6 5-3 8 3 5-3v15l-5 3-8-3-5 3zM8 3v15m8-12v15" />}
-                {indice === 2 && <path d="M7 10V8a5 5 0 0 1 10 0v2m-7 0h8a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H8a5 5 0 0 1-5-5v-2a3 3 0 0 1 3-3h4zm3 3v4m-2-2h4" />}
-                {indice === 3 && <path d="m12 2 3 2 4 .5.5 4 2.5 3-2.5 3-.5 4-4 .5-3 2-3-2-4-.5-.5-4L2 11l2.5-3 .5-4 4-.5zM9 12h6m-5-3h4m-4 6h4" />}
-                {indice === 4 && <path d="M4 21V8h8v13M8 8V3h10v18M2 21h20M7 12h2m-2 4h2m5-9h2m-2 4h2m-2 4h2" />}
-                {indice === 5 && <path d="M8 4h8v4a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4m8-5h4v1a4 4 0 0 1-4 4m-4 1v5m-4 3h8" />}
-              </svg>
-            </span>
-            <span class="panel-hoy__texto"><strong>{editorial.nombre}</strong><small>{editorial.descripcion}</small></span>
-            <span aria-hidden="true">›</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </nav>
-</div>
+<MenuHoy provinciaId={provinciaEvolucion} />

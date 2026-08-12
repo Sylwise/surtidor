@@ -1,0 +1,56 @@
+---
+import { CATALOGO_HOY, entradaHoyActiva, hrefEntradaHoy } from '../datos/navegacion.ts';
+
+interface Props { prefijo?: string; provinciaId?: string | null; autonomo?: boolean; variante?: 'clara' | 'petroleo'; }
+const { prefijo = '', provinciaId = null, autonomo = false, variante = 'clara' } = Astro.props;
+const id = (base: string) => prefijo ? `${base}-${prefijo}` : base;
+const pathname = Astro.url.pathname;
+---
+<div class:list={['navegacion-hoy', `navegacion-hoy--${variante}`]} data-menu-hoy-autonomo={autonomo ? '' : undefined}>
+  <button id={id('boton-hoy')} type="button" class="boton-hoy" aria-expanded="false" aria-controls={id('panel-hoy')}>
+    <span class="boton-hoy__texto">Hoy</span>
+    <svg class="boton-hoy__icono" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" /></svg>
+    <span class="boton-hoy__flecha" aria-hidden="true"></span>
+  </button>
+  <div id={id('fondo-panel-hoy')} class="panel-hoy__fondo" hidden></div>
+  <nav id={id('panel-hoy')} class="panel-hoy" aria-label="Análisis de precios de hoy" aria-modal="true" hidden>
+    <span class="panel-hoy__asa" aria-hidden="true"></span>
+    <div class="panel-hoy__cabecera">
+      <span><span class="micro">ANÁLISIS DE HOY</span><strong class="panel-hoy__titulo">Descubre los datos</strong></span>
+      <button id={id('cerrar-panel-hoy')} type="button" class="boton-cerrar" aria-label="Cerrar análisis de hoy">✕</button>
+    </div>
+    <ul class="panel-hoy__lista">
+      {CATALOGO_HOY.map((entrada, indice) => (
+        <li><a href={hrefEntradaHoy(entrada, provinciaId)} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
+          <span class="panel-hoy__icono" aria-hidden="true"><svg viewBox="0 0 24 24">
+            {indice === 0 && <path d="M4 19V9m5 10V5m5 14v-7m5 7V3M3 8l5-4 5 4 7-7" />}
+            {indice === 1 && <path d="m3 6 5-3 8 3 5-3v15l-5 3-8-3-5 3zM8 3v15m8-12v15" />}
+            {indice === 2 && <path d="M7 10V8a5 5 0 0 1 10 0v2m-7 0h8a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H8a5 5 0 0 1-5-5v-2a3 3 0 0 1 3-3h4zm3 3v4m-2-2h4" />}
+            {indice === 3 && <path d="m12 2 3 2 4 .5.5 4 2.5 3-2.5 3-.5 4-4 .5-3 2-3-2-4-.5-.5-4L2 11l2.5-3 .5-4 4-.5zM9 12h6m-5-3h4m-4 6h4" />}
+            {indice === 4 && <path d="M4 21V8h8v13M8 8V3h10v18M2 21h20M7 12h2m-2 4h2m5-9h2m-2 4h2m-2 4h2" />}
+            {indice === 5 && <path d="M8 4h8v4a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4m8-5h4v1a4 4 0 0 1-4 4m-4 1v5m-4 3h8" />}
+          </svg></span>
+          <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{entrada.descripcion}</small></span><span aria-hidden="true">›</span>
+        </a></li>
+      ))}
+    </ul>
+  </nav>
+</div>
+
+{autonomo && <script>
+  for (const raiz of document.querySelectorAll<HTMLElement>('[data-menu-hoy-autonomo]')) {
+    if (raiz.dataset.montado) continue;
+    raiz.dataset.montado = 'true';
+    const boton = raiz.querySelector<HTMLButtonElement>('.boton-hoy')!;
+    const panel = raiz.querySelector<HTMLElement>('.panel-hoy')!;
+    const fondo = raiz.querySelector<HTMLElement>('.panel-hoy__fondo')!;
+    const cerrar = raiz.querySelector<HTMLButtonElement>('.boton-cerrar')!;
+    const ocultar = (devolverFoco = false) => { panel.hidden = true; fondo.hidden = true; boton.setAttribute('aria-expanded', 'false'); if (devolverFoco) boton.focus(); };
+    const mostrar = () => { panel.hidden = false; fondo.hidden = false; boton.setAttribute('aria-expanded', 'true'); panel.querySelector<HTMLAnchorElement>('a')?.focus(); };
+    boton.addEventListener('click', () => panel.hidden ? mostrar() : ocultar());
+    cerrar.addEventListener('click', () => ocultar(true));
+    fondo.addEventListener('click', () => ocultar(true));
+    document.addEventListener('pointerdown', (evento) => { if (!panel.hidden && !raiz.contains(evento.target as Node)) ocultar(); });
+    document.addEventListener('keydown', (evento) => { if (evento.key === 'Escape' && !panel.hidden) { evento.preventDefault(); ocultar(true); } });
+  }
+</script>}

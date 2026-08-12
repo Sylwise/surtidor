@@ -1,0 +1,27 @@
+import { readFileSync } from 'node:fs';
+import { explicarEvolucion } from '../src/logica/explicacionEvolucion.ts';
+import type { HistoricoProvincia } from './lib/artefactos-historicos.ts';
+import type { ClavePrecio, Estacion } from './lib/tipos.ts';
+
+const provincias = process.argv.slice(2).length ? process.argv.slice(2) : ['01', '08', '28'];
+const combustibles: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
+
+for (const provinciaId of provincias) {
+  const actual = JSON.parse(readFileSync(`public/data/provincias/${provinciaId}.json`, 'utf8')) as { provincia: { nombre: string }; estaciones: Estacion[] };
+  const historico = JSON.parse(readFileSync(`public/data/historico/provincias/${provinciaId}.json`, 'utf8')) as HistoricoProvincia;
+  console.log(`\n${actual.provincia.nombre} (${actual.estaciones.length} estaciones)`);
+  for (const combustible of combustibles) {
+    const resultado = explicarEvolucion(historico, actual.estaciones, combustible, 30);
+    const cambio = resultado.cambio?.diferenciaMilesimas ?? null;
+    if (cambio === null) continue;
+    console.log(JSON.stringify({
+      combustible,
+      cambio,
+      tramo: resultado.tramoIntenso,
+      amplitud: resultado.amplitud,
+      marca: resultado.marcaMasAlineada,
+      sobreMinimo90: resultado.distanciaAlMinimoMilesimas,
+      bajoMaximo90: resultado.distanciaAlMaximoMilesimas,
+    }));
+  }
+}

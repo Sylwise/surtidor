@@ -1,0 +1,10 @@
+---
+import marcaSvg from '../assets/marca.svg?raw';
+
+interface Props { variante?: 'clara' | 'petroleo'; compactaEnMovil?: boolean; clase?: string; }
+const { variante = 'clara', compactaEnMovil = false, clase = '' } = Astro.props;
+---
+<a class:list={['marca-global', `marca-global--${variante}`, { 'marca-global--compacta': compactaEnMovil }, clase]} href="/" aria-label="Surtidor, ir a precios">
+  <span class="marca-global__icono" aria-hidden="true" set:html={marcaSvg} />
+  <span class="marca-global__texto">Surtidor</span>
+</a>

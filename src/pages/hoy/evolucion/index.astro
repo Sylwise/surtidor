@@ -1,7 +1,6 @@
 ---
-import '../../../estilos/tokens.css';
 import '../../../estilos/evolucion.css';
-import marcaSvg from '../../../assets/marca.svg?raw';
+import DocumentoEditorial from '../../../layouts/DocumentoEditorial.astro';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { cajaDeTitulo } from '../../../logica/formato.ts';
@@ -9,14 +8,9 @@ import type { Indice } from '../../../../scripts/lib/tipos.ts';
 const indice = JSON.parse(readFileSync(join(process.cwd(), 'public/data/indice.json'), 'utf8')) as Indice;
 const provincias = [...indice.provincias].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 ---
-<html lang="es"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Evolución de precios · Surtidor</title><meta name="description" content="Consulta cómo han cambiado los precios de carburante durante los últimos 90 días." />
-  <link rel="canonical" href={new URL('/hoy/evolucion/', Astro.site)} />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" /><meta name="theme-color" content="#16323B" />
-</head><body>
-  <header class="evolucion-cabecera"><a href="/" class="evolucion-marca"><span set:html={marcaSvg} />Surtidor</a><span>Evolución</span></header>
-  <main class="evolucion">
+<DocumentoEditorial titulo="Evolución de precios · Surtidor" descripcion="Consulta cómo han cambiado los precios de carburante durante los últimos 90 días." ruta="/hoy/evolucion/">
+  <main class="evolucion-indice">
     <header class="evolucion-intro"><p class="evolucion-eyebrow">Histórico diario</p><h1>Entiende el precio cerca de ti</h1><p>Elige una provincia para explorar 90 días de cambios reales, estación por estación, y compararlos con su entorno.</p></header>
     <nav class="evolucion-provincias" aria-label="Provincias"><h2>¿Dónde quieres mirar?</h2><ul>{provincias.map((provincia) => <li><a href={`/hoy/evolucion/${provincia.id}/`}><span>{cajaDeTitulo(provincia.nombre)}</span><small>{provincia.estaciones} estaciones</small><b aria-hidden="true">→</b></a></li>)}</ul></nav>
   </main>
-</body></html>
+</DocumentoEditorial>

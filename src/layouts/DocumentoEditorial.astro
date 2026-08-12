@@ -1,7 +1,9 @@
 ---
 import '../estilos/tokens.css';
 import '../estilos/editorial.css';
+import '../estilos/navegacion-global.css';
 import marcaSvg from '../assets/marca.svg?raw';
+import CabeceraGlobal from '../componentes/CabeceraGlobal.astro';
 
 interface Props {
   titulo: string;
@@ -18,14 +20,6 @@ const {
 } = Astro.props;
 const canonical = new URL(ruta, Astro.site);
 const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
-const editoriales = [
-  { href: '/hoy/provincias-mas-baratas/', nombre: 'Provincias más baratas' },
-  { href: '/hoy/cuanto-te-juegas/', nombre: 'Ahorro por depósito' },
-  { href: '/hoy/marcas-mas-baratas/', nombre: 'Marcas más baratas' },
-  { href: '/hoy/capitales-de-provincia/', nombre: 'Capitales de provincia' },
-  { href: '/hoy/la-mas-barata-de-espana/', nombre: 'La más barata de España' },
-  { href: '/hoy/canarias-ceuta-melilla/', nombre: 'Canarias, Ceuta y Melilla' },
-];
 ---
 
 <html lang="es">
@@ -48,13 +42,7 @@ const editoriales = [
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
-    <header class="editorial-cabecera">
-      <a class="editorial-marca" href="/" aria-label="Surtidor, volver a la portada">
-        <span class="editorial-marca__icono" aria-hidden="true" set:html={marcaSvg} />
-        <span>Surtidor</span>
-      </a>
-      <span class="editorial-seccion">Hoy</span>
-    </header>
+    <CabeceraGlobal modo="editorial" variante="petroleo" />
     <main class="editorial-documento">
       <slot />
     </main>
@@ -70,20 +58,21 @@ const editoriales = [
             Datos oficiales del Ministerio para la Transición Ecológica y el Reto Demográfico.
           </p>
         </div>
-        <nav class="editorial-pie__navegacion" aria-label="Páginas editoriales">
-          <span>Hoy</span>
-          <ul>
-            {editoriales.map((editorial) => (
-              <li>
-                {ruta === editorial.href ? (
-                  <span class="editorial-pie__actual" aria-current="page">{editorial.nombre}</span>
-                ) : (
-                  <a href={editorial.href}>{editorial.nombre}</a>
-                )}
-              </li>
-            ))}
-          </ul>
+        <nav class="editorial-pie__navegacion" aria-label="Pie de página">
+          <div>
+            <span>Explorar</span>
+            <a href="/">Precios de hoy</a>
+            <a href="/hoy/provincias-mas-baratas/">Provincias</a>
+            <a href="/hoy/marcas-mas-baratas/">Marcas más baratas</a>
+          </div>
+          <div>
+            <span class="editorial-pie__titulo">Información</span>
+            <a href="/hoy/cuanto-te-juegas/">Metodología</a>
+            <a href="/hoy/canarias-ceuta-melilla/"><span class="editorial-pie__texto-largo">Fuentes de datos</span><span class="editorial-pie__texto-corto">Datos</span></a>
+            <span class="editorial-pie__texto">Privacidad</span>
+          </div>
         </nav>
+        <a class="editorial-pie__arriba" href="#">Volver arriba ↑</a>
       </div>
     </footer>
   </body>

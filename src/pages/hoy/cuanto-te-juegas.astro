@@ -43,19 +43,50 @@ const lideres = Object.fromEntries(
       ?.elemento ?? null,
   ]),
 ) as Record<ClavePrecio, AgregadoZona | null>;
+const etiquetaEditorial: Record<ClavePrecio, string> = {
+  gasolina95e5: 'Gasolina 95',
+  gasoleoA: 'Diésel',
+  gasolina98e5: 'Gasolina 98',
+  gasoleoPremium: 'Diésel +',
+};
+function etiquetaFiscal(nombre: string): string {
+  if (nombre.includes('TENERIFE')) return 'Tenerife';
+  if (nombre.includes('PALMAS')) return 'Las Palmas';
+  return nombre.charAt(0) + nombre.slice(1).toLocaleLowerCase('es');
+}
+const mayorAhorro = ORDEN_COMBUSTIBLES
+  .map((combustible) => {
+    const lider = lideres[combustible];
+    return { combustible, lider, diferencia: lider ? coste(lider, combustible) : null };
+  })
+  .filter((entrada): entrada is typeof entrada & { lider: AgregadoZona; diferencia: number } => entrada.lider !== null && entrada.diferencia !== null)
+  .sort((a, b) => b.diferencia - a.diferencia)[0] ?? null;
 ---
 
 <DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta} imagenCompartir="/og/hoy/cuanto-te-juegas.png">
   <header class="editorial-intro">
-    <p class="editorial-eyebrow">Precios de hoy</p>
+    <p class="editorial-eyebrow">Precios de hoy · 5 min de lectura</p>
     <h1 class="editorial-titulo">Cuánto puedes ahorrar al llenar el depósito</h1>
     <p class="editorial-entradilla">
-      Llenar 50 litros en la gasolinera más barata de tu provincia puede costar bastante menos que
-      hacerlo al precio medio. Este es el ahorro posible para cada combustible.
+      Comparamos el precio medio con la gasolinera más barata de cada provincia para un depósito de 50 litros.
     </p>
     <p class="editorial-actualizado">
       Datos actualizados <time datetime={agregados.actualizado}>{formatearFechaHora(agregados.actualizado)}</time>.
     </p>
+    {mayorAhorro && (
+      <article class="editorial-destacado">
+        <span>Mayor ahorro posible</span>
+        <strong>{formatearEuros(mayorAhorro.diferencia)}</strong>
+        <small>por un depósito de 50 L</small>
+        <span class="editorial-destacado__movil-desc">por 50 L · {etiquetaEditorial[mayorAhorro.combustible]}</span>
+        <div>
+          <span>{etiquetaEditorial[mayorAhorro.combustible]}</span>
+          <a href={`/${mayorAhorro.lider.id}/`}>{mayorAhorro.lider.nombre}</a>
+          <small>Calculado sobre {mayorAhorro.lider.combustibles[mayorAhorro.combustible].n} estaciones</small>
+          <small class="editorial-destacado__muestra-movil">{mayorAhorro.lider.combustibles[mayorAhorro.combustible].n} estaciones</small>
+        </div>
+      </article>
+    )}
   </header>
 
   <section class="editorial-resumen" aria-label="Mayor ahorro posible por depósito y combustible">
@@ -65,7 +96,7 @@ const lideres = Object.fromEntries(
       const resumen = lider?.combustibles[combustible] ?? null;
       return (
         <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
-          <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
+          <span class="editorial-tarjeta__combustible">{etiquetaEditorial[combustible]}</span>
           <strong class="editorial-tarjeta__precio">
             {diferencia === null ? 'sin datos' : formatearEuros(diferencia)}
           </strong>
@@ -85,9 +116,14 @@ const lideres = Object.fromEntries(
   </section>
 
   <section class="editorial-metodo" aria-label="Metodología">
+    <svg class="editorial-metodo__icono" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+      <path d="M8 7h8M8 12h2m4 0h2m-8 4h2m4 0h2"></path>
+    </svg>
     <p class="editorial-metodo__resumen">
-      <strong>Ahorro frente al precio medio</strong> · depósito de 50 litros · solo estaciones que
-      venden el combustible.
+      <strong><span class="editorial-metodo__escritorio">Ahorro frente al precio medio</span><span class="editorial-metodo__movil">Cómo se calcula</span></strong>
+      <span class="editorial-metodo__escritorio"> · depósito de 50 litros · solo estaciones que venden el combustible.</span>
+      <span class="editorial-metodo__movil">Precio medio menos mínimo × 50 litros</span>
     </p>
     <details class="editorial-detalles editorial-detalles--metodo">
       <summary>Cómo se calcula</summary>
@@ -110,13 +146,23 @@ const lideres = Object.fromEntries(
     </details>
   </section>
 
-  {ORDEN_COMBUSTIBLES.map((combustible) => (
-    <section class="editorial-combustible" id={combustible}>
-      <h2>{ETIQUETA[combustible]}</h2>
-      <p>Provincias donde más puedes ahorrar frente al precio medio al llenar 50 litros.</p>
+  <nav class="editorial-indice" aria-label="En este artículo">
+    <strong>En este artículo</strong>
+    <a href="#gasolina95e5" data-selector-combustible aria-current="true">Gasolina 95</a>
+    <a href="#gasoleoA" data-selector-combustible>Diésel</a>
+    <a href="#gasolina98e5" data-selector-combustible>Gasolina 98</a>
+    <a href="#gasoleoPremium" data-selector-combustible>Diésel +</a>
+    <a href="#territorios-fiscales">Canarias, Ceuta y Melilla</a>
+  </nav>
+
+  {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
+    const siguiente = ORDEN_COMBUSTIBLES[(indiceCombustible + 1) % ORDEN_COMBUSTIBLES.length]!;
+    return <section class="editorial-combustible" id={combustible} data-panel-combustible hidden={indiceCombustible > 0}>
+      <h2>{etiquetaEditorial[combustible]}</h2>
+      <p><span class="editorial-combustible__descripcion">Provincias donde más puedes ahorrar frente al precio medio al llenar 50 litros.</span><span class="editorial-combustible__descripcion-movil">Mayor ahorro por provincia</span><span class="editorial-combustible__top">Top 6</span></p>
 
       <div class="editorial-tabla-wrap">
-        <table class="editorial-tabla">
+        <table class="editorial-tabla editorial-tabla--principal">
           <thead>
             <tr>
               <th scope="col" class="editorial-tabla__posicion">Pos.</th>
@@ -126,7 +172,7 @@ const lideres = Object.fromEntries(
             </tr>
           </thead>
           <tbody>
-            {rankingsGenerales[combustible].slice(0, 10).map(({ elemento: provincia, posicion }) => {
+            {rankingsGenerales[combustible].slice(0, 8).map(({ elemento: provincia, posicion }) => {
               const diferencia = coste(provincia, combustible);
               const { n } = provincia.combustibles[combustible];
               return (
@@ -146,7 +192,7 @@ const lideres = Object.fromEntries(
         </table>
       </div>
 
-      {rankingsGenerales[combustible].length > 10 && (
+      {rankingsGenerales[combustible].length > 6 && (
         <details class="editorial-detalles editorial-detalles--ranking">
           <summary>Ver las {rankingsGenerales[combustible].length} provincias</summary>
           <div class="editorial-tabla-wrap">
@@ -160,11 +206,11 @@ const lideres = Object.fromEntries(
                 </tr>
               </thead>
               <tbody>
-                {rankingsGenerales[combustible].slice(10).map(({ elemento: provincia, posicion }) => {
+                {rankingsGenerales[combustible].slice(6).map(({ elemento: provincia, posicion }, indice) => {
                   const diferencia = coste(provincia, combustible);
                   const { n } = provincia.combustibles[combustible];
                   return (
-                    <tr>
+                    <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}>
                       <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
                       <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
                       <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
@@ -182,40 +228,44 @@ const lideres = Object.fromEntries(
         </details>
       )}
 
-      <aside class="editorial-fiscal" aria-label={`${ETIQUETA[combustible]} en Canarias, Ceuta y Melilla`}>
+      <aside class="editorial-fiscal" id={combustible === ORDEN_COMBUSTIBLES[0] ? 'territorios-fiscales' : undefined} aria-label={`${etiquetaEditorial[combustible]} en Canarias, Ceuta y Melilla`}>
         <h3>Canarias, Ceuta y Melilla</h3>
-        <p>Tabla separada por su régimen fiscal distinto en los carburantes.</p>
-        <div class="editorial-tabla-wrap">
-          <table class="editorial-tabla">
-            <thead>
-              <tr>
-                <th scope="col" class="editorial-tabla__posicion">Pos.</th>
-                <th scope="col">Provincia</th>
-                <th scope="col" class="editorial-tabla__numero">Ahorro 50 L</th>
-                <th scope="col" class="editorial-tabla__numero">Estaciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rankingsFiscales[combustible].map(({ elemento: provincia, posicion }) => {
-                const diferencia = coste(provincia, combustible);
-                const { n } = provincia.combustibles[combustible];
-                return (
-                  <tr>
-                    <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
-                    <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
-                    <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
-                      {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
-                    </td>
-                    <td class="editorial-tabla__numero editorial-tabla__estaciones">
-                      {n}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <p>Se muestran aparte porque su fiscalidad de carburantes es distinta.</p>
+        <ul class="editorial-fiscal__datos">
+          {rankingsFiscales[combustible].map(({ elemento: provincia }) => {
+            const diferencia = coste(provincia, combustible);
+            return <li><a href={`/${provincia.id}/`}>{etiquetaFiscal(provincia.nombre)}</a><strong>{diferencia === null ? 'no vende' : formatearEuros(diferencia)}</strong></li>;
+          })}
+        </ul>
       </aside>
-    </section>
-  ))}
+
+      <a class="editorial-siguiente" href={`#${siguiente}`} data-selector-combustible>
+        <span><small>Siguiente combustible</small><strong>{etiquetaEditorial[siguiente]}</strong></span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </section>;
+  })}
+
+  <script>
+    const paneles = [...document.querySelectorAll<HTMLElement>('[data-panel-combustible]')];
+    const selectores = [...document.querySelectorAll<HTMLAnchorElement>('[data-selector-combustible]')];
+    const ids = new Set(paneles.map((panel) => panel.id));
+    const activar = (id: string, desplazar = false): void => {
+      if (!ids.has(id)) return;
+      paneles.forEach((panel) => { panel.hidden = panel.id !== id; });
+      selectores.forEach((enlace) => {
+        if (enlace.hash === `#${id}` && enlace.closest('.editorial-indice')) enlace.setAttribute('aria-current', 'true');
+        else enlace.removeAttribute('aria-current');
+      });
+      if (desplazar) document.getElementById(id)?.scrollIntoView({ block: 'start' });
+    };
+    selectores.forEach((enlace) => enlace.addEventListener('click', (evento) => {
+      const id = enlace.hash.slice(1);
+      if (!ids.has(id)) return;
+      evento.preventDefault();
+      history.replaceState(null, '', enlace.hash);
+      activar(id, true);
+    }));
+    activar(ids.has(location.hash.slice(1)) ? location.hash.slice(1) : 'gasolina95e5');
+  </script>
 </DocumentoEditorial>

@@ -1,0 +1,1538 @@
+{
+  "type": "frame",
+  "id": "bi8Au",
+  "x": 0,
+  "y": 0,
+  "name": "Evolución · ARABA/ÁLAVA",
+  "clip": true,
+  "width": 1440,
+  "height": 1024,
+  "fill": "$paper",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "b6w7nQ",
+      "name": "Barra superior",
+      "width": "fill_container",
+      "height": 64,
+      "fill": "$paper",
+      "stroke": "$line",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "padding": [
+        0,
+        24
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "A5fL3i",
+          "name": "Marca y navegación",
+          "gap": 28,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "W1bYq",
+              "name": "Marca",
+              "gap": 9,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "sulxD",
+                  "name": "Icono surtidor",
+                  "width": 22,
+                  "height": 22,
+                  "icon": "local_gas_station",
+                  "library": "Material Symbols Rounded",
+                  "fill": "$ink"
+                },
+                {
+                  "type": "text",
+                  "id": "xaMcs",
+                  "name": "Surtidor",
+                  "fill": "$ink",
+                  "content": "Surtidor",
+                  "fontFamily": "$font",
+                  "fontSize": 18,
+                  "fontWeight": "750"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IjZRc",
+              "name": "Migas de pan",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "W6KKh",
+                  "name": "Provincia",
+                  "fill": "$muted",
+                  "content": "ARABA/ÁLAVA",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "icon",
+                  "id": "OEbIX",
+                  "name": "Separador",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "oGZsB",
+                  "name": "Sección",
+                  "fill": "$ink",
+                  "content": "EVOLUCIÓN",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "eHUEG",
+          "name": "Volver a Hoy",
+          "fill": "$surface",
+          "cornerRadius": 8,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "gap": 8,
+          "padding": [
+            10,
+            14
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "GP9Zm",
+              "name": "Hoy",
+              "fill": "$ink",
+              "content": "Hoy",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "750"
+            },
+            {
+              "type": "icon",
+              "id": "tklct",
+              "name": "Flecha",
+              "width": 15,
+              "height": 15,
+              "icon": "arrow-right",
+              "library": "lucide",
+              "fill": "$ink"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "c6yTx",
+      "name": "Área de trabajo",
+      "width": "fill_container",
+      "height": "fill_container",
+      "children": [
+        {
+          "type": "frame",
+          "id": "vH3eK",
+          "name": "Panel lateral",
+          "width": 330,
+          "height": "fill_container",
+          "fill": "#EDF0EF",
+          "stroke": "$line",
+          "strokeWidth": {
+            "right": 1
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "vMq88",
+              "name": "Cabecera provincial",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                22,
+                20,
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "o8HreZ",
+                  "name": "Etiqueta evolución",
+                  "fill": "$muted",
+                  "content": "EVOLUCIÓN",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.4
+                },
+                {
+                  "type": "text",
+                  "id": "wX8IU",
+                  "name": "Nombre provincia",
+                  "fill": "$ink",
+                  "content": "ARABA/ÁLAVA",
+                  "fontFamily": "$font",
+                  "fontSize": 19,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "V5yFJ4",
+              "name": "Selector de combustible",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                8,
+                20,
+                16,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "XbBhL",
+                  "name": "Etiqueta combustible",
+                  "fill": "$muted",
+                  "content": "COMBUSTIBLE",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.2
+                },
+                {
+                  "type": "frame",
+                  "id": "bZ6CG",
+                  "name": "Combustibles fila 1",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Rdw9I",
+                      "name": "Gasolina 95",
+                      "width": "fill_container",
+                      "height": 40,
+                      "fill": "$ink",
+                      "cornerRadius": 7,
+                      "stroke": "$ink",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "a3u31",
+                          "name": "Gasolina 95 texto",
+                          "fill": "$paper",
+                          "content": "Gasolina 95",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "750"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ix0Dn",
+                      "name": "Diésel",
+                      "width": "fill_container",
+                      "height": 40,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "QUoCU",
+                          "name": "Diésel texto",
+                          "fill": "$ink",
+                          "content": "Diésel",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "L6RThY",
+                  "name": "Combustibles fila 2",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ouqTX",
+                      "name": "Gasolina 98",
+                      "width": "fill_container",
+                      "height": 40,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gqoPg",
+                          "name": "Gasolina 98 texto",
+                          "fill": "$ink",
+                          "content": "Gasolina 98",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Mwsl1",
+                      "name": "Diésel +",
+                      "width": "fill_container",
+                      "height": 40,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "eTDbu",
+                          "name": "Diésel + texto",
+                          "fill": "$ink",
+                          "content": "Diésel +",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i7Zr1V",
+              "name": "Selector de periodo",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                0,
+                20,
+                20,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Dcivi",
+                  "name": "Etiqueta periodo",
+                  "fill": "$muted",
+                  "content": "PERIODO",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.2
+                },
+                {
+                  "type": "frame",
+                  "id": "MXci2",
+                  "name": "Periodos",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "JK8eF",
+                      "name": "7 días",
+                      "width": "fill_container",
+                      "height": 38,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "n0I6D",
+                          "name": "7 días texto",
+                          "fill": "$ink",
+                          "content": "7 días",
+                          "fontFamily": "$font",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "iWZiQ",
+                      "name": "30 días",
+                      "width": "fill_container",
+                      "height": 38,
+                      "fill": "$ink",
+                      "cornerRadius": 7,
+                      "stroke": "$ink",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "yXkTJ",
+                          "name": "30 días texto",
+                          "fill": "$paper",
+                          "content": "30 días",
+                          "fontFamily": "$font",
+                          "fontSize": 11,
+                          "fontWeight": "750"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "o1SzzZ",
+                      "name": "90 días",
+                      "width": "fill_container",
+                      "height": 38,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qWMbt",
+                          "name": "90 días texto",
+                          "fill": "$ink",
+                          "content": "90 días",
+                          "fontFamily": "$font",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U9pVM",
+              "name": "Explorar estaciones",
+              "width": "fill_container",
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1,
+                "bottom": 1
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": [
+                18,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TqjRO",
+                  "name": "Título explorar",
+                  "fill": "$ink",
+                  "content": "Explorar estaciones",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "frame",
+                  "id": "QsZRs",
+                  "name": "Campo de búsqueda",
+                  "width": "fill_container",
+                  "height": 42,
+                  "fill": "$surface",
+                  "cornerRadius": 8,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 9,
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "bWod8",
+                      "name": "Icono buscar",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "search",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yOMLn",
+                      "name": "Placeholder buscar",
+                      "fill": "$muted",
+                      "content": "Nombre, municipio o dirección",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v74F9H",
+              "name": "Movimientos destacados",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "padding": [
+                18,
+                20
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "XB8hT",
+                  "name": "Título movimientos",
+                  "fill": "$ink",
+                  "content": "Movimientos destacados",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "Z35xB",
+                  "name": "BAJADAS",
+                  "fill": "$muted",
+                  "content": "BAJADAS",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "MBLSt",
+                  "name": "EROSKI movimiento",
+                  "width": "fill_container",
+                  "height": 47,
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WUNup",
+                      "name": "EROSKI detalle",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jrEr1",
+                          "name": "EROSKI",
+                          "fill": "$ink",
+                          "content": "EROSKI",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "qi6qf",
+                          "name": "Ribera Baja",
+                          "fill": "$muted",
+                          "content": "Ribera Baja",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "YPe1X",
+                      "name": "EROSKI variación",
+                      "fill": "$positive",
+                      "content": "−0,1 cts",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "eXEqW",
+                  "name": "SUBIDAS",
+                  "fill": "$muted",
+                  "content": "SUBIDAS",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 1.1
+                },
+                {
+                  "type": "frame",
+                  "id": "A5QyFB",
+                  "name": "CEPSA movimiento",
+                  "width": "fill_container",
+                  "height": 47,
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "LMOcG",
+                      "name": "CEPSA detalle",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TuiR7",
+                          "name": "CEPSA",
+                          "fill": "$ink",
+                          "content": "CEPSA",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "zUH4h",
+                          "name": "Arrazua-Ubarrundia",
+                          "fill": "$muted",
+                          "content": "Arrazua-Ubarrundia",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "kElSR",
+                      "name": "CEPSA variación",
+                      "fill": "$ink",
+                      "content": "+26 cts",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "T1rWq",
+                  "name": "GUGAS movimiento",
+                  "width": "fill_container",
+                  "height": 47,
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "s0N930",
+                      "name": "GUGAS detalle",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "bZaCw",
+                          "name": "GUGAS",
+                          "fill": "$ink",
+                          "content": "GUGAS",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Y1jJmY",
+                          "name": "Oyón / Oion",
+                          "fill": "$muted",
+                          "content": "Oyón / Oion",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Yf8YN",
+                      "name": "GUGAS variación",
+                      "fill": "$ink",
+                      "content": "+22,1 cts",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OceQH",
+                  "name": "CEPSA movimiento",
+                  "width": "fill_container",
+                  "height": 47,
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "iX3dP",
+                      "name": "CEPSA detalle",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "e9hO0n",
+                          "name": "CEPSA",
+                          "fill": "$ink",
+                          "content": "CEPSA",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "L1MR2",
+                          "name": "2 estaciones",
+                          "fill": "$muted",
+                          "content": "2 estaciones",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "a1YhlQ",
+                      "name": "CEPSA variación",
+                      "fill": "$ink",
+                      "content": "+21 cts",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "RbzBR",
+          "name": "Panel de evolución",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            30,
+            34,
+            24,
+            34
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "C9oUw",
+              "name": "Resumen de evolución",
+              "width": "fill_container",
+              "height": 166,
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "z3gUHM",
+                  "name": "Título y último cierre",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "aoN6H",
+                      "name": "Título principal",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZBu9q",
+                          "name": "Ámbito",
+                          "fill": "$muted",
+                          "content": "MEDIA DE ARABA/ÁLAVA",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "800",
+                          "letterSpacing": 1.2
+                        },
+                        {
+                          "type": "text",
+                          "id": "QRp5j",
+                          "name": "Gasolina 95",
+                          "fill": "$ink",
+                          "content": "Gasolina 95",
+                          "fontFamily": "$font",
+                          "fontSize": 38,
+                          "fontWeight": "800",
+                          "letterSpacing": -1.1
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "RTkxz",
+                      "name": "Último cierre",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Rqqcw",
+                          "name": "Etiqueta cierre",
+                          "fill": "$muted",
+                          "content": "ÚLTIMO CIERRE",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "800",
+                          "letterSpacing": 1.2
+                        },
+                        {
+                          "type": "text",
+                          "id": "iVNLo",
+                          "name": "Precio actual",
+                          "fill": "$ink",
+                          "content": "1,721 €/L",
+                          "fontFamily": "$mono",
+                          "fontSize": 32,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "V8s47",
+                  "name": "Conclusión",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "uTIZs",
+                      "name": "Indicador subida",
+                      "fill": "#FFF4D5",
+                      "cornerRadius": 7,
+                      "gap": 6,
+                      "padding": [
+                        7,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "l8CQ5G",
+                          "name": "Flecha ascendente",
+                          "width": 17,
+                          "height": 17,
+                          "icon": "trending-up",
+                          "library": "lucide",
+                          "fill": "#9A6900"
+                        },
+                        {
+                          "type": "text",
+                          "id": "DiYXW",
+                          "name": "Variación",
+                          "fill": "#805A00",
+                          "content": "+13,9 cts",
+                          "fontFamily": "$mono",
+                          "fontSize": 13,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "dKYaH",
+                      "name": "Mensaje principal",
+                      "fill": "$ink",
+                      "content": "La Gasolina 95 ha subido en los últimos 30 días",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "750"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "LtKLM",
+                  "name": "Contexto",
+                  "fill": "$muted",
+                  "content": "66 de 67 estaciones comparables se movieron en la misma dirección.",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "AGakN",
+              "name": "Indicadores clave",
+              "width": "fill_container",
+              "height": 82,
+              "fill": "$paper",
+              "cornerRadius": 9,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ykrFK",
+                  "name": "MEDIA PROVINCIAL",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "right": 1
+                  },
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Q5T0w",
+                      "name": "MEDIA PROVINCIAL icono",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "gauge",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "yf9yZ",
+                      "name": "MEDIA PROVINCIAL textos",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "h1IjjQ",
+                          "name": "MEDIA PROVINCIAL etiqueta",
+                          "fill": "$muted",
+                          "content": "MEDIA PROVINCIAL",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "800",
+                          "letterSpacing": 1
+                        },
+                        {
+                          "type": "text",
+                          "id": "pho15",
+                          "name": "MEDIA PROVINCIAL valor",
+                          "fill": "$ink",
+                          "content": "1,721 €/L",
+                          "fontFamily": "$mono",
+                          "fontSize": 17,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "JJGO3",
+                          "name": "MEDIA PROVINCIAL detalle",
+                          "fill": "$muted",
+                          "content": "cierre de hoy",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qYhuP",
+                  "name": "MÁS BARATA",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "right": 1
+                  },
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "AcRWZ",
+                      "name": "MÁS BARATA icono",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "badge-euro",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "shYvB",
+                      "name": "MÁS BARATA textos",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "KZSeX",
+                          "name": "MÁS BARATA etiqueta",
+                          "fill": "$muted",
+                          "content": "MÁS BARATA",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "800",
+                          "letterSpacing": 1
+                        },
+                        {
+                          "type": "text",
+                          "id": "ieI1p",
+                          "name": "MÁS BARATA valor",
+                          "fill": "$ink",
+                          "content": "1,519 €/L",
+                          "fontFamily": "$mono",
+                          "fontSize": 17,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "l6TPv",
+                          "name": "MÁS BARATA detalle",
+                          "fill": "$muted",
+                          "content": "−20,2 cts vs. media",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "U1uaqh",
+                  "name": "COBERTURA",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "$line",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    20
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Wp2iA",
+                      "name": "COBERTURA icono",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "map-pin",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cJNVG",
+                      "name": "COBERTURA textos",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "b3BJXa",
+                          "name": "COBERTURA etiqueta",
+                          "fill": "$muted",
+                          "content": "COBERTURA",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "800",
+                          "letterSpacing": 1
+                        },
+                        {
+                          "type": "text",
+                          "id": "Eo6qE",
+                          "name": "COBERTURA valor",
+                          "fill": "$ink",
+                          "content": "67 estaciones",
+                          "fontFamily": "$mono",
+                          "fontSize": 17,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "u02tr",
+                          "name": "COBERTURA detalle",
+                          "fill": "$muted",
+                          "content": "66 con subida",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hcKbd",
+              "name": "Gráfico de precio",
+              "clip": true,
+              "width": "fill_container",
+              "height": 570,
+              "fill": "$ink",
+              "cornerRadius": 10,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "eKnaB",
+                  "x": 26,
+                  "y": 22,
+                  "name": "Título gráfico",
+                  "fill": "$paper",
+                  "content": "Precio medio diario",
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "x1Y23",
+                  "x": 26,
+                  "y": 48,
+                  "name": "Rango gráfico",
+                  "fill": "#AEBBBE",
+                  "content": "10 JUL — 9 AGO",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "600",
+                  "letterSpacing": 0.6
+                },
+                {
+                  "type": "frame",
+                  "id": "tD5ch",
+                  "x": 780,
+                  "y": 20,
+                  "name": "Lectura rápida",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Y9W1g",
+                      "name": "Etiqueta lectura",
+                      "fill": "#AEBBBE",
+                      "content": "TRAMO MÁS INTENSO",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "800",
+                      "letterSpacing": 1
+                    },
+                    {
+                      "type": "text",
+                      "id": "Yfq63",
+                      "name": "Dato lectura",
+                      "fill": "$accent",
+                      "content": "31 jul — 3 ago  ·  +4,7 cts",
+                      "fontFamily": "$mono",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "e8VTPz",
+                  "x": 70,
+                  "y": 120,
+                  "name": "Rejilla 1,80",
+                  "fill": "#FFFFFF18",
+                  "width": 960,
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "ARXpQ",
+                  "x": 24,
+                  "y": 113,
+                  "name": "Eje 1,80",
+                  "fill": "#91A2A7",
+                  "content": "1,80",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "YgcAi",
+                  "x": 70,
+                  "y": 215,
+                  "name": "Rejilla 1,70",
+                  "fill": "#FFFFFF18",
+                  "width": 960,
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "NcAf2",
+                  "x": 24,
+                  "y": 208,
+                  "name": "Eje 1,70",
+                  "fill": "#91A2A7",
+                  "content": "1,70",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "wSqC8",
+                  "x": 70,
+                  "y": 310,
+                  "name": "Rejilla 1,60",
+                  "fill": "#FFFFFF18",
+                  "width": 960,
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "xMVyD",
+                  "x": 24,
+                  "y": 303,
+                  "name": "Eje 1,60",
+                  "fill": "#91A2A7",
+                  "content": "1,60",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "k09SY",
+                  "x": 70,
+                  "y": 405,
+                  "name": "Rejilla 1,50",
+                  "fill": "#FFFFFF18",
+                  "width": 960,
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "B11pi",
+                  "x": 24,
+                  "y": 398,
+                  "name": "Eje 1,50",
+                  "fill": "#91A2A7",
+                  "content": "1,50",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "x4U0Ej",
+                  "x": 70,
+                  "y": 500,
+                  "name": "Rejilla 1,40",
+                  "fill": "#FFFFFF18",
+                  "width": 960,
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "uCOl3",
+                  "x": 24,
+                  "y": 493,
+                  "name": "Eje 1,40",
+                  "fill": "#91A2A7",
+                  "content": "1,40",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "path",
+                  "id": "BDVMm",
+                  "x": 70,
+                  "y": 135,
+                  "name": "Área de evolución",
+                  "geometry": "M0 278l70 2 68-35 72-21 72-23 68-29 70-11 70-13 70-5 68-11 62-41 46-9 44-33 50-9 50 8 48 19 32-5 0 278-960 0z",
+                  "viewBox": [
+                    0,
+                    0,
+                    960,
+                    340
+                  ],
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 180,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#F5B92155",
+                        "position": 0
+                      },
+                      {
+                        "color": "#F5B92100",
+                        "position": 1
+                      }
+                    ]
+                  },
+                  "width": 960,
+                  "height": 340
+                },
+                {
+                  "type": "text",
+                  "id": "WEkny",
+                  "x": 70,
+                  "y": 520,
+                  "name": "Fecha inicial",
+                  "fill": "#91A2A7",
+                  "content": "10 jul",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "CL0nu",
+                  "x": 998,
+                  "y": 520,
+                  "name": "Fecha final",
+                  "fill": "#91A2A7",
+                  "content": "9 ago",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "qE6Rl",
+                  "x": 70,
+                  "y": 544,
+                  "name": "Leyenda",
+                  "gap": 20,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "QNwUN",
+                      "name": "Media provincial",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "h6mnIl",
+                          "name": "Media provincial línea",
+                          "fill": "$accent",
+                          "width": 20,
+                          "height": 2
+                        },
+                        {
+                          "type": "text",
+                          "id": "QJuBz",
+                          "name": "Media provincial texto",
+                          "fill": "#AEBBBE",
+                          "content": "Media provincial",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CMceR",
+                      "name": "Precio mínimo",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "r13mXR",
+                          "name": "Precio mínimo línea",
+                          "fill": "#91A2A7",
+                          "width": 20,
+                          "height": 2
+                        },
+                        {
+                          "type": "text",
+                          "id": "y0xyHu",
+                          "name": "Precio mínimo texto",
+                          "fill": "#AEBBBE",
+                          "content": "Precio mínimo",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "path",
+                  "id": "TvRsp",
+                  "x": 70,
+                  "y": 135,
+                  "name": "Línea precio mínimo",
+                  "geometry": "M0 318l70-1 68-2 72-5 72-3 68-1 70-48 70 1 70-1 68 8 62-28 46-9 44-1 50 15 50 7 48 2 32-6",
+                  "viewBox": [
+                    0,
+                    0,
+                    960,
+                    340
+                  ],
+                  "fill": "#00000000",
+                  "width": 960,
+                  "height": 340,
+                  "stroke": "#91A2A799",
+                  "strokeWidth": 2,
+                  "strokeLinejoin": "round",
+                  "strokeLinecap": "round"
+                },
+                {
+                  "type": "path",
+                  "id": "XkQJY",
+                  "x": 70,
+                  "y": 135,
+                  "name": "Línea media provincial",
+                  "geometry": "M0 278l70 2 68-35 72-21 72-23 68-29 70-11 70-13 70-5 68-11 62-41 46-9 44-33 50-9 50 8 48 19 32-5",
+                  "viewBox": [
+                    0,
+                    0,
+                    960,
+                    340
+                  ],
+                  "fill": "#00000000",
+                  "width": 960,
+                  "height": 340,
+                  "stroke": "$accent",
+                  "strokeWidth": 3,
+                  "strokeLinejoin": "round",
+                  "strokeLinecap": "round"
+                },
+                {
+                  "type": "ellipse",
+                  "id": "elzTa",
+                  "x": 1024,
+                  "y": 191,
+                  "name": "Último punto",
+                  "fill": "$accent",
+                  "width": 12,
+                  "height": 12,
+                  "stroke": "$ink",
+                  "strokeWidth": 3
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

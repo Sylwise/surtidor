@@ -1,0 +1,1903 @@
+{
+  "type": "frame",
+  "id": "SQ2EH",
+  "x": 0,
+  "y": 5048,
+  "name": "Estados interactivos",
+  "clip": true,
+  "width": 1400,
+  "height": 1120,
+  "fill": "#EDF0EF",
+  "layout": "vertical",
+  "gap": 24,
+  "padding": [
+    38,
+    46
+  ],
+  "children": [
+    {
+      "type": "frame",
+      "id": "q5evh",
+      "name": "Cabecera estados",
+      "width": "fill_container",
+      "height": 80,
+      "justifyContent": "space_between",
+      "alignItems": "end",
+      "children": [
+        {
+          "type": "frame",
+          "id": "rPpq8",
+          "name": "Título estados",
+          "layout": "vertical",
+          "gap": 7,
+          "children": [
+            {
+              "type": "text",
+              "id": "hIc00",
+              "name": "Etiqueta estados",
+              "fill": "$muted",
+              "content": "SISTEMA DE INTERACCIÓN",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "800",
+              "letterSpacing": 1.3
+            },
+            {
+              "type": "text",
+              "id": "NXdBM",
+              "name": "Título estados interactivos",
+              "fill": "$ink",
+              "content": "Estados antes de desarrollo",
+              "fontFamily": "$font",
+              "fontSize": 34,
+              "fontWeight": "800",
+              "letterSpacing": -0.8
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "Eiqxo",
+          "name": "Nota estados",
+          "fill": "$muted",
+          "content": "Basado en patrones actuales de Evolución, listado y ficha de estación",
+          "fontFamily": "$mono",
+          "fontSize": 10,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "bdGyz",
+      "name": "Estados fila uno",
+      "width": "fill_container",
+      "height": 250,
+      "gap": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "cgVjt",
+          "name": "Estado Tooltip gráfico",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 10,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "jsXcT",
+              "name": "Cabecera Tooltip",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "UCz0o",
+                  "name": "Título Tooltip",
+                  "fill": "$ink",
+                  "content": "Tooltip del gráfico",
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "mgSXT",
+                  "name": "Disparador Tooltip",
+                  "fill": "$muted",
+                  "content": "HOVER · TAP",
+                  "fontFamily": "$mono",
+                  "fontSize": 9,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u63AB",
+              "name": "Contexto gráfico Tooltip",
+              "clip": true,
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$ink",
+              "cornerRadius": 8,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "rectangle",
+                  "id": "SjvJe",
+                  "x": 18,
+                  "y": 38,
+                  "name": "Rejilla Tooltip",
+                  "fill": "#FFFFFF18",
+                  "width": 570,
+                  "height": 1
+                },
+                {
+                  "type": "rectangle",
+                  "id": "wb5su",
+                  "x": 18,
+                  "y": 78,
+                  "name": "Rejilla Tooltip",
+                  "fill": "#FFFFFF18",
+                  "width": 570,
+                  "height": 1
+                },
+                {
+                  "type": "rectangle",
+                  "id": "zpubT",
+                  "x": 18,
+                  "y": 118,
+                  "name": "Rejilla Tooltip",
+                  "fill": "#FFFFFF18",
+                  "width": 570,
+                  "height": 1
+                },
+                {
+                  "type": "path",
+                  "id": "TMPzU",
+                  "x": 22,
+                  "y": 34,
+                  "name": "Línea Tooltip",
+                  "geometry": "M0 86l70-8 70-6 70-14 70 3 70-18 70-21 70 6 76-16",
+                  "viewBox": [
+                    0,
+                    0,
+                    566,
+                    98
+                  ],
+                  "fill": "#00000000",
+                  "width": 566,
+                  "height": 98,
+                  "stroke": "$accent",
+                  "strokeWidth": 2.5,
+                  "strokeLinejoin": "round",
+                  "strokeLinecap": "round"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "W5n63",
+                  "x": 433,
+                  "y": 18,
+                  "name": "Guía Tooltip",
+                  "fill": "#FFFFFF66",
+                  "width": 1,
+                  "height": 116
+                },
+                {
+                  "type": "ellipse",
+                  "id": "SJreH",
+                  "x": 427,
+                  "y": 50,
+                  "name": "Punto Tooltip",
+                  "fill": "$accent",
+                  "width": 13,
+                  "height": 13,
+                  "stroke": "$ink",
+                  "strokeWidth": 3
+                },
+                {
+                  "type": "frame",
+                  "id": "dl00a",
+                  "x": 284,
+                  "y": 16,
+                  "name": "Tooltip precio",
+                  "width": 138,
+                  "fill": "$paper",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#00000028",
+                    "offset": {
+                      "x": 0,
+                      "y": 5
+                    },
+                    "blur": 16
+                  },
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": 11,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Sbf0L",
+                      "name": "Fecha Tooltip",
+                      "fill": "$muted",
+                      "content": "3 AGO 2025",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "800",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "frame",
+                      "id": "D0cuWW",
+                      "name": "Media Tooltip",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "d7lzI7",
+                          "name": "Media etiqueta Tooltip",
+                          "fill": "$muted",
+                          "content": "Media",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Jo1Gr",
+                          "name": "Media precio Tooltip",
+                          "fill": "$ink",
+                          "content": "1,718 €",
+                          "fontFamily": "$mono",
+                          "fontSize": 11,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PHTiW",
+                      "name": "Mínimo Tooltip",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "knZnF",
+                          "name": "Mínimo etiqueta Tooltip",
+                          "fill": "$muted",
+                          "content": "Mínimo",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "lkjWc",
+                          "name": "Mínimo precio Tooltip",
+                          "fill": "$positive",
+                          "content": "1,519 €",
+                          "fontFamily": "$mono",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "aiUWz",
+                      "name": "Cambio Tooltip",
+                      "fill": "#8A6200",
+                      "content": "+4,7 cts desde ayer",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "f1xMrt",
+          "name": "Estado Resultado búsqueda",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 10,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ImP8C",
+              "name": "Cabecera búsqueda estado",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "M1tCha",
+                  "name": "Título búsqueda estado",
+                  "fill": "$ink",
+                  "content": "Resultado de búsqueda",
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "DD1gs",
+                  "name": "Query búsqueda estado",
+                  "fill": "$muted",
+                  "content": "“red car” · 2 resultados",
+                  "fontFamily": "$mono",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tDgEO",
+              "name": "Input búsqueda estado",
+              "width": "fill_container",
+              "height": 42,
+              "fill": "$paper",
+              "cornerRadius": 8,
+              "stroke": "$ink",
+              "strokeWidth": 1,
+              "gap": 9,
+              "padding": [
+                0,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "gZLrM",
+                  "name": "Icono búsqueda estado",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "search",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "uvK90",
+                  "name": "Texto búsqueda estado",
+                  "fill": "$ink",
+                  "content": "red car",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "650"
+                },
+                {
+                  "type": "icon",
+                  "id": "P6taLI",
+                  "name": "Limpiar búsqueda estado",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "circle-x",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nEXl5",
+              "name": "Resultados búsqueda estado",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Mmwof",
+                  "name": "RED CAR OIL S.L resultado",
+                  "width": "fill_container",
+                  "height": 52,
+                  "fill": "$surface",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 10,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TOCIn",
+                      "name": "RED CAR OIL S.L resultado cabecera",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "k1qjA",
+                          "name": "RED CAR OIL S.L resultado textos",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "RZnWL",
+                              "name": "RED CAR OIL S.L resultado nombre",
+                              "fill": "$ink",
+                              "content": "RED CAR OIL S.L",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "o3Tq9S",
+                              "name": "RED CAR OIL S.L resultado lugar",
+                              "fill": "$muted",
+                              "content": "Langreo · 12 km",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "VkBVN",
+                          "name": "RED CAR OIL S.L resultado precio",
+                          "fill": "$ink",
+                          "content": "1,589",
+                          "fontFamily": "$mono",
+                          "fontSize": 14,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "uiXEl",
+                      "x": 12,
+                      "y": 46,
+                      "name": "RED CAR OIL S.L coincidencia",
+                      "enabled": false,
+                      "fill": "$muted",
+                      "fontFamily": "$font",
+                      "fontSize": 1,
+                      "fontWeight": "650"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "F9Vdsv",
+                  "name": "RED CAR OIL resultado",
+                  "width": "fill_container",
+                  "height": 52,
+                  "fill": "$surface",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 10,
+                  "padding": [
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "npCwz",
+                      "name": "RED CAR OIL resultado cabecera",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "geDqD",
+                          "name": "RED CAR OIL resultado textos",
+                          "layout": "vertical",
+                          "gap": 2,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Upaja",
+                              "name": "RED CAR OIL resultado nombre",
+                              "fill": "$ink",
+                              "content": "RED CAR OIL",
+                              "fontFamily": "$font",
+                              "fontSize": 11,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "text",
+                              "id": "OojHc",
+                              "name": "RED CAR OIL resultado lugar",
+                              "fill": "$muted",
+                              "content": "Gijón · 28 km",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "QjGtf",
+                          "name": "RED CAR OIL resultado precio",
+                          "fill": "$ink",
+                          "content": "1,669",
+                          "fontFamily": "$mono",
+                          "fontSize": 14,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "p6hKMf",
+                      "x": 12,
+                      "y": 46,
+                      "name": "RED CAR OIL coincidencia",
+                      "enabled": false,
+                      "fill": "$muted",
+                      "fontFamily": "$font",
+                      "fontSize": 1,
+                      "fontWeight": "650"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "t4WrkX",
+      "name": "Estados fila dos",
+      "width": "fill_container",
+      "height": 330,
+      "gap": 24,
+      "children": [
+        {
+          "type": "frame",
+          "id": "v11E21",
+          "name": "Estado Estación vs provincia",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 10,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "rdHZI",
+              "name": "Cabecera comparación",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Jb4S2",
+                  "name": "Título comparación",
+                  "fill": "$ink",
+                  "content": "Estación seleccionada vs. provincia",
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "G4ARtV",
+                  "name": "Contexto comparación",
+                  "fill": "$muted",
+                  "content": "GASOLINA 95 · ASTURIAS",
+                  "fontFamily": "$mono",
+                  "fontSize": 9,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "n8klD4",
+              "name": "Tarjeta comparación estación",
+              "width": "fill_container",
+              "height": 138,
+              "fill": "$ink",
+              "cornerRadius": 8,
+              "gap": 22,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "nuRHq",
+                  "name": "Identidad comparación",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "justifyContent": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "C0lDNT",
+                      "name": "Nombre comparación",
+                      "fill": "$paper",
+                      "content": "RED CAR OIL S.L",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AlQSI",
+                      "name": "Lugar comparación",
+                      "fill": "#AEBBBE",
+                      "content": "Langreo · #1 de 225",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Hwmi5",
+                      "name": "Precio comparación estación",
+                      "fill": "$accent",
+                      "content": "1,589 €/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 26,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ep4jL",
+                  "name": "Diferencia provincial",
+                  "width": 220,
+                  "height": "fill_container",
+                  "fill": "#FFFFFF0D",
+                  "cornerRadius": 7,
+                  "layout": "vertical",
+                  "gap": 7,
+                  "padding": 16,
+                  "justifyContent": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mMMr9",
+                      "name": "Etiqueta diferencia",
+                      "fill": "#AEBBBE",
+                      "content": "FRENTE A LA MEDIA",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "800",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ovf8u",
+                      "name": "Diferencia cifra",
+                      "fill": "#7DDBBD",
+                      "content": "−13,2 cts/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 19,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ANCky",
+                      "name": "Ahorro depósito comparación",
+                      "fill": "$paper",
+                      "content": "6,60 € menos por 50 L",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "650"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bsSoZ",
+              "name": "Barras comparación",
+              "width": "fill_container",
+              "height": 92,
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "sDV63",
+                  "name": "Esta estación barra comparación",
+                  "width": "fill_container",
+                  "height": 24,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lyajZ",
+                      "name": "Esta estación etiqueta comparación",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": 88,
+                      "content": "Esta estación",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "NcfDw",
+                      "name": "Esta estación pista comparación",
+                      "width": "fill_container",
+                      "height": 8,
+                      "fill": "$paper",
+                      "cornerRadius": 99,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 99,
+                          "id": "Gimaj",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Esta estación relleno comparación",
+                          "fill": "#08786E",
+                          "width": 280,
+                          "height": 8
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "kQVKC",
+                      "name": "Esta estación valor comparación",
+                      "fill": "$ink",
+                      "content": "1,589 €/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YO8wy",
+                  "name": "Media Asturias barra comparación",
+                  "width": "fill_container",
+                  "height": 24,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GHl8D",
+                      "name": "Media Asturias etiqueta comparación",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": 88,
+                      "content": "Media Asturias",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WZUJ4",
+                      "name": "Media Asturias pista comparación",
+                      "width": "fill_container",
+                      "height": 8,
+                      "fill": "$paper",
+                      "cornerRadius": 99,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 99,
+                          "id": "FWrOC",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Media Asturias relleno comparación",
+                          "fill": "$accent",
+                          "width": 350,
+                          "height": 8
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "QmQdE",
+                      "name": "Media Asturias valor comparación",
+                      "fill": "$ink",
+                      "content": "1,721 €/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "m9qvf5",
+                  "name": "Más cara barra comparación",
+                  "width": "fill_container",
+                  "height": 24,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "jEyV7",
+                      "name": "Más cara etiqueta comparación",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": 88,
+                      "content": "Más cara",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PQgUT",
+                      "name": "Más cara pista comparación",
+                      "width": "fill_container",
+                      "height": 8,
+                      "fill": "$paper",
+                      "cornerRadius": 99,
+                      "layout": "none",
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 99,
+                          "id": "DnSk4",
+                          "x": 0,
+                          "y": 0,
+                          "name": "Más cara relleno comparación",
+                          "fill": "#C45A35",
+                          "width": 410,
+                          "height": 8
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "xk2os",
+                      "name": "Más cara valor comparación",
+                      "fill": "$ink",
+                      "content": "1,858 €/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HYave",
+          "name": "Estado Ver todas móvil",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 10,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "LK7Hj",
+              "name": "Cabecera Ver todas",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uvIlk",
+                  "name": "Título Ver todas",
+                  "fill": "$ink",
+                  "content": "“Ver todas” en móvil",
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "gZK5i",
+                  "name": "Patrón Ver todas",
+                  "fill": "$muted",
+                  "content": "BOTTOM SHEET · FILTRO ACTIVO",
+                  "fontFamily": "$mono",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "LQcJC",
+              "name": "Simulación Ver todas",
+              "clip": true,
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#EDF0EF",
+              "cornerRadius": 9,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "N8yrkK",
+                  "name": "Asa Ver todas",
+                  "width": "fill_container",
+                  "height": 24,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 99,
+                      "id": "r2y0IK",
+                      "name": "Indicador Ver todas",
+                      "fill": "#B8C4C5",
+                      "width": 38,
+                      "height": 4
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ET2QH",
+                  "name": "Cabecera lista completa",
+                  "width": "fill_container",
+                  "height": 50,
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    0,
+                    12
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O9B42",
+                      "name": "Títulos lista completa",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UZn7t",
+                          "name": "Título lista completa",
+                          "fill": "$ink",
+                          "content": "Todas las estaciones",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "800"
+                        },
+                        {
+                          "type": "text",
+                          "id": "r6fiud",
+                          "name": "Conteo lista completa",
+                          "fill": "$muted",
+                          "content": "225 resultados · ordenadas por precio",
+                          "fontFamily": "$font",
+                          "fontSize": 8,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hmQvn",
+                      "name": "Cerrar lista completa",
+                      "width": 30,
+                      "height": 30,
+                      "fill": "$surface",
+                      "cornerRadius": 6,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "n5luo",
+                          "name": "Icono cerrar lista completa",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "x",
+                          "library": "lucide",
+                          "fill": "$ink"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "VZbXq",
+                  "name": "Filtros lista completa",
+                  "width": "fill_container",
+                  "height": 38,
+                  "gap": 7,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "a9AYz",
+                      "name": "Más baratas filtro Ver todas",
+                      "fill": "$ink",
+                      "cornerRadius": 999,
+                      "stroke": "$ink",
+                      "strokeWidth": 1,
+                      "padding": [
+                        7,
+                        9
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZjJqy",
+                          "name": "Más baratas texto Ver todas",
+                          "fill": "$paper",
+                          "content": "Más baratas",
+                          "fontFamily": "$font",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "bd2ZG",
+                      "name": "Cerca de mí filtro Ver todas",
+                      "fill": "$surface",
+                      "cornerRadius": 999,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        7,
+                        9
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "F4Fa6T",
+                          "name": "Cerca de mí texto Ver todas",
+                          "fill": "$ink",
+                          "content": "Cerca de mí",
+                          "fontFamily": "$font",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "B5Shf",
+                      "name": "Abiertas filtro Ver todas",
+                      "fill": "$surface",
+                      "cornerRadius": 999,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        7,
+                        9
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "mXOHT",
+                          "name": "Abiertas texto Ver todas",
+                          "fill": "$ink",
+                          "content": "Abiertas",
+                          "fontFamily": "$font",
+                          "fontSize": 8,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eiyWg",
+                  "name": "Filas lista completa",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "eQNI6",
+                      "name": "RED CAR OIL S.L Ver todas",
+                      "width": "fill_container",
+                      "height": 36,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        9
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "VUve4",
+                          "name": "RED CAR OIL S.L orden Ver todas",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": 18,
+                          "content": "1",
+                          "textAlign": "center",
+                          "fontFamily": "$mono",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "s2NdkQ",
+                          "name": "RED CAR OIL S.L info Ver todas",
+                          "width": "fill_container",
+                          "height": 24,
+                          "layout": "vertical",
+                          "gap": 1,
+                          "justifyContent": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tKouE",
+                              "name": "RED CAR OIL S.L nombre Ver todas",
+                              "fill": "$ink",
+                              "content": "RED CAR OIL S.L",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "750"
+                            },
+                            {
+                              "type": "text",
+                              "id": "j430Q",
+                              "name": "RED CAR OIL S.L lugar Ver todas",
+                              "fill": "$muted",
+                              "content": "Langreo",
+                              "fontFamily": "$font",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "owok9",
+                          "name": "RED CAR OIL S.L precio Ver todas",
+                          "fill": "#08786E",
+                          "textGrowth": "fixed-width",
+                          "width": 58,
+                          "content": "1,589",
+                          "textAlign": "right",
+                          "fontFamily": "$mono",
+                          "fontSize": 11,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ZV9yB",
+                      "name": "BEROIL Ver todas",
+                      "width": "fill_container",
+                      "height": 36,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        9
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "zxZoN",
+                          "name": "BEROIL orden Ver todas",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": 18,
+                          "content": "2",
+                          "textAlign": "center",
+                          "fontFamily": "$mono",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "rDgAi",
+                          "name": "BEROIL info Ver todas",
+                          "width": "fill_container",
+                          "height": 24,
+                          "layout": "vertical",
+                          "gap": 1,
+                          "justifyContent": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "RIpSF",
+                              "name": "BEROIL nombre Ver todas",
+                              "fill": "$ink",
+                              "content": "BEROIL",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "750"
+                            },
+                            {
+                              "type": "text",
+                              "id": "TxX7y",
+                              "name": "BEROIL lugar Ver todas",
+                              "fill": "$muted",
+                              "content": "Tineo",
+                              "fontFamily": "$font",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "I1MeK2",
+                          "name": "BEROIL precio Ver todas",
+                          "fill": "#08786E",
+                          "textGrowth": "fixed-width",
+                          "width": 58,
+                          "content": "1,599",
+                          "textAlign": "right",
+                          "fontFamily": "$mono",
+                          "fontSize": 11,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "I38qYJ",
+                      "name": "ALCAMPO Ver todas",
+                      "width": "fill_container",
+                      "height": 36,
+                      "fill": "$surface",
+                      "cornerRadius": 7,
+                      "stroke": "$line",
+                      "gap": 8,
+                      "padding": [
+                        0,
+                        9
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UAaHI",
+                          "name": "ALCAMPO orden Ver todas",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": 18,
+                          "content": "3",
+                          "textAlign": "center",
+                          "fontFamily": "$mono",
+                          "fontSize": 9,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "peP8T",
+                          "name": "ALCAMPO info Ver todas",
+                          "width": "fill_container",
+                          "height": 24,
+                          "layout": "vertical",
+                          "gap": 1,
+                          "justifyContent": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fS2wF",
+                              "name": "ALCAMPO nombre Ver todas",
+                              "fill": "$ink",
+                              "content": "ALCAMPO",
+                              "fontFamily": "$font",
+                              "fontSize": 9,
+                              "fontWeight": "750"
+                            },
+                            {
+                              "type": "text",
+                              "id": "WtrJD",
+                              "name": "ALCAMPO lugar Ver todas",
+                              "fill": "$muted",
+                              "content": "Langreo",
+                              "fontFamily": "$font",
+                              "fontSize": 8,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "P29NGY",
+                          "name": "ALCAMPO precio Ver todas",
+                          "fill": "#08786E",
+                          "textGrowth": "fixed-width",
+                          "width": 58,
+                          "content": "1,619",
+                          "textAlign": "right",
+                          "fontFamily": "$mono",
+                          "fontSize": 11,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "CGo2c",
+      "name": "Estados vacíos",
+      "width": "fill_container",
+      "height": 300,
+      "fill": "$surface",
+      "cornerRadius": 10,
+      "stroke": "$line",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 20,
+      "children": [
+        {
+          "type": "frame",
+          "id": "TqqpP",
+          "name": "Cabecera estados vacíos",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Qv8Nr",
+              "name": "Título estados vacíos",
+              "fill": "$ink",
+              "content": "Estados sin datos",
+              "fontFamily": "$font",
+              "fontSize": 15,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "X1YqS",
+              "name": "Regla estados vacíos",
+              "fill": "$muted",
+              "content": "MISMA JERARQUÍA QUE LA APP · MENSAJE BREVE · SIN COLOR DECORATIVO",
+              "fontFamily": "$mono",
+              "fontSize": 9,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "CLU2u",
+          "name": "Variantes estados vacíos",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 14,
+          "children": [
+            {
+              "type": "frame",
+              "id": "vc79r",
+              "name": "Sin bajadas estado",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1
+              },
+              "layout": "vertical",
+              "gap": 14,
+              "padding": [
+                18,
+                10
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "F02vs",
+                  "x": 10,
+                  "y": 18,
+                  "name": "Sin bajadas icono contenedor",
+                  "enabled": false,
+                  "width": 30,
+                  "height": 30,
+                  "fill": "#00000000",
+                  "stroke": "$line",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "SFY8B",
+                      "name": "Sin bajadas icono",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "trending-down",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "I7mEB",
+                  "name": "Sin bajadas textos",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "r7uOrw",
+                      "name": "Sin bajadas título",
+                      "fill": "$ink",
+                      "content": "No hubo bajadas",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XWkB7",
+                      "name": "Sin bajadas descripción",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ninguna estación redujo el precio de Gasolina 95 durante los últimos 7 días.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bNMOb",
+                  "name": "Sin bajadas acción",
+                  "fill": "#00000000",
+                  "stroke": "$line",
+                  "gap": 7,
+                  "padding": [
+                    7,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w2zED",
+                      "name": "Sin bajadas acción texto",
+                      "fill": "$ink",
+                      "content": "Ver periodo de 30 días",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Hbcaj",
+                      "name": "Sin bajadas acción flecha",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zG4t4",
+                  "x": 10,
+                  "y": 159,
+                  "name": "Sin bajadas nota técnica",
+                  "enabled": false,
+                  "width": 200,
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "A4eTHh",
+                      "name": "Sin bajadas nota punto",
+                      "fill": "$positive",
+                      "width": 6,
+                      "height": 6
+                    },
+                    {
+                      "type": "text",
+                      "id": "UJhLP",
+                      "name": "Sin bajadas nota texto",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": 180,
+                      "content": "No ocultar la sección",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "650"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vbfc1",
+              "name": "Sin histórico estado",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1
+              },
+              "layout": "vertical",
+              "gap": 14,
+              "padding": [
+                18,
+                10
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Ckjoq",
+                  "x": 10,
+                  "y": 18,
+                  "name": "Sin histórico icono contenedor",
+                  "enabled": false,
+                  "width": 30,
+                  "height": 30,
+                  "fill": "#00000000",
+                  "stroke": "$line",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Y7rEpa",
+                      "name": "Sin histórico icono",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "history",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "K7Ci53",
+                  "name": "Sin histórico textos",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Gs6wI",
+                      "name": "Sin histórico título",
+                      "fill": "$ink",
+                      "content": "Aún no hay histórico",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "FBG8L",
+                      "name": "Sin histórico descripción",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Necesitamos al menos dos publicaciones para mostrar la evolución de esta estación.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gYJYi",
+                  "name": "Sin histórico acción",
+                  "fill": "#00000000",
+                  "stroke": "$line",
+                  "gap": 7,
+                  "padding": [
+                    7,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hryow",
+                      "name": "Sin histórico acción texto",
+                      "fill": "$ink",
+                      "content": "Volver a la media provincial",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "I1EG5X",
+                      "name": "Sin histórico acción flecha",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "tCtBT",
+                  "x": 10,
+                  "y": 174,
+                  "name": "Sin histórico nota técnica",
+                  "enabled": false,
+                  "width": 200,
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "EaLEq",
+                      "name": "Sin histórico nota punto",
+                      "fill": "$muted",
+                      "width": 6,
+                      "height": 6
+                    },
+                    {
+                      "type": "text",
+                      "id": "P9hkS",
+                      "name": "Sin histórico nota texto",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": 180,
+                      "content": "Conservar cabecera y filtros",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "650"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "T1gQnl",
+              "name": "Sin combustible estado",
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "$surface",
+              "stroke": "$line",
+              "strokeWidth": {
+                "top": 1
+              },
+              "layout": "vertical",
+              "gap": 14,
+              "padding": [
+                18,
+                10
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZEOcS",
+                  "x": 10,
+                  "y": 18,
+                  "name": "Sin combustible icono contenedor",
+                  "enabled": false,
+                  "width": 30,
+                  "height": 30,
+                  "fill": "#00000000",
+                  "stroke": "$line",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "rgk60",
+                      "name": "Sin combustible icono",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "fuel",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vMgXX",
+                  "name": "Sin combustible textos",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "a1dMT1",
+                      "name": "Sin combustible título",
+                      "fill": "$ink",
+                      "content": "No vende este combustible",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "GTBVB",
+                      "name": "Sin combustible descripción",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "RED CAR OIL S.L no publica precio de Gasolina 98. Puedes consultar otro combustible.",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qadDh",
+                  "name": "Sin combustible acción",
+                  "fill": "#00000000",
+                  "stroke": "$line",
+                  "gap": 7,
+                  "padding": [
+                    7,
+                    0
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zE2q0",
+                      "name": "Sin combustible acción texto",
+                      "fill": "$ink",
+                      "content": "Ver Gasolina 95",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "NgVVh",
+                      "name": "Sin combustible acción flecha",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "WzdtO",
+                  "x": 10,
+                  "y": 174,
+                  "name": "Sin combustible nota técnica",
+                  "enabled": false,
+                  "width": 200,
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "jjOWg",
+                      "name": "Sin combustible nota punto",
+                      "fill": "#8A6200",
+                      "width": 6,
+                      "height": 6
+                    },
+                    {
+                      "type": "text",
+                      "id": "pXDa6",
+                      "name": "Sin combustible nota texto",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": 180,
+                      "content": "Desactivar precio, no la estación",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "650"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

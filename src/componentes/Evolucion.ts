@@ -9,8 +9,16 @@ function eur(milesimas: number | null): string {
   return milesimas === null ? 'sin dato' : `${(milesimas / 1000).toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €/L`;
 }
 
+function eurTooltip(milesimas: number | null): string {
+  return milesimas === null ? 'sin dato' : `${(milesimas / 1000).toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €`;
+}
+
 function fecha(iso: string): string {
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+}
+
+function fechaTooltip(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function centimos(milesimas: number): string {
@@ -61,31 +69,45 @@ function dibujarGrafico(svg: SVGSVGElement, principal: PuntoEvolucion[], secunda
   const mostrarIndice = (indice: number, posicionX?: number, posicionY?: number): void => {
     indiceActivo = Math.max(0, Math.min(principal.length - 1, indice));
     const punto = principal[indiceActivo]!; const comparador = secundaria[indiceActivo]?.milesimas ?? null;
-    const tituloTooltip = document.createElement('strong'); tituloTooltip.textContent = fecha(punto.fecha);
-    const filaPrincipal = document.createElement('span'); filaPrincipal.textContent = `${etiquetas[0]} · ${eur(punto.milesimas)}`;
-    const filaSecundaria = document.createElement('span'); filaSecundaria.textContent = `${etiquetas[1]} · ${eur(comparador)}`;
+    const tituloTooltip = document.createElement('strong'); tituloTooltip.className = 'evolucion-tooltip__fecha'; tituloTooltip.textContent = fechaTooltip(punto.fecha);
+    const crearFila = (etiqueta: string, valor: string, secundariaFila = false): HTMLSpanElement => {
+      const fila = document.createElement('span'); fila.className = secundariaFila ? 'evolucion-tooltip__fila evolucion-tooltip__fila--secundaria' : 'evolucion-tooltip__fila';
+      const nombre = document.createElement('span'); nombre.textContent = etiqueta;
+      const cifra = document.createElement('b'); cifra.textContent = valor;
+      fila.append(nombre, cifra); return fila;
+    };
+    const filaPrincipal = crearFila(etiquetas[0], eurTooltip(punto.milesimas));
+    const filaSecundaria = crearFila(etiquetas[1], eurTooltip(comparador), true);
     tooltip.replaceChildren(tituloTooltip, filaPrincipal, filaSecundaria);
     const anterior = principal[indiceActivo - 1]?.milesimas ?? null;
-    if (punto.milesimas !== null && anterior !== null) { const variacion = document.createElement('small'); const diferencia = punto.milesimas - anterior; variacion.textContent = `${diferencia > 0 ? '+' : diferencia < 0 ? '−' : ''}${centimos(diferencia)} cts desde el cierre anterior`; tooltip.append(variacion); }
+    if (punto.milesimas !== null && anterior !== null) { const variacion = document.createElement('small'); variacion.className = 'evolucion-tooltip__cambio'; const diferencia = punto.milesimas - anterior; variacion.textContent = `${diferencia > 0 ? '+' : diferencia < 0 ? '−' : ''}${centimos(diferencia)} cts desde ayer`; tooltip.append(variacion); }
     tooltip.hidden = false;
-    const caja = svg.getBoundingClientRect(); const pxCss = posicionX ?? x(indiceActivo) / ancho * caja.width; const pyCss = posicionY ?? (punto.milesimas === null ? alto / 2 : y(punto.milesimas)) / alto * caja.height;
-    tooltip.style.left = `${Math.max(8, Math.min(caja.width - 186, pxCss - (pxCss > caja.width * .65 ? 178 : 0)))}px`; tooltip.style.top = `${Math.max(8, Math.min(caja.height - 94, pyCss - 92))}px`;
+    const caja = svg.getBoundingClientRect();
+    const matriz = svg.getScreenCTM();
+    const posicionPunto = matriz ? new DOMPoint(x(indiceActivo), punto.milesimas === null ? alto / 2 : y(punto.milesimas)).matrixTransform(matriz) : null;
+    const pxCss = posicionX ?? (posicionPunto ? posicionPunto.x - caja.left : x(indiceActivo) / ancho * caja.width);
+    const pyCss = posicionY ?? (posicionPunto ? posicionPunto.y - caja.top : (punto.milesimas === null ? alto / 2 : y(punto.milesimas)) / alto * caja.height);
+    const anchoTooltip = tooltip.offsetWidth;
+    const altoTooltip = tooltip.offsetHeight;
+    tooltip.style.left = `${Math.max(8, Math.min(caja.width - anchoTooltip - 8, pxCss - (pxCss > caja.width * .65 ? anchoTooltip + 10 : 0)))}px`;
+    tooltip.style.top = `${Math.max(8, Math.min(caja.height - altoTooltip - 8, pyCss - altoTooltip - 10))}px`;
     guia.setAttribute('x1', String(x(indiceActivo))); guia.setAttribute('x2', String(x(indiceActivo)));
     marcador.setAttribute('cx', String(x(indiceActivo))); marcador.setAttribute('cy', String(punto.milesimas === null ? alto - abajo : y(punto.milesimas))); mostrarGuia(true);
   };
   const mostrar = (evento: PointerEvent): void => {
-    const caja = svg.getBoundingClientRect();
-    const px = (evento.clientX - caja.left) / caja.width * ancho;
-    const py = (evento.clientY - caja.top) / caja.height * alto;
+    const matriz = svg.getScreenCTM(); if (!matriz) return;
+    const puntoPantalla = new DOMPoint(evento.clientX, evento.clientY).matrixTransform(matriz.inverse());
+    const px = puntoPantalla.x;
+    const py = puntoPantalla.y;
     if (py < arriba || py > alto - abajo) { if (!fijado) { tooltip.hidden = true; mostrarGuia(false); } return; }
     const indice = Math.max(0, Math.min(principal.length - 1, Math.round((px - izquierda) / (ancho - izquierda - derecha) * (principal.length - 1))));
-    mostrarIndice(indice, evento.clientX - caja.left, evento.clientY - caja.top);
+    mostrarIndice(indice);
   };
   svg.tabIndex = 0;
   svg.onpointermove = mostrar;
   svg.onpointerleave = () => { if (!fijado) { tooltip.hidden = true; mostrarGuia(false); } };
   svg.onclick = (evento) => {
-    const caja = svg.getBoundingClientRect(); const py = ((evento as PointerEvent).clientY - caja.top) / caja.height * alto;
+    const matriz = svg.getScreenCTM(); if (!matriz) return; const py = new DOMPoint((evento as PointerEvent).clientX, (evento as PointerEvent).clientY).matrixTransform(matriz.inverse()).y;
     if (py < arriba || py > alto - abajo) { fijado = false; tooltip.hidden = true; mostrarGuia(false); return; }
     fijado = !fijado; mostrar(evento as PointerEvent);
   };
@@ -121,6 +143,8 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const botonesPeriodo = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-periodo]')];
     const resultados = contenedor.querySelector<HTMLElement>('[data-resultados-estacion]')!;
     const buscar = contenedor.querySelector<HTMLInputElement>('[data-buscar-estacion]')!;
+    const resumenBusqueda = contenedor.querySelector<HTMLOutputElement>('[data-busqueda-resumen]')!;
+    const limpiarBusqueda = contenedor.querySelector<HTMLButtonElement>('[data-limpiar-busqueda]')!;
     const sheet = contenedor.querySelector<HTMLElement>('[data-sheet]')!;
     const fondoSheet = contenedor.querySelector<HTMLElement>('[data-sheet-fondo]')!;
     let focoAntesDelSheet: HTMLElement | null = null;
@@ -132,7 +156,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     sheet.onkeydown = (evento) => { if (evento.key === 'Escape') { evento.preventDefault(); cerrarSheet(); } };
 
     const actualizarUrl = (): void => { const url = new URL(location.href); if (estacionActiva) url.searchParams.set('estacion', estacionActiva.id); else url.searchParams.delete('estacion'); history.replaceState(null, '', url); };
-    const abrirEstacion = (estacion: Estacion): void => { estacionActiva = estacion; actualizarUrl(); buscar.value = ''; resultados.replaceChildren(); render(); };
+    const abrirEstacion = (estacion: Estacion): void => { estacionActiva = estacion; actualizarUrl(); buscar.value = ''; resultados.replaceChildren(); resumenBusqueda.hidden = true; limpiarBusqueda.hidden = true; render(); };
     const pintarRanking = (destino: string, grupos: GrupoCambio[]): boolean => {
       const lista = contenedor.querySelector<HTMLElement>(destino)!; lista.replaceChildren();
       lista.parentElement!.hidden = false;
@@ -149,6 +173,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     };
 
     const render = (): void => {
+      const esMovil = window.matchMedia('(max-width: 760px)').matches;
       botonesCombustible.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.clave === combustible)));
       botonesPeriodo.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.periodo) === periodo)));
       const mediaProvincia = serieMedia(historico.provincia, historico.fechas, combustible);
@@ -206,10 +231,12 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = puesto > 0 ? `${puesto}ª de ${comparables.length}` : 'No comparable';
       } else {
-        etiquetaMedia.textContent = 'Media provincial'; etiquetaMinimo.textContent = 'Más barata'; etiquetaMuestra.textContent = 'Cobertura';
+        etiquetaMedia.textContent = esMovil ? 'Media' : 'Media provincial';
+        etiquetaMinimo.textContent = esMovil ? 'Mínimo' : 'Más barata';
+        etiquetaMuestra.textContent = esMovil ? 'Estaciones' : 'Cobertura';
         contenedor.querySelector<HTMLElement>('[data-media]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(ultimoAgregado[2]);
-        contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = window.matchMedia('(max-width: 760px)').matches ? String(ultimoAgregado[1]) : `${ultimoAgregado[1]} estaciones`;
+        contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = esMovil ? String(ultimoAgregado[1]) : `${ultimoAgregado[1]} estaciones`;
       }
       contenedor.querySelector<HTMLElement>('[data-minimo-contexto]')!.textContent = estacionActiva ? 'media de la provincia' : ultimoAgregado[2] === null || mediaProvincia.at(-1)?.milesimas === null ? '' : `−${centimos((mediaProvincia.at(-1)!.milesimas ?? 0) - ultimoAgregado[2])} cts vs. media`;
       contenedor.querySelector<HTMLElement>('[data-muestra-contexto]')!.textContent = explicacion ? `${explicacion.amplitud.alineadas} con ${cambio && cambio.diferenciaMilesimas < 0 ? 'bajada' : 'subida'}` : '';
@@ -250,7 +277,9 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-comparacion-nombre]')!.textContent = estacionActiva.rotulo;
         contenedor.querySelector<HTMLElement>('[data-comparacion-lugar]')!.textContent = `${cajaDeTitulo(estacionActiva.municipio)} · ${cajaDeTitulo(estacionActiva.direccion)}`;
         contenedor.querySelector<HTMLElement>('[data-comparacion-precio]')!.textContent = eur(precioEstacion);
-        contenedor.querySelector<HTMLElement>('[data-comparacion-diferencia]')!.textContent = diferencia === null ? 'No comparable' : `${diferencia > 0 ? '+' : '−'}${centimos(diferencia)} cts/L`;
+        const comparacionDiferencia = contenedor.querySelector<HTMLElement>('[data-comparacion-diferencia]')!;
+        comparacionDiferencia.textContent = diferencia === null ? 'No comparable' : `${diferencia > 0 ? '+' : '−'}${centimos(diferencia)} cts/L`;
+        comparacionDiferencia.dataset.sentido = diferencia === null ? 'neutro' : diferencia > 0 ? 'caro' : 'barato';
         contenedor.querySelector<HTMLElement>('[data-comparacion-deposito]')!.textContent = diferencia === null ? '' : `${(Math.abs(diferencia) / 1000 * 50).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € ${diferencia <= 0 ? 'menos' : 'más'} por 50 L`;
         const anchoBarra = (valor: number | null): string => valor === null || minimoActual === null || maximoActual === null || maximoActual === minimoActual ? '50%' : `${45 + (valor - minimoActual) / (maximoActual - minimoActual) * 50}%`;
         contenedor.querySelector<HTMLElement>('[data-barra-estacion]')!.style.width = anchoBarra(precioEstacion);
@@ -260,10 +289,10 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-valor-media]')!.textContent = eur(mediaActual);
         contenedor.querySelector<HTMLElement>('[data-valor-maximo]')!.textContent = eur(maximoActual);
       }
-      contenedor.querySelector<HTMLElement>('[data-leyenda-principal]')!.textContent = estacionActiva ? 'Estación' : 'Media provincial';
-      contenedor.querySelector<HTMLElement>('[data-leyenda-secundaria]')!.textContent = estacionActiva ? 'Media provincial' : 'Precio mínimo';
+      contenedor.querySelector<HTMLElement>('[data-leyenda-principal]')!.textContent = estacionActiva ? 'Estación' : esMovil ? 'Media' : 'Media provincial';
+      contenedor.querySelector<HTMLElement>('[data-leyenda-secundaria]')!.textContent = estacionActiva ? (esMovil ? 'Media' : 'Media provincial') : esMovil ? 'Mínimo' : 'Precio mínimo';
       const tooltip = contenedor.querySelector<HTMLOutputElement>('[data-tooltip]')!;
-      dibujarGrafico(contenedor.querySelector<SVGSVGElement>('.evolucion-grafico')!, tramo, contexto, tooltip, estacionActiva ? [estacionActiva.rotulo, 'Media provincial'] : ['Media provincial', 'Precio mínimo']);
+      dibujarGrafico(contenedor.querySelector<SVGSVGElement>('.evolucion-grafico')!, tramo, contexto, tooltip, estacionActiva ? ['Estación', 'Media'] : ['Media', 'Mínimo']);
       const cambios = cambiosDeEstaciones(historico, combustible, periodo);
       pintarRanking('[data-bajadas]', agruparCambios(cambios.filter((c) => c.diferenciaMilesimas < 0), estaciones));
       pintarRanking('[data-subidas]', agruparCambios(cambios.filter((c) => c.diferenciaMilesimas > 0).reverse(), estaciones));
@@ -286,14 +315,20 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     };
     botonesCombustible.forEach((b) => b.onclick = () => { combustible = b.dataset.clave as ClavePrecio; render(); });
     botonesPeriodo.forEach((b) => b.onclick = () => { periodo = Number(b.dataset.periodo) as 7 | 30 | 90; render(); });
-    buscar.oninput = () => {
-      const q = buscar.value.trim().toLocaleLowerCase('es'); resultados.replaceChildren(); if (q.length < 2) return;
-      estaciones.filter((e) => `${e.rotulo} ${e.municipio} ${e.direccion}`.toLocaleLowerCase('es').includes(q)).slice(0, 8).forEach((estacion) => {
+    const actualizarBusqueda = (): void => {
+      const consulta = buscar.value.trim(); const q = consulta.toLocaleLowerCase('es'); resultados.replaceChildren();
+      limpiarBusqueda.hidden = consulta.length === 0;
+      if (q.length < 2) { resumenBusqueda.hidden = true; resumenBusqueda.textContent = ''; return; }
+      const coincidencias = estaciones.filter((e) => `${e.rotulo} ${e.municipio} ${e.direccion}`.toLocaleLowerCase('es').includes(q));
+      resumenBusqueda.textContent = `“${consulta}” · ${coincidencias.length} ${coincidencias.length === 1 ? 'resultado' : 'resultados'}`; resumenBusqueda.hidden = false;
+      coincidencias.slice(0, 8).forEach((estacion) => {
         const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button';
         const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = `${cajaDeTitulo(estacion.municipio)} · ${cajaDeTitulo(estacion.direccion)}`; identidad.append(nombre, lugar);
         const precio = document.createElement('b'); precio.textContent = estacion.precios[combustible] === null ? 'No vende' : estacion.precios[combustible]!.toLocaleString('es-ES', { minimumFractionDigits: 3 }); boton.append(identidad, precio); boton.onclick = () => abrirEstacion(estacion); li.append(boton); resultados.append(li);
       });
     };
+    buscar.oninput = actualizarBusqueda;
+    limpiarBusqueda.onclick = () => { buscar.value = ''; actualizarBusqueda(); buscar.focus(); };
     const buscarSheet = contenedor.querySelector<HTMLInputElement>('[data-buscar-estacion-sheet]')!;
     buscarSheet.oninput = () => { const q = buscarSheet.value.trim().toLocaleLowerCase('es'); contenedor.querySelectorAll<HTMLElement>('[data-sheet-lista] > li').forEach((li) => { li.hidden = q.length > 0 && !li.textContent!.toLocaleLowerCase('es').includes(q); }); };
     contenedor.querySelector<HTMLButtonElement>('[data-cerrar-estacion]')!.onclick = () => { estacionActiva = null; actualizarUrl(); render(); };

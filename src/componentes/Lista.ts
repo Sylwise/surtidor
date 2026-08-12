@@ -90,7 +90,7 @@ function crearCabecera(estado: EstadoApp, contador: number): HTMLDivElement {
   filtro.classList.toggle('controles__pestana--activa', estado.soloAbiertas);
   filtro.setAttribute('aria-pressed', String(estado.soloAbiertas));
   filtro.setAttribute('aria-label', 'Filtrar solo estaciones abiertas ahora');
-  filtro.textContent = 'Abiertas';
+  filtro.textContent = 'Abiertas ahora';
   filtro.addEventListener('click', () => actualizarEstado({ soloAbiertas: !estado.soloAbiertas }));
 
   cabecera.append(titulo, document.createTextNode(' · '), contadorEl, document.createTextNode(' · '), filtro);
@@ -196,8 +196,15 @@ function crearEnlacesCierre(estado: EstadoApp, enlacesEstaticos?: EnlacesEstatic
 /** Monta la lista en `contenedor` y la mantiene sincronizada con el estado.
  *  Devuelve una función para desuscribirse, por si el llamador la necesita. */
 export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesEstaticos): () => void {
+  const portalCabecera = document.getElementById('lista-cabecera');
+  const ponerCabecera = (cabecera: HTMLElement): void => {
+    if (portalCabecera) portalCabecera.replaceChildren(cabecera);
+    else contenedor.append(cabecera);
+  };
+
   function render(estado: EstadoApp): void {
     contenedor.innerHTML = '';
+    portalCabecera?.replaceChildren();
     contenedor.setAttribute('aria-busy', estado.cargando ? 'true' : 'false');
 
     if (estado.cargando && estado.estaciones.length === 0) {
@@ -224,7 +231,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
 
     // RF-42: ninguna estación de la zona vende el combustible elegido.
     if (ordenadas.length === 0) {
-      contenedor.append(crearCabecera(estado, 0));
+      ponerCabecera(crearCabecera(estado, 0));
       const nombreZona = estado.zonaNombre || 'esta zona';
       contenedor.append(
         crearAviso(`Ninguna estación de ${nombreZona} vende ${ETIQUETA[estado.combustible].toLowerCase()}.`)
@@ -242,7 +249,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
           compararPorDistancia(estado.ubicacionUsuario!, a.estacion, b.estacion))
       : visiblesPorApertura;
 
-    contenedor.append(crearCabecera(estado, visibles.length));
+    ponerCabecera(crearCabecera(estado, visibles.length));
 
     // Filtro sin resultados.
     if (visibles.length === 0) {
@@ -262,7 +269,15 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
     const filas = document.createElement('ol');
     filas.className = 'lista__filas';
 
-    for (const { estacion, puesto, precio, banda } of visibles) {
+    // La ficha ya representa por completo la estación activa. Repetirla como
+    // primera fila crea dos blancos interactivos para la misma acción y
+    // rompe la continuidad del ranking mostrada en los frames (la lista
+    // debe continuar desde el siguiente puesto).
+    const filasVisibles = estado.estacionId
+      ? visibles.filter(({ estacion }) => estacion.id !== estado.estacionId)
+      : visibles;
+
+    for (const { estacion, puesto, precio, banda } of filasVisibles) {
       const abierta = estaAbierta(estacion.horario, new Date());
 
       const item = document.createElement('li');

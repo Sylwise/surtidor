@@ -1,0 +1,1491 @@
+{
+  "type": "frame",
+  "id": "MLRlB",
+  "x": 2020,
+  "y": 3064,
+  "name": "Principal · Hoy Móvil",
+  "clip": true,
+  "width": 390,
+  "height": 844,
+  "fill": "$paper",
+  "layout": "none",
+  "children": [
+    {
+      "type": "frame",
+      "id": "pZhd0",
+      "x": 0,
+      "y": 0,
+      "name": "Cabecera principal móvil",
+      "width": 390,
+      "height": 56,
+      "fill": "$paper",
+      "stroke": "$line",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "padding": [
+        0,
+        14
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "v3mRy",
+          "name": "Marca principal móvil",
+          "gap": 7,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "iAXlW",
+              "name": "Icono principal móvil",
+              "width": 19,
+              "height": 19,
+              "icon": "local_gas_station",
+              "library": "Material Symbols Rounded",
+              "fill": "$ink"
+            },
+            {
+              "type": "text",
+              "id": "l7bKD",
+              "name": "Surtidor principal móvil",
+              "fill": "$ink",
+              "content": "Surtidor",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "750"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "aINbQ",
+          "name": "Acciones principal móvil",
+          "gap": 7,
+          "children": [
+            {
+              "type": "frame",
+              "id": "SrHFy",
+              "name": "Zona principal móvil",
+              "fill": "$surface",
+              "cornerRadius": 7,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 5,
+              "padding": [
+                8,
+                9
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "F54xx",
+                  "name": "Asturias móvil principal",
+                  "fill": "$ink",
+                  "content": "ASTURIAS",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.5
+                },
+                {
+                  "type": "icon",
+                  "id": "A7nvc",
+                  "name": "Desplegar zona móvil principal",
+                  "width": 12,
+                  "height": 12,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$ink"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "fVtbt",
+              "name": "Hoy móvil principal",
+              "width": 34,
+              "height": 34,
+              "fill": "$ink",
+              "cornerRadius": 7,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "wnnxV",
+                  "name": "Icono Hoy móvil principal",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "newspaper",
+                  "library": "lucide",
+                  "fill": "$paper"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "TcLYk",
+      "x": 0,
+      "y": 56,
+      "name": "Filtros principal móvil",
+      "width": 390,
+      "height": 52,
+      "fill": "$paper",
+      "stroke": "$line",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "gap": 6,
+      "padding": [
+        7,
+        12
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "hOFWj",
+          "name": "95 filtro móvil principal",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$ink",
+          "cornerRadius": 6,
+          "stroke": "$ink",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "kaVe4",
+              "name": "95 filtro texto móvil principal",
+              "fill": "$paper",
+              "content": "95",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "750"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "N1ovX",
+          "name": "Diésel filtro móvil principal",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 6,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "X56nG",
+              "name": "Diésel filtro texto móvil principal",
+              "fill": "$ink",
+              "content": "Diésel",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "750"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "z6agz",
+          "name": "98 filtro móvil principal",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 6,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "ekJHx",
+              "name": "98 filtro texto móvil principal",
+              "fill": "$ink",
+              "content": "98",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "750"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Rrw5Q",
+          "name": "Diésel + filtro móvil principal",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 6,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "IDQg6",
+              "name": "Diésel + filtro texto móvil principal",
+              "fill": "$ink",
+              "content": "Diésel +",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "750"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Tb8Pd",
+      "x": 0,
+      "y": 108,
+      "name": "Mapa móvil principal",
+      "clip": true,
+      "width": 390,
+      "height": 296,
+      "fill": "#DDE5E3",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "e0SAH",
+          "x": 0,
+          "y": 0,
+          "name": "Costa móvil principal",
+          "fill": "#C4D0D2",
+          "width": 390,
+          "height": 75
+        },
+        {
+          "type": "rectangle",
+          "id": "scxue",
+          "x": 20,
+          "y": 110,
+          "name": "Carretera móvil principal",
+          "fill": "#F7F8F7",
+          "width": 350,
+          "height": 2
+        },
+        {
+          "type": "rectangle",
+          "id": "iNQLs",
+          "x": 55,
+          "y": 190,
+          "name": "Carretera móvil principal",
+          "fill": "#F7F8F7",
+          "width": 300,
+          "height": 2
+        },
+        {
+          "type": "rectangle",
+          "id": "s6CXT",
+          "x": 100,
+          "y": 70,
+          "name": "Carretera móvil principal",
+          "fill": "#F7F8F7",
+          "width": 2,
+          "height": 220
+        },
+        {
+          "type": "rectangle",
+          "id": "t0cgI3",
+          "x": 260,
+          "y": 65,
+          "name": "Carretera móvil principal",
+          "fill": "#F7F8F7",
+          "width": 2,
+          "height": 220
+        },
+        {
+          "type": "frame",
+          "id": "qcuLj",
+          "x": 90,
+          "y": 150,
+          "name": "Marcador móvil 1,589",
+          "fill": "$ink",
+          "cornerRadius": 5,
+          "stroke": "$surface",
+          "strokeWidth": 2,
+          "padding": [
+            5,
+            7
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "sUw2e",
+              "name": "Marcador móvil texto 1,589",
+              "fill": "$surface",
+              "content": "1,589",
+              "fontFamily": "$mono",
+              "fontSize": 9,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Wzuji",
+          "x": 240,
+          "y": 120,
+          "name": "Marcador móvil 1,637",
+          "fill": "#08786E",
+          "cornerRadius": 5,
+          "stroke": "$surface",
+          "strokeWidth": 2,
+          "padding": [
+            5,
+            7
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "qk4on",
+              "name": "Marcador móvil texto 1,637",
+              "fill": "$surface",
+              "content": "1,637",
+              "fontFamily": "$mono",
+              "fontSize": 9,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "d6pMOK",
+          "x": 300,
+          "y": 220,
+          "name": "Marcador móvil 1,675",
+          "fill": "#08786E",
+          "cornerRadius": 5,
+          "stroke": "$surface",
+          "strokeWidth": 2,
+          "padding": [
+            5,
+            7
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "vOcXB",
+              "name": "Marcador móvil texto 1,675",
+              "fill": "$surface",
+              "content": "1,675",
+              "fontFamily": "$mono",
+              "fontSize": 9,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "D8iMy",
+          "x": 160,
+          "y": 245,
+          "name": "Marcador móvil 1,629",
+          "fill": "#08786E",
+          "cornerRadius": 5,
+          "stroke": "$surface",
+          "strokeWidth": 2,
+          "padding": [
+            5,
+            7
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "r6K7L",
+              "name": "Marcador móvil texto 1,629",
+              "fill": "$surface",
+              "content": "1,629",
+              "fontFamily": "$mono",
+              "fontSize": 9,
+              "fontWeight": "800"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ZSVH0",
+      "x": 0,
+      "y": 382,
+      "name": "Hoja estaciones móvil",
+      "width": 390,
+      "height": 462,
+      "fill": "$paper",
+      "cornerRadius": [
+        14,
+        14,
+        0,
+        0
+      ],
+      "stroke": "$line",
+      "strokeWidth": {
+        "top": 1
+      },
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#16323B24",
+        "offset": {
+          "x": 0,
+          "y": -8
+        },
+        "blur": 22
+      },
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "HmadF",
+          "name": "Asa hoja móvil",
+          "width": "fill_container",
+          "height": 28,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 99,
+              "id": "rSAau",
+              "name": "Indicador asa móvil",
+              "fill": "#B8C4C5",
+              "width": 42,
+              "height": 4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "unFVb",
+          "name": "Estación seleccionada móvil",
+          "width": "fill_container",
+          "height": 196,
+          "fill": "$ink",
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            8,
+            16,
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "X5gHv",
+              "name": "Cabecera estación móvil principal",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "i6trl2",
+                  "name": "Identidad estación móvil principal",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "LLyqf",
+                      "name": "Nombre estación móvil principal",
+                      "fill": "$paper",
+                      "content": "RED CAR OIL S.L",
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tsgN6",
+                      "name": "Dirección estación móvil principal",
+                      "fill": "#AEBBBE",
+                      "content": "Langreo · Abierta 24 h",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "cWcmm",
+                  "name": "Puesto estación móvil principal",
+                  "fill": "$accent",
+                  "content": "#1",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ugRXB",
+              "name": "Precio estación móvil principal",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "prF9z",
+                  "name": "Precio grande móvil principal",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RZgt7",
+                      "name": "Combustible móvil principal",
+                      "fill": "#AEBBBE",
+                      "content": "GASOLINA 95",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "800",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "text",
+                      "id": "xyQ5Y",
+                      "name": "Precio móvil principal",
+                      "fill": "$accent",
+                      "content": "1,589 €/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 25,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "GqfEt",
+                  "name": "Ahorro móvil principal",
+                  "fill": "$paper",
+                  "content": "Ahorras 5,38 € · 20 L",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Lqgdg",
+              "name": "Botones estación móvil principal",
+              "width": "fill_container",
+              "height": 38,
+              "gap": 7,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZWGit",
+                  "name": "Cómo llegar móvil principal",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$accent",
+                  "cornerRadius": 7,
+                  "stroke": "$accent",
+                  "strokeWidth": 1,
+                  "gap": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "L2iLJ",
+                      "name": "Cómo llegar icono móvil principal",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "navigation",
+                      "library": "lucide",
+                      "fill": "$ink"
+                    },
+                    {
+                      "type": "text",
+                      "id": "xHhE8",
+                      "name": "Cómo llegar texto móvil principal",
+                      "fill": "$ink",
+                      "content": "Cómo llegar",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "aP3w0",
+                  "name": "Evolución móvil principal",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#FFFFFF12",
+                  "cornerRadius": 7,
+                  "stroke": "#FFFFFF2A",
+                  "strokeWidth": 1,
+                  "gap": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "M5be6q",
+                      "name": "Evolución icono móvil principal",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "chart-no-axes-combined",
+                      "library": "lucide",
+                      "fill": "$paper"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Slh8f",
+                      "name": "Evolución texto móvil principal",
+                      "fill": "$paper",
+                      "content": "Evolución",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wl8CD",
+          "name": "Cabecera lista móvil principal",
+          "width": "fill_container",
+          "height": 42,
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            14
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "BJnf4",
+              "name": "Más baratas móvil principal",
+              "fill": "$muted",
+              "content": "MÁS BARATAS · 225",
+              "fontFamily": "$font",
+              "fontSize": 9,
+              "fontWeight": "800",
+              "letterSpacing": 0.9
+            },
+            {
+              "type": "text",
+              "id": "knX4A",
+              "name": "Abiertas móvil principal",
+              "fill": "$positive",
+              "content": "● Abiertas",
+              "fontFamily": "$font",
+              "fontSize": 9,
+              "fontWeight": "700"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ZQQCT",
+          "name": "Lista móvil principal",
+          "clip": true,
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            4,
+            12
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "O6OI0",
+              "name": "BEROIL fila móvil principal",
+              "width": "fill_container",
+              "height": 58,
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "padding": [
+                0,
+                5
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JVVlH",
+                  "name": "BEROIL info móvil principal",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dqej2",
+                      "name": "BEROIL nombre móvil principal",
+                      "fill": "$ink",
+                      "content": "BEROIL",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pHg8w",
+                      "name": "BEROIL lugar móvil principal",
+                      "fill": "$muted",
+                      "content": "Tineo",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "pkq18",
+                  "name": "BEROIL precio móvil principal",
+                  "fill": "#08786E",
+                  "cornerRadius": 999,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Dpr7j",
+                      "name": "BEROIL precio texto móvil principal",
+                      "fill": "$surface",
+                      "content": "1,599",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oRZHB",
+              "name": "ALCAMPO fila móvil principal",
+              "width": "fill_container",
+              "height": 58,
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "padding": [
+                0,
+                5
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "qxvmD",
+                  "name": "ALCAMPO info móvil principal",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "R1xA0p",
+                      "name": "ALCAMPO nombre móvil principal",
+                      "fill": "$ink",
+                      "content": "ALCAMPO",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "text",
+                      "id": "z6xgZ",
+                      "name": "ALCAMPO lugar móvil principal",
+                      "fill": "$muted",
+                      "content": "Langreo",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "kPvJo",
+                  "name": "ALCAMPO precio móvil principal",
+                  "fill": "#08786E",
+                  "cornerRadius": 999,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "T6w1l",
+                      "name": "ALCAMPO precio texto móvil principal",
+                      "fill": "$surface",
+                      "content": "1,619",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ssngn",
+              "name": "DISMUSA MASYMAS fila móvil principal",
+              "width": "fill_container",
+              "height": 58,
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "padding": [
+                0,
+                5
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "RaEYO",
+                  "name": "DISMUSA MASYMAS info móvil principal",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Lvw6g",
+                      "name": "DISMUSA MASYMAS nombre móvil principal",
+                      "fill": "$ink",
+                      "content": "DISMUSA MASYMAS",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SaVCn",
+                      "name": "DISMUSA MASYMAS lugar móvil principal",
+                      "fill": "$muted",
+                      "content": "Riaño",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gFDm4",
+                  "name": "DISMUSA MASYMAS precio móvil principal",
+                  "fill": "#08786E",
+                  "cornerRadius": 999,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "crCkW",
+                      "name": "DISMUSA MASYMAS precio texto móvil principal",
+                      "fill": "$surface",
+                      "content": "1,629",
+                      "fontFamily": "$mono",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "rectangle",
+      "id": "Mpiom",
+      "x": 0,
+      "y": 0,
+      "name": "Fondo modal Hoy móvil",
+      "fill": "#16323B66",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "type": "frame",
+      "id": "qQzky",
+      "x": 0,
+      "y": 268,
+      "name": "Panel Hoy móvil",
+      "width": 390,
+      "height": 576,
+      "fill": "$surface",
+      "cornerRadius": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "effect": {
+        "type": "shadow",
+        "shadowType": "outer",
+        "color": "#16323B30",
+        "offset": {
+          "x": 0,
+          "y": -8
+        },
+        "blur": 24
+      },
+      "layout": "vertical",
+      "gap": 5,
+      "padding": [
+        12,
+        16,
+        20,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "Q2s2A",
+          "name": "Asa Hoy móvil",
+          "width": "fill_container",
+          "height": 22,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 99,
+              "id": "fLqZZ",
+              "name": "Indicador Hoy móvil",
+              "fill": "#B8C4C5",
+              "width": 40,
+              "height": 4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LNMX6",
+          "name": "Cabecera Hoy móvil",
+          "width": "fill_container",
+          "padding": [
+            4,
+            2,
+            10,
+            2
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "zVVll",
+              "name": "Títulos Hoy móvil",
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JkhE7",
+                  "name": "Análisis Hoy móvil",
+                  "fill": "$muted",
+                  "content": "ANÁLISIS DE HOY",
+                  "fontFamily": "$font",
+                  "fontSize": 8,
+                  "fontWeight": "800",
+                  "letterSpacing": 1
+                },
+                {
+                  "type": "text",
+                  "id": "faCT3",
+                  "name": "Descubre Hoy móvil",
+                  "fill": "$ink",
+                  "content": "Descubre los datos",
+                  "fontFamily": "$font",
+                  "fontSize": 19,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "lZHiR",
+              "name": "Cerrar Hoy móvil panel",
+              "width": 18,
+              "height": 18,
+              "icon": "x",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "A2kOmr",
+          "name": "Evolución de precios móvil Hoy",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#FFF7DF",
+          "cornerRadius": 7,
+          "stroke": "$line",
+          "gap": 11,
+          "padding": [
+            0,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "tb6mM",
+              "name": "Evolución de precios icono móvil Hoy",
+              "width": 17,
+              "height": 17,
+              "icon": "chart-no-axes-combined",
+              "library": "lucide",
+              "fill": "#8A6200"
+            },
+            {
+              "type": "frame",
+              "id": "pkhpz",
+              "name": "Evolución de precios textos móvil Hoy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Y5FNJ",
+                  "name": "Evolución de precios título móvil Hoy",
+                  "fill": "$ink",
+                  "content": "Evolución de precios",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "dFXpY",
+                  "name": "Evolución de precios descripción móvil Hoy",
+                  "fill": "$muted",
+                  "content": "Cambios en los últimos 30 días",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "vwipo",
+              "name": "Evolución de precios flecha móvil Hoy",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "s6pk7",
+          "name": "Provincias más baratas móvil Hoy",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#00000000",
+          "cornerRadius": 7,
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 11,
+          "padding": [
+            0,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "H6W4a",
+              "name": "Provincias más baratas icono móvil Hoy",
+              "width": 17,
+              "height": 17,
+              "icon": "map",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "frame",
+              "id": "rRrEV",
+              "name": "Provincias más baratas textos móvil Hoy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Nzpyu",
+                  "name": "Provincias más baratas título móvil Hoy",
+                  "fill": "$ink",
+                  "content": "Provincias más baratas",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "emARr",
+                  "name": "Provincias más baratas descripción móvil Hoy",
+                  "fill": "$muted",
+                  "content": "Compara medias y mínimos",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "sMTFU",
+              "name": "Provincias más baratas flecha móvil Hoy",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "e4TrsB",
+          "name": "Cuánto puedes ahorrar móvil Hoy",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#00000000",
+          "cornerRadius": 7,
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 11,
+          "padding": [
+            0,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "V40cT2",
+              "name": "Cuánto puedes ahorrar icono móvil Hoy",
+              "width": 17,
+              "height": 17,
+              "icon": "piggy-bank",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "frame",
+              "id": "SWBP2",
+              "name": "Cuánto puedes ahorrar textos móvil Hoy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "fPT7F",
+                  "name": "Cuánto puedes ahorrar título móvil Hoy",
+                  "fill": "$ink",
+                  "content": "Cuánto puedes ahorrar",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "YXas9",
+                  "name": "Cuánto puedes ahorrar descripción móvil Hoy",
+                  "fill": "$muted",
+                  "content": "Ahorro posible por depósito",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "i5ZiyK",
+              "name": "Cuánto puedes ahorrar flecha móvil Hoy",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UQnNw",
+          "name": "Marcas más baratas móvil Hoy",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#00000000",
+          "cornerRadius": 7,
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 11,
+          "padding": [
+            0,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "T6R2fG",
+              "name": "Marcas más baratas icono móvil Hoy",
+              "width": 17,
+              "height": 17,
+              "icon": "badge-euro",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "frame",
+              "id": "zb8OF",
+              "name": "Marcas más baratas textos móvil Hoy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nnFK8",
+                  "name": "Marcas más baratas título móvil Hoy",
+                  "fill": "$ink",
+                  "content": "Marcas más baratas",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "RT0aV",
+                  "name": "Marcas más baratas descripción móvil Hoy",
+                  "fill": "$muted",
+                  "content": "Ranking por cadenas",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "J849b",
+              "name": "Marcas más baratas flecha móvil Hoy",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "E2D36O",
+          "name": "Capitales de provincia móvil Hoy",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#00000000",
+          "cornerRadius": 7,
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 11,
+          "padding": [
+            0,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "xqADG",
+              "name": "Capitales de provincia icono móvil Hoy",
+              "width": 17,
+              "height": 17,
+              "icon": "building-2",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "frame",
+              "id": "USmqY",
+              "name": "Capitales de provincia textos móvil Hoy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "U6Gq8",
+                  "name": "Capitales de provincia título móvil Hoy",
+                  "fill": "$ink",
+                  "content": "Capitales de provincia",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "o5gVg",
+                  "name": "Capitales de provincia descripción móvil Hoy",
+                  "fill": "$muted",
+                  "content": "Precios en grandes ciudades",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "fuAX5",
+              "name": "Capitales de provincia flecha móvil Hoy",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "CPQO8",
+          "name": "La más barata de España móvil Hoy",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#00000000",
+          "cornerRadius": 7,
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 11,
+          "padding": [
+            0,
+            10
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "xa4gZ",
+              "name": "La más barata de España icono móvil Hoy",
+              "width": 17,
+              "height": 17,
+              "icon": "trophy",
+              "library": "lucide",
+              "fill": "$muted"
+            },
+            {
+              "type": "frame",
+              "id": "qEdpY",
+              "name": "La más barata de España textos móvil Hoy",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MeGNY",
+                  "name": "La más barata de España título móvil Hoy",
+                  "fill": "$ink",
+                  "content": "La más barata de España",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "text",
+                  "id": "x3QeCG",
+                  "name": "La más barata de España descripción móvil Hoy",
+                  "fill": "$muted",
+                  "content": "El mínimo nacional de hoy",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "YuVYO",
+              "name": "La más barata de España flecha móvil Hoy",
+              "width": 14,
+              "height": 14,
+              "icon": "chevron-right",
+              "library": "lucide",
+              "fill": "$muted"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

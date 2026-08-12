@@ -100,6 +100,12 @@ subidas del municipio activo para el mismo combustible y periodo. Una estación
 solo entra si publicó precio en ambos extremos exactos; cambiar de fila abre su
 análisis sin crear otra página.
 
+La portada de una provincia es una lectura agregada, no una estación elegida de
+forma arbitraria: combustible → cambio de la media → mínimo diario → movimientos
+del territorio. Buscar una gasolinera es una profundización posterior. Las
+marcas con varias estaciones y la misma serie se agrupan para no convertir una
+coincidencia operativa en cinco hallazgos idénticos.
+
 El histórico es una capacidad común. V2-01 construye los datos; V2-02 y V2-08
 son lecturas sobre ellos, no proyectos independientes.
 

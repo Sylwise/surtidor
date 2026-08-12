@@ -78,6 +78,7 @@ export function montarControles(
   const buscar = exigir<HTMLInputElement>('#buscar-zona');
   const botonHoy = exigir<HTMLButtonElement>('#boton-hoy');
   const panelHoy = exigir<HTMLElement>('#panel-hoy');
+  const fondoPanelHoy = exigir<HTMLElement>('#fondo-panel-hoy');
   const cerrarHoy = exigir<HTMLButtonElement>('#cerrar-panel-hoy');
   const opcionesZona = Array.from(
     contenedorIdentidad.querySelectorAll<HTMLLIElement>('[data-opcion-zona]'),
@@ -160,12 +161,16 @@ export function montarControles(
   function abrirPanelHoy(): void {
     cerrarPanel();
     panelHoy.hidden = false;
+    fondoPanelHoy.hidden = false;
+    document.querySelector('.app')?.classList.add('app--hoy-abierto');
     botonHoy.setAttribute('aria-expanded', 'true');
     panelHoy.querySelector<HTMLAnchorElement>('a')?.focus();
   }
 
   function cerrarPanelHoy(): void {
     panelHoy.hidden = true;
+    fondoPanelHoy.hidden = true;
+    document.querySelector('.app')?.classList.remove('app--hoy-abierto');
     botonHoy.setAttribute('aria-expanded', 'false');
   }
 
@@ -174,6 +179,10 @@ export function montarControles(
     else cerrarPanelHoy();
   });
   cerrarHoy.addEventListener('click', () => {
+    cerrarPanelHoy();
+    botonHoy.focus();
+  });
+  fondoPanelHoy.addEventListener('click', () => {
     cerrarPanelHoy();
     botonHoy.focus();
   });
@@ -219,10 +228,10 @@ export function montarControles(
       boton.classList.toggle('controles__pestana--activa', activo);
     }
 
-    // RF-80: estado de ficha, sin pestañas. Se oculta la cabecera entera de
-    // la hoja (no solo las pestañas) para recuperar también su padding: es
-    // parte de los ~100 px que docs/05-diseno.md cuenta como recuperados.
-    contenedorRapidos.hidden = estado.estacionId !== null;
+    // Rediseño Pencil 2026: la banda de combustible permanece fija también
+    // con una estación seleccionada. Así se puede comparar otro combustible
+    // sin cerrar la ficha, igual que en los frames de escritorio y móvil.
+    contenedorRapidos.hidden = false;
   }
 
   render(obtenerEstado());

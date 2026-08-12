@@ -21,7 +21,6 @@
 //   embebiera los mismos datos, se repetirían una vez por página sin caché;
 //   con fetch, el navegador y el CDN reaprovechan el mismo
 //   /data/provincias/NN.json entre todas.
-import marcaSvg from '../assets/marca.svg?raw';
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
 import { ORDEN_COMBUSTIBLES, ETIQUETA } from '../logica/combustibles.ts';
@@ -30,6 +29,8 @@ import type { EstacionZona } from '../logica/zona.ts';
 import type { ClavePrecio, Precios } from '../../scripts/lib/tipos.ts';
 import type { EnlacesEstaticos } from './Lista.ts';
 import NavegacionApp from './NavegacionApp.astro';
+import CabeceraGlobal from './CabeceraGlobal.astro';
+import '../estilos/navegacion-global.css';
 
 interface Props {
   zonaId: string;
@@ -116,14 +117,10 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
 ---
 
 <div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
-  <header class="cabecera">
-    <span class="marca">
-      <span class="marca__icono" aria-hidden="true" set:html={marcaSvg} />
-      <span class="marca__texto">Surtidor</span>
-    </span>
+  <CabeceraGlobal modo="principal" variante="clara">
     <NavegacionApp zonaId={zonaId} zonaNombre={zonaNombre} />
     <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
-  </header>
+  </CabeceraGlobal>
 
   <div id="estado-datos" class="estado-datos" aria-live="polite"></div>
   <div id="avisos" class="avisos" role="status" aria-live="polite"></div>

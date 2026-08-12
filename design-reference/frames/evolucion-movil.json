@@ -1,0 +1,1194 @@
+{
+  "type": "frame",
+  "id": "lLXW9",
+  "x": 1540,
+  "y": 0,
+  "name": "Evolución · Móvil",
+  "clip": true,
+  "width": 390,
+  "height": 844,
+  "fill": "$surface",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "Z80Qja",
+      "name": "Cabecera móvil",
+      "width": "fill_container",
+      "height": 56,
+      "fill": "$paper",
+      "stroke": "$line",
+      "strokeWidth": {
+        "bottom": 1
+      },
+      "padding": [
+        0,
+        16
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "oAJWh",
+          "name": "Marca móvil",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "K7kszZ",
+              "name": "Icono Surtidor móvil",
+              "width": 20,
+              "height": 20,
+              "icon": "local_gas_station",
+              "library": "Material Symbols Rounded",
+              "fill": "$ink"
+            },
+            {
+              "type": "text",
+              "id": "UB3f0",
+              "name": "Surtidor móvil",
+              "fill": "$ink",
+              "content": "Surtidor",
+              "fontFamily": "$font",
+              "fontSize": 17,
+              "fontWeight": "750"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "iyzHe",
+          "name": "Acciones móvil",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "K4rOW",
+              "name": "Cambiar zona móvil",
+              "fill": "$surface",
+              "cornerRadius": 7,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 5,
+              "padding": [
+                8,
+                9
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mdTjy",
+                  "name": "Zona abreviada",
+                  "fill": "$ink",
+                  "content": "ÁLAVA",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.5
+                },
+                {
+                  "type": "icon",
+                  "id": "vxhXH",
+                  "name": "Desplegar zona",
+                  "width": 13,
+                  "height": 13,
+                  "icon": "chevron-down",
+                  "library": "lucide",
+                  "fill": "$ink"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "JioC6",
+              "name": "Explorar estaciones móvil",
+              "width": 34,
+              "height": 34,
+              "fill": "$ink",
+              "cornerRadius": 7,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "US1md",
+                  "name": "Icono explorar",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "map-pin",
+                  "library": "lucide",
+                  "fill": "$paper"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ysayk",
+      "name": "Contenido móvil",
+      "width": "fill_container",
+      "height": "fill_container",
+      "fill": "$surface",
+      "layout": "vertical",
+      "gap": 14,
+      "padding": [
+        16,
+        16,
+        14,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "iqDtk",
+          "name": "Controles móviles",
+          "width": "fill_container",
+          "height": 104,
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "nJnw9",
+              "name": "Contexto móvil",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ld7xr",
+                  "name": "Provincia y sección",
+                  "gap": 7,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XXauh",
+                      "name": "Provincia móvil",
+                      "fill": "$muted",
+                      "content": "ARABA/ÁLAVA",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "750",
+                      "letterSpacing": 0.5
+                    },
+                    {
+                      "type": "text",
+                      "id": "N4tWrg",
+                      "name": "Separador móvil",
+                      "fill": "$line",
+                      "content": "/",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dKVF0",
+                      "name": "Sección móvil",
+                      "fill": "$ink",
+                      "content": "EVOLUCIÓN",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "800",
+                      "letterSpacing": 0.8
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "AwfxJ",
+                  "name": "Periodo actual",
+                  "fill": "$muted",
+                  "content": "ÚLTIMOS 30 DÍAS",
+                  "fontFamily": "$font",
+                  "fontSize": 9,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.8
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cuuUZ",
+              "name": "Combustibles móvil",
+              "width": "fill_container",
+              "height": 38,
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "DmfsM",
+                  "name": "95 móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$ink",
+                  "cornerRadius": 7,
+                  "stroke": "$ink",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "aUFjS",
+                      "name": "95 móvil texto",
+                      "fill": "$paper",
+                      "content": "95",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gcgXw",
+                  "name": "Diésel móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XAnSq",
+                      "name": "Diésel móvil texto",
+                      "fill": "$ink",
+                      "content": "Diésel",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "650"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "S1Wds",
+                  "name": "98 móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SdnY7",
+                      "name": "98 móvil texto",
+                      "fill": "$ink",
+                      "content": "98",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "650"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "C3i09",
+                  "name": "Diésel + móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 7,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "qz5km",
+                      "name": "Diésel + móvil texto",
+                      "fill": "$ink",
+                      "content": "Diésel +",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "650"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Nvh6o",
+              "name": "Periodos móvil",
+              "width": "fill_container",
+              "height": 32,
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "o4FapX",
+                  "name": "7 d móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 6,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "j5sg7",
+                      "name": "7 d móvil texto",
+                      "fill": "$ink",
+                      "content": "7 d",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "w0o1S4",
+                  "name": "30 d móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#E4EAe9",
+                  "cornerRadius": 6,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XyFHy",
+                      "name": "30 d móvil texto",
+                      "fill": "$ink",
+                      "content": "30 d",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nCSWv",
+                  "name": "90 d móvil",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$surface",
+                  "cornerRadius": 6,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "J00uJ",
+                      "name": "90 d móvil texto",
+                      "fill": "$ink",
+                      "content": "90 d",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Z4aQz",
+          "name": "Resumen móvil",
+          "width": "fill_container",
+          "height": 118,
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "WLzAh",
+              "name": "Título y precio móvil",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "m6MWot",
+                  "name": "Título móvil",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rA6jD",
+                      "name": "Media móvil",
+                      "fill": "$muted",
+                      "content": "MEDIA PROVINCIAL",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "800",
+                      "letterSpacing": 1
+                    },
+                    {
+                      "type": "text",
+                      "id": "AD7js",
+                      "name": "Gasolina 95 móvil",
+                      "fill": "$ink",
+                      "content": "Gasolina 95",
+                      "fontFamily": "$font",
+                      "fontSize": 27,
+                      "fontWeight": "800",
+                      "letterSpacing": -0.7
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "xCCnx",
+                  "name": "Precio móvil",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "eXMmO",
+                      "name": "Último cierre móvil",
+                      "fill": "$muted",
+                      "content": "ÚLTIMO CIERRE",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "800",
+                      "letterSpacing": 0.8
+                    },
+                    {
+                      "type": "text",
+                      "id": "PCoIG",
+                      "name": "Precio actual móvil",
+                      "fill": "$ink",
+                      "content": "1,721",
+                      "fontFamily": "$mono",
+                      "fontSize": 22,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BMyWt",
+                      "name": "Unidad móvil",
+                      "fill": "$muted",
+                      "content": "€/L",
+                      "fontFamily": "$mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U4xOn",
+              "name": "Conclusión móvil",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "R1KBWs",
+                  "name": "Subida móvil",
+                  "fill": "#FFF4D5",
+                  "cornerRadius": 6,
+                  "gap": 4,
+                  "padding": [
+                    6,
+                    8
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "yfPc9",
+                      "name": "Tendencia móvil",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "trending-up",
+                      "library": "lucide",
+                      "fill": "#8A6200"
+                    },
+                    {
+                      "type": "text",
+                      "id": "e3JJEJ",
+                      "name": "Variación móvil",
+                      "fill": "#805A00",
+                      "content": "+13,9 cts",
+                      "fontFamily": "$mono",
+                      "fontSize": 10,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "V6YR9",
+                  "name": "Mensaje móvil",
+                  "fill": "$ink",
+                  "content": "en los últimos 30 días",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "650"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "cjOjN",
+              "name": "Contexto móvil",
+              "fill": "$muted",
+              "content": "66 de 67 estaciones subieron en la misma dirección.",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sVsk8",
+          "name": "Indicadores móvil",
+          "width": "fill_container",
+          "height": 70,
+          "fill": "$paper",
+          "cornerRadius": 8,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "O6Pkh",
+              "name": "MEDIA móvil",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "$line",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZCDjc",
+                  "name": "MEDIA etiqueta móvil",
+                  "fill": "$muted",
+                  "content": "MEDIA",
+                  "fontFamily": "$font",
+                  "fontSize": 8,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "text",
+                  "id": "v6yvZs",
+                  "name": "MEDIA valor móvil",
+                  "fill": "$ink",
+                  "content": "1,721 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "g8dDTG",
+              "name": "MÍNIMO móvil",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "$line",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "k9a5a",
+                  "name": "MÍNIMO etiqueta móvil",
+                  "fill": "$muted",
+                  "content": "MÍNIMO",
+                  "fontFamily": "$font",
+                  "fontSize": 8,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "text",
+                  "id": "V2ACs",
+                  "name": "MÍNIMO valor móvil",
+                  "fill": "$ink",
+                  "content": "1,519 €",
+                  "fontFamily": "$mono",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Gtf1m",
+              "name": "ESTACIONES móvil",
+              "width": "fill_container",
+              "height": "fill_container",
+              "stroke": "$line",
+              "layout": "vertical",
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GBhQD",
+                  "name": "ESTACIONES etiqueta móvil",
+                  "fill": "$muted",
+                  "content": "ESTACIONES",
+                  "fontFamily": "$font",
+                  "fontSize": 8,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.8
+                },
+                {
+                  "type": "text",
+                  "id": "R4WIlO",
+                  "name": "ESTACIONES valor móvil",
+                  "fill": "$ink",
+                  "content": "67",
+                  "fontFamily": "$mono",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "XrFV5",
+          "name": "Gráfico móvil",
+          "clip": true,
+          "width": "fill_container",
+          "height": 296,
+          "fill": "$ink",
+          "cornerRadius": 9,
+          "layout": "none",
+          "children": [
+            {
+              "type": "text",
+              "id": "McACZ",
+              "x": 16,
+              "y": 15,
+              "name": "Título gráfico móvil",
+              "fill": "$paper",
+              "content": "Precio medio diario",
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "750"
+            },
+            {
+              "type": "text",
+              "id": "lg3OZ",
+              "x": 245,
+              "y": 17,
+              "name": "Rango gráfico móvil",
+              "fill": "#9DAEB2",
+              "content": "10 JUL — 9 AGO",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "650"
+            },
+            {
+              "type": "rectangle",
+              "id": "SahYQ",
+              "x": 43,
+              "y": 64,
+              "name": "Rejilla móvil 1,80",
+              "fill": "#FFFFFF16",
+              "width": 295,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "mBSQo",
+              "x": 12,
+              "y": 59,
+              "name": "Eje móvil 1,80",
+              "fill": "#8FA1A6",
+              "content": "1,80",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "AUtLu",
+              "x": 43,
+              "y": 111,
+              "name": "Rejilla móvil 1,70",
+              "fill": "#FFFFFF16",
+              "width": 295,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "sF1ah",
+              "x": 12,
+              "y": 106,
+              "name": "Eje móvil 1,70",
+              "fill": "#8FA1A6",
+              "content": "1,70",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "Ykv02",
+              "x": 43,
+              "y": 158,
+              "name": "Rejilla móvil 1,60",
+              "fill": "#FFFFFF16",
+              "width": 295,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "QdaTM",
+              "x": 12,
+              "y": 153,
+              "name": "Eje móvil 1,60",
+              "fill": "#8FA1A6",
+              "content": "1,60",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "Cixk3",
+              "x": 43,
+              "y": 205,
+              "name": "Rejilla móvil 1,50",
+              "fill": "#FFFFFF16",
+              "width": 295,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "L0Mfv",
+              "x": 12,
+              "y": 200,
+              "name": "Eje móvil 1,50",
+              "fill": "#8FA1A6",
+              "content": "1,50",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "Ow5Rq",
+              "x": 43,
+              "y": 252,
+              "name": "Rejilla móvil 1,40",
+              "fill": "#FFFFFF16",
+              "width": 295,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "frme7",
+              "x": 12,
+              "y": 247,
+              "name": "Eje móvil 1,40",
+              "fill": "#8FA1A6",
+              "content": "1,40",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "path",
+              "id": "EQjQM",
+              "x": 43,
+              "y": 70,
+              "name": "Área evolución móvil",
+              "geometry": "M0 150l20 1 22-14 23-11 23-13 22-14 22-8 22-7 22-4 22-5 22-26 15-6 13-18 16-5 14 5 9 9 8-3 0 135-295 0z",
+              "viewBox": [
+                0,
+                0,
+                295,
+                166
+              ],
+              "fill": {
+                "type": "gradient",
+                "gradientType": "linear",
+                "enabled": true,
+                "rotation": 180,
+                "size": {
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "#F5B92155",
+                    "position": 0
+                  },
+                  {
+                    "color": "#F5B92100",
+                    "position": 1
+                  }
+                ]
+              },
+              "width": 295,
+              "height": 166
+            },
+            {
+              "type": "path",
+              "id": "Q4bdP0",
+              "x": 43,
+              "y": 70,
+              "name": "Precio mínimo móvil",
+              "geometry": "M0 162l22-1 23-1 23-2 23-1 23 0 23-23 23 0 23 0 23 4 22-13 15-4 15 0 15 7 13 3 9-3",
+              "viewBox": [
+                0,
+                0,
+                295,
+                166
+              ],
+              "fill": "#00000000",
+              "width": 295,
+              "height": 166,
+              "stroke": "#91A2A788",
+              "strokeWidth": 1.5,
+              "strokeLinejoin": "round",
+              "strokeLinecap": "round"
+            },
+            {
+              "type": "path",
+              "id": "Ld7R9",
+              "x": 43,
+              "y": 70,
+              "name": "Media provincial móvil",
+              "geometry": "M0 150l20 1 22-14 23-11 23-13 22-14 22-8 22-7 22-4 22-5 22-26 15-6 13-18 16-5 14 5 9 9 8-3",
+              "viewBox": [
+                0,
+                0,
+                295,
+                166
+              ],
+              "fill": "#00000000",
+              "width": 295,
+              "height": 166,
+              "stroke": "$accent",
+              "strokeWidth": 2.5,
+              "strokeLinejoin": "round",
+              "strokeLinecap": "round"
+            },
+            {
+              "type": "ellipse",
+              "id": "t1nxY",
+              "x": 333,
+              "y": 96,
+              "name": "Último punto móvil",
+              "fill": "$accent",
+              "width": 9,
+              "height": 9,
+              "stroke": "$ink",
+              "strokeWidth": 2
+            },
+            {
+              "type": "text",
+              "id": "TjV0t",
+              "x": 43,
+              "y": 264,
+              "name": "Fecha inicio móvil",
+              "fill": "#8FA1A6",
+              "content": "10 jul",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "fRSmO",
+              "x": 314,
+              "y": 264,
+              "name": "Fecha fin móvil",
+              "fill": "#8FA1A6",
+              "content": "9 ago",
+              "fontFamily": "$mono",
+              "fontSize": 8,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "KGLir",
+              "x": 43,
+              "y": 281,
+              "name": "Leyenda móvil",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MOkYL",
+                  "name": "Media leyenda móvil",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "JkwvT",
+                      "name": "Media muestra móvil",
+                      "fill": "$accent",
+                      "width": 14,
+                      "height": 2
+                    },
+                    {
+                      "type": "text",
+                      "id": "TYuKJ",
+                      "name": "Media leyenda texto móvil",
+                      "fill": "#AEBBBE",
+                      "content": "Media",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LsS7H",
+                  "name": "Mínimo leyenda móvil",
+                  "gap": 5,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "DZq69",
+                      "name": "Mínimo muestra móvil",
+                      "fill": "#91A2A7",
+                      "width": 14,
+                      "height": 2
+                    },
+                    {
+                      "type": "text",
+                      "id": "kCOOs",
+                      "name": "Mínimo leyenda texto móvil",
+                      "fill": "#AEBBBE",
+                      "content": "Mínimo",
+                      "fontFamily": "$font",
+                      "fontSize": 8,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "FFTkX",
+          "name": "Movimientos móvil",
+          "width": "fill_container",
+          "height": 128,
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "frame",
+              "id": "jqSPF",
+              "name": "Cabecera movimientos móvil",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Q9hPm",
+                  "name": "Título movimientos móvil",
+                  "fill": "$ink",
+                  "content": "Movimientos destacados",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "750"
+                },
+                {
+                  "type": "frame",
+                  "id": "kD0SM",
+                  "name": "Ver estaciones",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "F4CuFr",
+                      "name": "Ver todas",
+                      "fill": "$muted",
+                      "content": "Ver todas",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "QmOyB",
+                      "name": "Flecha ver todas",
+                      "width": 13,
+                      "height": 13,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "$muted"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pqsze",
+              "name": "CEPSA movimiento móvil",
+              "width": "fill_container",
+              "height": 42,
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ntIdd",
+                  "name": "CEPSA detalle móvil",
+                  "layout": "vertical",
+                  "gap": 1,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "o56Rk",
+                      "name": "CEPSA marca móvil",
+                      "fill": "$ink",
+                      "content": "CEPSA",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mcgtU",
+                      "name": "CEPSA lugar móvil",
+                      "fill": "$muted",
+                      "content": "Arrazua-Ubarrundia",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "k112u",
+                  "name": "CEPSA cambio móvil",
+                  "fill": "$ink",
+                  "content": "+26 cts",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "750"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CFlhl",
+              "name": "EROSKI movimiento móvil",
+              "width": "fill_container",
+              "height": 42,
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MKdWf",
+                  "name": "EROSKI detalle móvil",
+                  "layout": "vertical",
+                  "gap": 1,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SomUA",
+                      "name": "EROSKI marca móvil",
+                      "fill": "$ink",
+                      "content": "EROSKI",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "FUoBh",
+                      "name": "EROSKI lugar móvil",
+                      "fill": "$muted",
+                      "content": "Ribera Baja",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "y8PC8",
+                  "name": "EROSKI cambio móvil",
+                  "fill": "$positive",
+                  "content": "−0,1 cts",
+                  "fontFamily": "$mono",
+                  "fontSize": 10,
+                  "fontWeight": "750"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

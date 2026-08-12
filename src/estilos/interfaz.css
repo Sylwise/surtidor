@@ -425,7 +425,7 @@ input {
   padding: 9px 12px 9px 40px;
   border: 1px solid var(--hair);
   border-radius: var(--radio);
-  background: #fff;
+  background: var(--surface);
 }
 
 .panel-zona__buscar-icono {
@@ -925,7 +925,7 @@ input {
 .lista__filtro::before {
   content: '';
   position: absolute;
-  inset: -7px;
+  inset: -7px 0;
 }
 
 .lista__filtro::after {
@@ -1005,7 +1005,7 @@ input {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   color: var(--muted);
-  width: 1.6em;
+  width: 2em;
   flex: none;
   text-align: right;
 }
@@ -1050,29 +1050,29 @@ input {
 /* Bandas de precio, compartidas entre lista y (más adelante) marcador. */
 .precio--p1 {
   background: var(--p1);
-  color: #fff;
+  color: var(--surface);
 }
 .precio--p2 {
   background: var(--p2);
-  color: #fff;
+  color: var(--surface);
 }
 .precio--p3 {
   background: var(--p3);
-  color: #fff;
+  color: var(--surface);
 }
 .precio--p4 {
   background: var(--p4);
-  color: #fff;
+  color: var(--surface);
 }
 .precio--p5 {
   background: var(--p5);
-  color: #fff;
+  color: var(--surface);
 }
 /* La más barata no se distingue por tono (--mejor es vecino de --p1/--p2):
    contorno, tamaño y contraste, nunca ámbar. Ver docs/adr/0003. */
 .precio--barata {
   background: var(--mejor);
-  color: #fff;
+  color: var(--surface);
   outline: 2px solid var(--mejor-aro);
   outline-offset: -2px;
   /* La píldora ya usa --fs-6, el tamaño máximo de la escala tipográfica: no
@@ -1226,7 +1226,7 @@ input {
 }
 
 .totem__precio {
-  color: #fff;
+  color: var(--surface);
 }
 
 .totem__fila-combustible--activa .totem__precio {
@@ -1358,7 +1358,7 @@ input {
     border-top: 1px solid var(--hair);
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
-    box-shadow: 0 -6px 20px rgba(22, 50, 59, 0.16);
+    box-shadow: 0 -6px 20px color-mix(in srgb, var(--petrol) 16%, transparent);
     height: var(--hoja-media);
     transition: height 220ms ease;
   }
@@ -1538,8 +1538,8 @@ input {
   border-bottom: 1px solid var(--line);
   border-radius: 0;
 }
-.fila:hover { background: #e8eeed; }
-.fila--activa { background: #e8eeed; }
+.fila:hover { background: var(--subtle); }
+.fila--activa { background: var(--subtle); }
 .fila__rotulo { font-size: 12px; font-weight: 700; }
 .fila__direccion { font-size: 10px; }
 .fila__precio {
@@ -1617,7 +1617,7 @@ input {
   margin: 0 34px 0 0;
   padding: 5px 8px;
   border-radius: 6px;
-  background: rgba(255,255,255,.08);
+  background: var(--surface-soft);
   color: var(--paper);
   font-family: var(--mono);
   font-size: 10px;
@@ -1636,7 +1636,7 @@ input {
   margin: 0;
   padding: 10px 12px;
   border-radius: 7px;
-  background: rgba(255,255,255,.07);
+  background: var(--surface-softer);
 }
 .totem__ahorro-cifra { display: inline; margin-right: 5px; font-size: 15px; }
 .totem__ahorro-texto { display: inline; font-size: 10px; }
@@ -1654,7 +1654,7 @@ input {
   grid-area: evolucion;
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(255,255,255,.17);
+  border: 1px solid var(--surface-stroke);
   color: var(--paper);
   font-size: 11px;
   font-weight: 650;
@@ -1755,13 +1755,18 @@ input {
   font-weight: 400;
   white-space: nowrap;
 }
+.hoja__rapidos .controles__combustible .controles__pestana::before {
+  content: '';
+  position: absolute;
+  inset: -2px 0;
+}
 .mapa-hueco { background: var(--map-land); }
 
 @media (min-width: 1200px) {
-  .app { --hoja-ancho: 408px; }
-  .hoja__rapidos { padding: 18px; }
-  .lista-cabecera-portal { padding-inline: 18px; }
-  .lista { padding-inline: 14px; }
+  .app { --hoja-ancho:380px; }
+  .hoja__rapidos { padding:16px; }
+  .lista-cabecera-portal { padding-inline:16px; }
+  .lista { padding-inline:12px; }
   .totem:not(.totem--vacio) { padding: 20px; }
 }
 
@@ -1790,13 +1795,13 @@ input {
   max-height: calc(100dvh - 48px);
   background: var(--surface);
   border-color: var(--line);
-  box-shadow: 0 16px 42px rgba(22, 50, 59, .19);
+  box-shadow: 0 16px 42px color-mix(in srgb, var(--petrol) 19%, transparent);
 }
-.panel-fondo { inset: 0; background: rgba(22, 50, 59, .4); backdrop-filter: none; }
+.panel-fondo { inset: 0; background: color-mix(in srgb, var(--petrol) 40%, transparent); backdrop-filter: none; }
 .panel-zona__cabecera { min-height: 126px; padding: 20px 20px 16px; gap: 14px 16px; box-shadow: none; }
 .panel-zona__titulo { font-size: 21px; font-weight: 800; }
 .panel-zona__ayuda { font-size: 11px; }
-.panel-zona__buscar { min-height: 42px; height: 42px; background: var(--surface); }
+.panel-zona__buscar { min-height: 44px; height: 44px; background: var(--surface); }
 .panel-zona__grupos { padding: 16px 18px; }
 .panel-zona .enlaces-bloque__filas { gap: 8px 10px; }
 .panel-zona .enlaces-bloque__fila { min-height: 45px; padding: 0 11px; border: 1px solid var(--line); border-radius: 7px; }
@@ -1821,7 +1826,7 @@ input {
   border-left: 1px solid var(--line);
   border-radius: 0;
   background: var(--surface);
-  box-shadow: -6px 0 18px rgba(22, 50, 59, .12);
+  box-shadow: -6px 0 18px color-mix(in srgb, var(--petrol) 12%, transparent);
 }
 .app--hoy-abierto .layout { padding-right: 320px; }
 .panel-hoy__asa { display: none; }
@@ -1889,8 +1894,8 @@ input {
     width: auto;
     max-width: 150px;
     min-width: 0;
-    height: 34px;
-    min-height: 34px;
+    height:44px;
+    min-height:44px;
     justify-content: flex-start;
     border: 1px solid var(--line);
     background: var(--surface);
@@ -1905,7 +1910,7 @@ input {
   }
   .boton-zona__flecha { margin-left: auto; }
   .navegacion-hoy { margin-left: 0; }
-  .boton-hoy { width: 34px; min-height: 34px; padding: 0; background: var(--petrol); color: var(--paper); border-color: var(--petrol); }
+  .boton-hoy { width:44px; min-height:44px; padding:0; background:var(--petrol); color:var(--paper); border-color:var(--petrol); }
   .boton-hoy__texto,
   .boton-hoy__flecha { display: none; }
   .boton-hoy__icono {
@@ -1939,7 +1944,7 @@ input {
   .hoja__asa::before { width: 28px; background: var(--line); }
   .controles__pestana { border-radius: 6px; }
   .panel-fondo,
-  .panel-hoy__fondo { position: fixed; z-index: 19; inset: 0; display: block; background: rgba(22,50,59,.4); }
+  .panel-hoy__fondo { position: fixed; z-index: 19; inset: 0; display: block; background: color-mix(in srgb, var(--petrol) 40%, transparent); }
   .panel-fondo[hidden], .panel-hoy__fondo[hidden] { display: none; }
   .panel-zona {
     top: 96px;
@@ -1952,7 +1957,7 @@ input {
     transform: translateY(12px);
     border: 0;
     border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 24px rgba(22,50,59,.19);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--petrol) 19%, transparent);
     background: var(--paper);
     gap: 12px;
     padding: 14px 16px 20px;
@@ -1991,8 +1996,8 @@ input {
     font-weight: 400;
   }
   .panel-zona__buscar {
-    height: 42px;
-    min-height: 42px;
+    height: 44px;
+    min-height: 44px;
     padding-left: 36px;
     font-size: 11px;
   }
@@ -2010,7 +2015,7 @@ input {
   }
   .panel-zona__actual-recuento span { display: none; }
   .panel-zona .enlaces-bloque__fila {
-    min-height: 43px;
+    min-height: 44px;
     padding-inline: 10px;
     border: 0;
     border-bottom: 1px solid var(--line);
@@ -2029,12 +2034,12 @@ input {
     right: 0;
     bottom: 0;
     width: auto;
-    height: min(576px, calc(100dvh - 96px));
+    height: auto;
     max-height: calc(100dvh - 96px);
     padding: 12px 16px max(12px, env(safe-area-inset-bottom));
     border: 0;
     border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 24px rgba(22,50,59,.19);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--petrol) 19%, transparent);
   }
   .panel-hoy__asa { display: block; width: 40px; height: 4px; margin: 0 auto 8px; border-radius: 99px; background: var(--line); }
   .panel-hoy__cabecera { padding: 4px 2px 10px; }
@@ -2186,7 +2191,7 @@ input {
   justify-content: center;
   width: 100%;
   min-height: 38px;
-  border: 1px solid rgba(255,255,255,.17);
+  border: 1px solid var(--surface-stroke);
   border-radius: 7px;
   color: var(--paper);
   font-size: 11px;
@@ -2194,3 +2199,13 @@ input {
   text-decoration: none;
 }
 .totem__lleno .totem__evolucion span { color: inherit; font-size: inherit; }
+.totem__lleno .totem__llegar-boton,
+.totem__lleno .totem__evolucion {
+  position: relative;
+}
+.totem__lleno .totem__llegar-boton::before,
+.totem__lleno .totem__evolucion::before {
+  content: '';
+  position: absolute;
+  inset: -3px 0;
+}
