@@ -11,6 +11,16 @@
   inset: 0;
 }
 
+/* El esquema ya se hereda de :root, pero se reafirma en el límite de
+   MapLibre porque algunos navegadores aplican su oscurecimiento automático a
+   los canvas como una capa distinta del resto del documento. Los píxeles del
+   mapa y los colores de sus marcadores deben conservar la paleta publicada. */
+.mapa-hueco,
+.mapa-lienzo,
+.maplibregl-canvas {
+  color-scheme: only light;
+}
+
 /* MapLibre añade su propio control de atribución; se le da el aspecto del
    resto de micro-etiquetas de la interfaz en vez del suyo por defecto. */
 .maplibregl-ctrl-attrib {

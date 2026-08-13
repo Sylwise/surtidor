@@ -1,6 +1,11 @@
 /* Fuente única de verdad del diseño. Ningún color literal fuera de aquí.
    Ver docs/05-diseno.md — este fichero es vinculante, no se cambia sin ADR. */
 :root {
+  /* Surtidor solo ofrece esta paleta clara. `only light` evita que los
+     navegadores con oscurecimiento automático reinterpreten fondos, texto y
+     lienzos por su cuenta; ver docs/05-diseno.md#Esquema-de-color-del-navegador. */
+  color-scheme: only light;
+
   /* Chrome: gasóleo */
   --petrol: #16323b;
   --ink-2: #274852;
@@ -75,6 +80,13 @@
   --fs-4: 14.5px;
   --fs-5: 17px;
   --fs-6: 19px;
+}
+
+/* El color del placeholder también forma parte de la paleta: no se delega en
+   el gris, la opacidad ni el contraste que el navegador elija por defecto. */
+::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

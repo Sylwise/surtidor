@@ -20,6 +20,21 @@ precio con su postecito hasta el punto exacto de la estación, igual que el
 letrero de la entrada. Resuelve además el problema de anclaje, porque el poste
 señala a qué punto del mapa corresponde el precio.
 
+### Esquema de color del navegador
+
+Surtidor ofrece una única paleta clara y el navegador no debe reinterpretarla.
+Todos los documentos declaran `<meta name="color-scheme" content="only light">`
+y `tokens.css` reafirma `color-scheme: only light` en `:root`. Es una
+restricción del sistema visual: algunos navegadores móviles aplican un modo
+oscuro forzado a las páginas que no anuncian su esquema y pueden transformar
+por separado fondos, controles y lienzos.
+
+Todo color visible debe salir de los tokens o estar declarado expresamente por
+un componente. Esto incluye estados nativos como `::placeholder`; no se delegan
+color ni opacidad en la hoja de estilos del navegador. El contenedor y el
+`canvas` de MapLibre reafirman el esquema claro porque el mapa es una superficie
+renderizada independiente y no debe recibir una transformación distinta.
+
 ## Tokens
 
 Fuente única de verdad: `src/estilos/tokens.css`. Ningún color literal fuera de
