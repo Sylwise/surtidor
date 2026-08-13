@@ -273,7 +273,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
   .evolucion-canvas { padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); overflow: visible; }
   .evolucion-controles--movil { display: block; }
   .evolucion-contexto-movil { display: flex; align-items: center; min-height: 18px; margin: 0 0 2px; color: var(--muted); font-size: 10px; font-weight: 650; letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; }
-  .evolucion-contexto-movil b { color: var(--petrol); }
+  .evolucion-contexto-movil b { overflow: hidden; min-width: 0; color: var(--petrol); text-overflow: ellipsis; white-space: nowrap; }
+  .evolucion-contexto-movil i, .evolucion-contexto-movil span { flex: none; }
   .evolucion-contexto-movil i { margin: 0 7px; font-style: normal; }
   .evolucion-controles--movil .evolucion-combustibles { grid-template-columns: repeat(4,1fr); gap: 6px; }
   .evolucion-controles--movil .evolucion-combustibles button,

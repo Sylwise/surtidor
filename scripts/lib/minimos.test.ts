@@ -76,6 +76,36 @@ describe('calcularAgregadosMinimos', () => {
     );
   });
 
+  // Con los datos reales de hoy, los cuatro mínimos nacionales son únicos
+  // (Torà, Arén, Mollet del Vallès, Fortuna), así que
+  // src/pages/hoy/la-mas-barata-de-espana.astro nunca pinta la fila "Empate
+  // al mínimo nacional" (su condición es origenes.length > 1). Esta prueba
+  // fuerza con datos sintéticos un empate exacto entre dos provincias
+  // distintas, para comprobar que origenes.length sí puede superar 1 y que
+  // ambos orígenes quedan presentes, que es justo lo que activa esa fila.
+  it('un empate exacto entre dos provincias deja más de un origen, la condición que pinta "Empate al mínimo nacional"', () => {
+    const datos = [
+      provincia('01', [estacion('1', 'Alfa', 1.399)]),
+      provincia('02', [estacion('2', 'Beta', 1.399)]),
+    ];
+    const resultado = calcularAgregadosMinimos(
+      datos,
+      [comunidad('comunidad-1', ['01']), comunidad('comunidad-2', ['02'])],
+      catalogo([
+        { nombre: 'Alfa', provinciaId: '01' },
+        { nombre: 'Beta', provinciaId: '02' },
+      ]),
+      '2026-08-09T10:00:00Z',
+    );
+
+    assert.equal(resultado.nacional.gasolina95e5.minimo, 1.399);
+    assert.ok(resultado.nacional.gasolina95e5.origenes.length > 1);
+    assert.deepEqual(
+      resultado.nacional.gasolina95e5.origenes.map(({ municipio }) => municipio),
+      ['Alfa', 'Beta'],
+    );
+  });
+
   it('enlaza a la provincia si el municipio del mínimo no genera página propia', () => {
     const datos = [provincia('01', [estacion('1', 'Pequeño', 1.4)])];
 

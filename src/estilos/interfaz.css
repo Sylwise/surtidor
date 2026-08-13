@@ -1839,11 +1839,10 @@ input {
     overflow: hidden;
     text-overflow: ellipsis;
     text-transform: uppercase;
-    font-size: 0;
+    font-size: 9px;
     letter-spacing: .05em;
     white-space: nowrap;
   }
-  .cabecera-global--principal .boton-zona__nombre::after { content:attr(data-zona-etiqueta); font-size:9px; }
   .cabecera-global--principal .boton-zona__flecha { margin-left: auto; }
   .cabecera-global--principal .navegacion-hoy { margin-left: 0; }
   .cabecera-global--principal .boton-hoy { width:auto; min-height:44px; padding:0 5px; border:0; background:transparent; color:var(--muted-light); }

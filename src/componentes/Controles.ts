@@ -155,15 +155,9 @@ export function montarControles(
     // zona sin recargar (ADR-0016)— el botón lo dice, para que la interfaz
     // no se quede congelada sin señal mientras el resto (mapa, lista,
     // #tabla-zona) sigue mostrando la zona anterior a propósito.
-    const enlaceZonaActual = zonaActual
-      ? enlacesZona.find((enlace) => enlace.dataset.zonaId === zonaActual.id)
-      : null;
     nombreZonaSpan.textContent = estado.cargando
       ? 'Cargando…'
       : (zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona');
-    nombreZonaSpan.dataset.zonaEtiqueta = estado.cargando
-      ? 'Cargando…'
-      : (enlaceZonaActual?.dataset.zonaEtiqueta ?? zonaActual?.nombre ?? estado.zonaId ?? 'Zona');
     botonZona.setAttribute('aria-label', zonaActual ? `Cambiar zona. Zona actual: ${zonaActual.nombre}` : 'Elegir zona');
 
     for (const enlace of enlacesZona) {

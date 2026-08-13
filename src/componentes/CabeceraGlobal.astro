@@ -24,7 +24,7 @@ const preciosActivo = !pathname.startsWith('/hoy/');
 
   {modo === 'evolucion' && <>
     {zonaHref && zonaNombre && <nav class="cabecera-global__contexto" aria-label="Migas de pan"><a href={zonaHref}>{zonaNombre}</a>{contexto && <><i aria-hidden="true">›</i><strong>{contexto}</strong></>}</nav>}
-    {zonaHref && zonaNombre && <a class="cabecera-global__zona-movil" href={zonaHref}>{zonaNombre.replace('ARABA/', '')}<span aria-hidden="true">⌄</span></a>}
+    {zonaHref && zonaNombre && <a class="cabecera-global__zona-movil" href={zonaHref}>{zonaNombre}<span aria-hidden="true">⌄</span></a>}
     <a class="cabecera-global__precios-evolucion" href="/">Precios</a>
     <div class="cabecera-global__hoy-evolucion"><MenuHoy prefijo="evolucion" provinciaId={provinciaId} autonomo variante="clara" /></div>
     <slot name="accion-movil" />

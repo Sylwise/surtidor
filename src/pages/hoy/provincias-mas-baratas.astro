@@ -108,7 +108,7 @@ const lideres = Object.fromEntries(
                     <tbody>
                       {filasPrincipales.map(({ elemento: provincia, posicion }) => {
                         const resumen = provincia.combustibles[combustible];
-                        return <tr><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
+                        return <tr><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a><small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
                       })}
                     </tbody>
                   </table>
@@ -122,7 +122,7 @@ const lideres = Object.fromEntries(
                         <tbody>
                           {conDatos.slice(6).map(({ elemento: provincia, posicion }, indice) => {
                             const resumen = provincia.combustibles[combustible];
-                            return <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
+                            return <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a><small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
                           })}
                         </tbody>
                       </table>

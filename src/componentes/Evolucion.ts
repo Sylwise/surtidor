@@ -220,7 +220,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       }
       const contextoTexto = contenedor.querySelector<HTMLElement>('[data-contexto]')!;
       contextoTexto.textContent = estacionActiva ? `Compárala con la media de ${actual.provincia.nombre} para saber si es un caso aislado.` : explicacion && explicacion.amplitud.proporcionAlineada !== null && explicacion.amplitud.comparables > 0
-        ? `${explicacion.amplitud.alineadas} de ${explicacion.amplitud.comparables} estaciones ${cambio && cambio.diferenciaMilesimas < 0 ? 'bajaron' : 'subieron'} en la misma dirección.`
+        ? `${explicacion.amplitud.alineadas} de ${explicacion.amplitud.comparables} estaciones ${cambio && cambio.diferenciaMilesimas < 0 ? 'bajaron' : 'subieron'}.`
         : 'No hay suficientes estaciones comparables para medir el alcance.';
       const claves = contenedor.querySelector<HTMLOListElement>('[data-claves]')!; claves.replaceChildren();
       if (explicacion) {

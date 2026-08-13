@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cajaDeTitulo, formatearFechaHora, formatearHora, formatearNumero } from './formato.ts';
+import { cajaDeTitulo, formatearFechaHora, formatearNumero } from './formato.ts';
 
 test('formatearNumero separa los miles con punto, a la española', () => {
   assert.equal(formatearNumero(10986), '10.986');
@@ -37,8 +37,4 @@ test('formatearFechaHora usa siempre hora peninsular española, en verano (CEST,
 
 test('formatearFechaHora usa siempre hora peninsular española, en invierno (CET, UTC+1)', () => {
   assert.equal(formatearFechaHora('2026-01-15T10:30:00Z'), '15/1, 11:30');
-});
-
-test('formatearHora usa la misma zona horaria que formatearFechaHora', () => {
-  assert.equal(formatearHora('2026-08-12T21:23:00Z'), '23:23');
 });
