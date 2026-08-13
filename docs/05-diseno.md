@@ -748,3 +748,37 @@ Las líneas, áreas y comparaciones usan color con moderación. Rojo y verde no
 codifican por sí solos subida y bajada; siempre hay signo, cifra o texto. Toda
 animación explica una transición, respeta `prefers-reduced-motion` y puede
 eliminarse sin perder información. Ver [08 · Evolución](08-evolucion.md).
+
+#### Comparación de una estación en móvil
+
+La ficha de comparación se apila en una sola columna hasta 760 px. El bloque
+«Diferencia respecto a la media provincial» queda debajo de la identidad y el
+precio de la estación: no se reserva una segunda columna estrecha que obligue a
+partir el rótulo y el ahorro en varias líneas. En esta vista los rótulos largos
+se escriben en caja normal, sin espaciado de mayúsculas; las micro-etiquetas solo
+se conservan cuando de verdad señalan estructura y disponen de ancho.
+
+Las tres barras no forman tres categorías cromáticas equivalentes:
+
+- **Esta estación** toma exactamente la clasificación relativa de la lista y
+  del marcador para la zona y el combustible activos (`barata` o `p1`–`p5`).
+  La escala se calcula con todas las estaciones públicas actuales de la zona,
+  no solo con las que ya tienen histórico.
+- **Media provincial** y **Más cara** usan el mismo neutro apagado. Su etiqueta
+  ya explica qué representan y no deben adquirir una banda de precio propia.
+- `--signal` no aparece en estas barras. Es chrome, no un color de precio.
+
+Auditoría de contraste de los rellenos sobre `--petrol`: `p1` da 2,52:1 y `p5`
+2,05:1, por debajo del 3:1 AA para elementos gráficos; `p2`, `p3` y `p4` dan
+respectivamente 3,49:1, 3,49:1 y 3,44:1. La escala no se altera aquí. Las barras
+se presentan dentro de una pista `--paper`, que es su superficie adyacente
+efectiva y sobre la que todas las bandas pasan 3:1 (`p1` 4,90:1; `p2` 3,54:1;
+`p3` 3,54:1; `p4` 3,59:1; `p5` 6,02:1). No deben moverse a una pista oscura sin
+resolver antes `p1` y `p5` mediante una decisión de sistema.
+
+El resumen compacto no abrevia la posición como «2.ª de 67» sin sujeto: dice
+**«Puesto de esta estación en la provincia: 2 de 67»**. El título del
+gráfico nombra las dos series visibles (estación y media provincial, o media y
+mínimo provincial cuando no hay estación elegida). En «Movimientos destacados»,
+la acción se llama «Ver todas las estaciones» porque abre precisamente esa
+lista.

@@ -8,6 +8,7 @@ import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona } from './zona.ts';
 
 export type Banda = 'p1' | 'p2' | 'p3' | 'p4' | 'p5';
+export type BandaPrecio = Banda | 'barata';
 
 export interface Escala {
   /** Banda 0-100 → p1..p5, según los cortes de ADR-0003. */
@@ -59,6 +60,12 @@ export function crearEscala(precios: number[]): Escala {
       return bandaDePercentil(percentil);
     },
   };
+}
+
+/** Clasificación visual compartida por lista, mapa y comparaciones. La más
+ * barata conserva su tratamiento específico; el resto usa la banda relativa. */
+export function bandaPrecio(precio: number, escala: Escala): BandaPrecio {
+  return escala.esMasBarata(precio) ? 'barata' : escala.banda(precio);
 }
 
 /** Precios no nulos de un combustible, tal como se necesitan para alimentar
