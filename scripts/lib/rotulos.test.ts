@@ -63,4 +63,31 @@ describe('seleccionarRotulos', () => {
     ]);
     assert.deepEqual(mercados[0]?.seleccion.incluidos.map(({ rotulo }) => rotulo), ['A']);
   });
+
+  // Con los datos reales de hoy, ningún rótulo de Canarias, Ceuta ni Melilla
+  // llega a las 100 estaciones (el mayor es REPSOL en Canarias, con 59), así
+  // que src/pages/hoy/marcas-mas-baratas.astro siempre renderiza "Ningún
+  // rótulo llega a las 100 estaciones aquí" y nunca el nombre de un rótulo.
+  // Esta prueba fuerza con datos sintéticos la rama contraria: un rótulo que
+  // sí llega al umbral y además vende el combustible, que es justo la
+  // combinación que la página necesita para mostrar `referencia.elemento.rotulo`
+  // en vez del mensaje de "ningún rótulo".
+  it('un rótulo que llega al umbral y vende el combustible queda disponible para el bloque fiscal de marcas-mas-baratas', () => {
+    const mercados = seleccionarMercadosFiscales([
+      {
+        id: 'canarias',
+        nombre: 'Canarias',
+        rotulos: [conGasolina95('DISA', 150, 1.55), conGasolina95('REPSOL', 40, 1.6)],
+      },
+    ]);
+
+    const incluidos = mercados[0]!.seleccion.incluidos;
+    assert.deepEqual(incluidos.map(({ rotulo }) => rotulo), ['DISA']);
+
+    // Mismo filtro que usa la página (rotulosQueVenden) antes de tomar el
+    // primero como "referencia": si DISA no vendiera el combustible, esta
+    // lista saldría vacía y la página caería igualmente en "ningún rótulo".
+    const disponiblesParaVender = rotulosQueVenden(incluidos, 'gasolina95e5');
+    assert.deepEqual(disponiblesParaVender.map(({ rotulo }) => rotulo), ['DISA']);
+  });
 });

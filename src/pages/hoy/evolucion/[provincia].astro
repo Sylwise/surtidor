@@ -22,9 +22,6 @@ export function getStaticPaths() {
 const provinciaId = Astro.params.provincia!;
 const { nombre, zonaId, actualJson, historicoJson } = Astro.props as { nombre: string; zonaId: string; actualJson: string; historicoJson: string };
 const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
-const zonaCompacta = nombre.trim().toLocaleUpperCase('es') === 'ARABA/ALAVA'
-  ? 'ÁLAVA'
-  : (nombre.split('/').at(-1)?.trim() ?? nombre);
 ---
 <html lang="es">
   <head>
@@ -64,7 +61,7 @@ const zonaCompacta = nombre.trim().toLocaleUpperCase('es') === 'ARABA/ALAVA'
 
           <article class="evolucion-canvas evolucion-panel">
             <section class="evolucion-controles evolucion-controles--movil">
-              <p class="evolucion-contexto-movil"><b>{zonaCompacta}</b><i aria-hidden="true">·</i><span>Evolución</span></p>
+              <p class="evolucion-contexto-movil"><b>{nombre}</b><i aria-hidden="true">·</i><span>Evolución</span></p>
               <div class="evolucion-combustibles" data-combustibles role="group" aria-label="Combustible"></div>
               <div class="evolucion-periodos" role="group" aria-label="Periodo"><button data-periodo="7" aria-label="7 días" aria-pressed="false">7 d</button><button data-periodo="30" aria-label="30 días" aria-pressed="true">30 d</button><button data-periodo="90" aria-label="90 días" aria-pressed="false">90 d</button></div>
             </section>

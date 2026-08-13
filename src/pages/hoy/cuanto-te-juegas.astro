@@ -120,7 +120,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
     <p class="editorial-metodo__resumen">
       <strong><span class="editorial-metodo__escritorio">Ahorro frente al precio medio</span><span class="editorial-metodo__movil">Cómo se calcula</span></strong>
       <span class="editorial-metodo__escritorio"> · depósito de 50 litros · solo estaciones que venden el combustible.</span>
-      <span class="editorial-metodo__movil">Precio medio menos mínimo × 50 litros</span>
+      <span class="editorial-metodo__movil">(Precio medio − mínimo) × 50 litros</span>
     </p>
     <details class="editorial-detalles editorial-detalles--metodo">
       <summary>Cómo se calcula</summary>
@@ -176,7 +176,10 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
               return (
                 <tr>
                   <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
-                  <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                  <td class="editorial-tabla__zona">
+                    <a href={`/${provincia.id}/`}>{provincia.nombre}</a>
+                    <small class="editorial-tabla__muestra">{formatearNumero(n)} {n === 1 ? 'estación' : 'estaciones'}</small>
+                  </td>
                   <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
                     {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
                   </td>
@@ -210,7 +213,10 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
                   return (
                     <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}>
                       <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
-                      <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+                      <td class="editorial-tabla__zona">
+                        <a href={`/${provincia.id}/`}>{provincia.nombre}</a>
+                        <small class="editorial-tabla__muestra">{formatearNumero(n)} {n === 1 ? 'estación' : 'estaciones'}</small>
+                      </td>
                       <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
                         {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
                       </td>

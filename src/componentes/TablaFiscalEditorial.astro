@@ -2,7 +2,7 @@
 import type { AgregadoZona } from '../../scripts/lib/agregados.ts';
 import type { FilaRanking } from '../../scripts/lib/ranking.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
-import { formatearPrecio } from '../logica/formato.ts';
+import { formatearNumero, formatearPrecio } from '../logica/formato.ts';
 
 interface Props {
   filas: FilaRanking<AgregadoZona>[];
@@ -28,12 +28,15 @@ const { filas, combustible } = Astro.props;
         return (
           <tr>
             <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
-            <td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td>
+            <td class="editorial-tabla__zona">
+              <a href={`/${provincia.id}/`}>{provincia.nombre}</a>
+              <small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+            </td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
               {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
             </td>
             <td class="editorial-tabla__numero editorial-tabla__estaciones">
-              {resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
+              {formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
             </td>
           </tr>
         );

@@ -44,6 +44,7 @@ const { filas, combustible, etiqueta, principal = false, duplicadas = 0 } = Astr
                   ))}
                 </span>
               )}
+              <small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
             </td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.minimo === null }]}>
               {resumen.minimo === null ? 'no vende' : `${formatearPrecio(resumen.minimo)} €/L`}

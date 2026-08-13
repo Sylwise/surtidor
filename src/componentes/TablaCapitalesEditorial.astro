@@ -31,7 +31,10 @@ const { filas, combustible, etiqueta, principal = false, duplicadas = 0 } = Astr
         return (
           <tr class:list={{ 'editorial-continuacion__duplicada': indice < duplicadas }}>
             <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
-            <td class="editorial-tabla__zona"><a href={capital.href}>{capital.nombre}</a></td>
+            <td class="editorial-tabla__zona">
+              <a href={capital.href}>{capital.nombre}</a>
+              <small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+            </td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
               {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
             </td>

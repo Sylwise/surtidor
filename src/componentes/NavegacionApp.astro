@@ -39,18 +39,13 @@ const estacionesZonaActual = zonaActual
   ? estacionesDeZona(zonaActual, indice.provincias)
   : null;
 const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provincias[0] : null;
-function etiquetaCompacta(nombre: string): string {
-  if (nombre.trim().toLocaleUpperCase('es') === 'ARABA/ALAVA') return 'ÁLAVA';
-  const partes = nombre.split('/').map((parte) => parte.trim()).filter(Boolean);
-  return cajaDeTitulo(partes.at(-1) ?? nombre);
-}
 ---
 
 <div id="controles-identidad" class="controles-identidad" aria-label="Zona">
   <div class="controles__zona">
     <button id="boton-zona" type="button" class="boton-zona" aria-expanded="false" aria-controls="panel-zona" aria-label={zonaNombre ? `Cambiar zona. Zona actual: ${zonaNombre}` : 'Elegir zona'}>
       <span class="boton-zona__etiqueta">Zona</span>
-      <span id="nombre-zona" class="boton-zona__nombre" data-zona-etiqueta={zonaNombre ? etiquetaCompacta(zonaNombre) : 'Zona'}>{zonaNombre ?? 'Elige tu zona'}</span>
+      <span id="nombre-zona" class="boton-zona__nombre">{zonaNombre ?? 'Elige tu zona'}</span>
       <span class="boton-zona__flecha" aria-hidden="true"></span>
     </button>
 
@@ -97,7 +92,6 @@ function etiquetaCompacta(nombre: string): string {
                       href={`/${zona.id}/`}
                       class="enlaces-bloque__fila enlaces-bloque__fila--zona"
                       data-zona-id={zona.id}
-                      data-zona-etiqueta={etiquetaCompacta(zona.nombre)}
                       aria-current={zona.id === zonaId ? 'page' : undefined}
                     >
                       <span class="enlaces-bloque__info">

@@ -30,7 +30,10 @@ const { filas, combustible, etiqueta, principal = false } = Astro.props;
         return (
           <tr>
             <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
-            <td class="editorial-tabla__zona">{rotulo.rotulo}</td>
+            <td class="editorial-tabla__zona">
+              {rotulo.rotulo}
+              <small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+            </td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
               {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
             </td>

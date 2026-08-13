@@ -92,6 +92,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
 .editorial-tabla__zona a:active { color:var(--ink-2); }
 .editorial-tabla__origen { display: block; margin-top: 3px; color: var(--editorial-muted); font-size: 10px; }
 .editorial-tabla__origen a { color: var(--editorial-ink-soft); }
+/* Duplica el recuento de estaciones bajo el nombre, oculto en escritorio
+   (ADR-0019): ahí ya está en su propia columna. En móvil esa columna
+   desaparece por espacio, y esta es la que se ve (ver media query). */
+.editorial-tabla__muestra { display: none; }
 .editorial-tabla__ausente { color: var(--editorial-muted); font-family: var(--sans); }
 .editorial-tabla__unidad { display: none; }
 .editorial-detalles--ranking { margin: 14px 0 24px; }
@@ -238,11 +242,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
   .editorial-destacado a, .editorial-destacado__entidad { max-width:100%; overflow-wrap:anywhere; font-size:15px; font-weight:650; text-transform:none; }
   .editorial-destacado div small { display:block; margin-top:4px; font-size:9px; line-height:1.25; }
   .editorial-resumen { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:16px 0; }
-  .editorial-tarjeta, .editorial-tarjeta--secundaria { min-height:84px; height:84px; padding:10px 12px; background:var(--surface); color:var(--petrol); }
+  .editorial-tarjeta, .editorial-tarjeta--secundaria { min-height:84px; padding:10px 12px; background:var(--surface); color:var(--petrol); }
   .editorial-tarjeta__combustible { margin-bottom: 8px; color: var(--editorial-muted); font-size: 9px; }
   .editorial-tarjeta__precio { font-size: 20px; }
   .editorial-tarjeta__zona { margin-top: 7px; color: var(--editorial-ink-soft); font-size: 11px; }
-  .editorial-tarjeta__zona::after, .editorial-tarjeta__muestra { display: none; }
+  .editorial-tarjeta__zona::after { display: none; }
+  .editorial-tarjeta__muestra { margin-top: 2px; font-size: 9px; }
   .editorial-metodo, .editorial-contexto-fiscal, .editorial-aclaracion { min-height:64px; margin-bottom:16px; padding:12px 38px 12px 46px; }
   .editorial-metodo__icono { top: 33px; left: 13px; width: 19px; height: 19px; }
   .editorial-metodo__resumen { font-size: 11px; }
@@ -266,6 +271,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
   .editorial-tabla__posicion { width: 42px; }
   .editorial-tabla__estaciones { display: none; }
   .editorial-tabla__zona { overflow-wrap: anywhere; }
+  .editorial-tabla__muestra { display: block; margin-top: 1px; color: var(--editorial-muted); font-size: 9px; }
   .editorial-tabla__media { width: 94px; }
   .editorial-tabla--principal tbody tr:nth-child(n+7) { display: none; }
   .editorial-continuacion__duplicada { display: table-row; }
