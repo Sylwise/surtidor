@@ -280,9 +280,7 @@ input {
 /* ---------- Controles ---------- */
 
 /* Zona, en la cabecera superior: se toca una vez por sesión, no reclama
-   sitio de la hoja (docs/05-diseno.md#Móvil). Los litros a repostar ya no
-   viven aquí: se mudaron a la ficha de estación, ver .totem__litros más
-   abajo. */
+   sitio de la hoja (docs/05-diseno.md#Móvil). */
 .controles-identidad {
   display: flex;
   flex-wrap: wrap;
@@ -661,98 +659,6 @@ input {
   z-index: 1;
   outline: 2.5px solid var(--signal);
   outline-offset: 2px;
-}
-
-/* ---------- Litros a repostar: estepador a medida ----------
-   type="number" se mantiene (teclado numérico, validación nativa); solo se
-   ocultan las flechas del navegador, sustituidas por los botones −/+.
-   Vive dentro del tótem (docs/05-diseno.md#Móvil: "el selector sale de la
-   cabecera y se muda a la ficha de estación"), así que su paleta es la
-   oscura del tótem, no la clara de la cabecera. */
-
-.totem__litros {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.totem__litros-etiqueta {
-  color: var(--muted-light);
-  white-space: nowrap;
-}
-
-.litros {
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--hair-dark);
-  border-radius: var(--radio);
-  overflow: hidden;
-}
-
-.litros:focus-within {
-  outline: 2.5px solid var(--signal);
-  outline-offset: 2px;
-}
-
-.litros__paso {
-  width: 44px;
-  height: 44px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--paper);
-  font-size: var(--fs-5);
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.litros__paso:hover {
-  background: var(--hair-dark);
-}
-
-/* El número va en su propia celda, con un solo borde que la separa de los
-   dos botones −/+. Sin sufijo "L": la etiqueta de arriba ya dice "Litros a
-   repostar". */
-.litros__campo {
-  display: flex;
-  align-items: center;
-  height: 44px;
-  border-left: 1px solid var(--hair-dark);
-  border-right: 1px solid var(--hair-dark);
-  background: transparent;
-}
-
-.litros__input {
-  width: 3em;
-  height: 100%;
-  padding: 0 8px;
-  border: none;
-  outline: none;
-  text-align: center;
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--fs-4);
-  font-weight: 700;
-  background: transparent;
-  -moz-appearance: textfield;
-}
-
-/* El foco lo marca .litros:focus-within alrededor de todo el control; el
-   anillo nativo del propio input encima habría dibujado dos bordes a la
-   vez, uno pegado al otro. */
-.litros__input:focus-visible {
-  outline: none;
-}
-
-.litros__input::-webkit-outer-spin-button,
-.litros__input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 /* ---------- Margen y cómo llegar (RF-27/28/29) ---------- */
@@ -1597,8 +1503,7 @@ input {
 .totem__direccion { grid-area: direccion; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .totem__margen,
 .totem__horario,
-.totem__llegar-secundarios,
-.totem__litros { display: none; }
+.totem__llegar-secundarios { display: none; }
 .totem__combustibles { grid-area: precio; margin: 4px 0 0; border: 0; }
 .totem__fila-combustible { display: none; border: 0; }
 .totem__fila-combustible--activa { display: block; }

@@ -13,6 +13,7 @@ export const CATALOGO_HOY: readonly EntradaHoy[] = [
   { slug: 'marcas-mas-baratas', nombre: 'Marcas más baratas', descripcion: 'Ranking por cadenas' },
   { slug: 'capitales-de-provincia', nombre: 'Capitales de provincia', descripcion: 'Precios en grandes ciudades' },
   { slug: 'la-mas-barata-de-espana', nombre: 'La más barata de España', descripcion: 'El mínimo nacional de hoy' },
+  { slug: 'canarias-ceuta-melilla', nombre: 'Canarias, Ceuta y Melilla', descripcion: 'Precios separados por su fiscalidad' },
 ] as const;
 
 export function hrefEntradaHoy(entrada: EntradaHoy, provinciaId?: string | null): string {

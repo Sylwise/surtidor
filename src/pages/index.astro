@@ -82,6 +82,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
       import { montarTotem } from '../componentes/Totem.ts';
       import { montarHoja } from '../componentes/Hoja.ts';
       import { datosDesactualizados } from '../logica/frescura.ts';
+      import { formatearFechaHora } from '../logica/formato.ts';
       import type { FalloProvincia } from '../logica/zona.ts';
       import type { Indice } from '../../scripts/lib/tipos.ts';
 
@@ -138,17 +139,6 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
         // esta página, y el hito del mapa (H8) también toca ese fichero.
         let actualizadoZona: string | null = null;
 
-        function horaDelDato(iso: string): string {
-          const fecha = new Date(iso);
-          if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
-          return fecha.toLocaleString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-        }
-
         function crearAviso(
           texto: string,
           tipo: 'error' | 'parcial' | 'desactualizado',
@@ -190,7 +180,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
           // RF-43: aviso discreto, no bloquea ni compite con los de arriba.
           if (actualizadoZona && datosDesactualizados(actualizadoZona, new Date())) {
             contenedorAvisos.append(
-              crearAviso(`Datos de las ${horaDelDato(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
+              crearAviso(`Datos de las ${formatearFechaHora(actualizadoZona)}. Pueden estar desactualizados.`, 'desactualizado', false)
             );
           }
         }

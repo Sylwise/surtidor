@@ -46,10 +46,10 @@ JSON estáticos propios generados en el build. Ver `docs/04-fuente-datos.md`.
 
 ### 4. Solo preferencias locales, nunca datos enviados o sincronizados
 
-No hay cuentas ni sincronización. Las únicas preferencias persistentes son zona,
-combustible y litros a repostar; van en `localStorage` y en ningún sitio más.
-La ubicación y el modo de orden por cercanía solo viven en memoria durante la
-carga. Nada de ello se envía y no se manda telemetría.
+No hay cuentas ni sincronización. Las únicas preferencias persistentes son zona
+y combustible; van en `localStorage` y en ningún sitio más. La ubicación y el
+modo de orden por cercanía solo viven en memoria durante la carga. Nada de
+ello se envía y no se manda telemetría.
 
 ### 5. Sin dependencias que no ganen su sitio
 

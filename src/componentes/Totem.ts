@@ -1,15 +1,10 @@
 // Ficha de la estación seleccionada: rótulo, dirección, municipio, lado de
 // la carretera (RF-29), horario, cómo llegar (RF-27, RF-28), los cuatro
-// combustibles (RF-22, RF-23), puesto dentro de la zona (RF-24), el bloque
-// de ahorro (RF-25) y los litros a repostar (RF-33). Ver la sección
-// "Tótem" y "Móvil" de docs/05-diseno.md.
+// combustibles (RF-22, RF-23), puesto dentro de la zona (RF-24) y el bloque
+// de ahorro (RF-25). Ver la sección "Tótem" y "Móvil" de docs/05-diseno.md.
 //
-// Los litros a repostar viven aquí y no en la cabecera: es una preferencia
-// que se ajusta una vez y solo significa algo junto al cálculo de ahorro. El
-// DOM se construye una sola vez y se actualiza en cada render (mismo patrón
-// que Controles.ts) en vez de reconstruirse con innerHTML: si no, cada tecla
-// en el estepador dispararía un cambio de estado que reconstruye la ficha
-// entera y le hace perder el foco a mitad de escribir.
+// El DOM se construye una sola vez y se actualiza en cada render (mismo
+// patrón que Controles.ts) en vez de reconstruirse con innerHTML.
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
@@ -25,7 +20,9 @@ import { cambioEnPeriodo, serieDeEstacion } from '../logica/evolucion.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
-const PASO_LITROS = 5;
+/** Litros de referencia para el cálculo de ahorro en toda la aplicación
+ *  (decisión de docs/02-requisitos.md): fijos, sin control de usuario. */
+const LITROS_AHORRO = 50;
 
 /** Monta la ficha en `contenedor` y la mantiene sincronizada con el estado.
  *  Devuelve una función para desuscribirse. */
@@ -174,69 +171,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const ahorroResumen = document.createElement('p');
   ahorroResumen.className = 'totem__ahorro-resumen';
 
-  // --- Litros a repostar, 20 L por defecto: estepador a medida (RF-33) ---
-  // Se mantiene `type="number"` (teclado numérico, validación nativa) pero
-  // se ocultan las flechas del navegador por CSS y se sustituyen por dos
-  // botones propios que llaman a stepUp()/stepDown(), reutilizando el mismo
-  // evento `input` que ya dispara la actualización de estado.
-  const grupoLitros = document.createElement('div');
-  grupoLitros.className = 'totem__litros';
-
-  const etiquetaLitros = document.createElement('span');
-  etiquetaLitros.className = 'micro totem__litros-etiqueta';
-  etiquetaLitros.textContent = 'Litros a repostar';
-
-  const campoLitros = document.createElement('div');
-  campoLitros.className = 'litros';
-
-  const inputLitros = document.createElement('input');
-  inputLitros.type = 'number';
-  inputLitros.min = '1';
-  inputLitros.max = '300';
-  inputLitros.step = String(PASO_LITROS);
-  inputLitros.inputMode = 'numeric';
-  inputLitros.className = 'litros__input';
-  inputLitros.setAttribute('aria-label', 'Litros a repostar');
-
-  function emitirCambioLitros(): void {
-    const litros = Number(inputLitros.value);
-    if (Number.isFinite(litros) && litros > 0) {
-      actualizarEstado({ litros });
-    }
-  }
-  inputLitros.addEventListener('input', emitirCambioLitros);
-
-  const botonMenos = document.createElement('button');
-  botonMenos.type = 'button';
-  botonMenos.className = 'litros__paso';
-  botonMenos.setAttribute('aria-label', `Restar ${PASO_LITROS} litros`);
-  botonMenos.textContent = '−';
-  botonMenos.addEventListener('click', () => {
-    inputLitros.stepDown();
-    emitirCambioLitros();
-  });
-
-  const botonMas = document.createElement('button');
-  botonMas.type = 'button';
-  botonMas.className = 'litros__paso';
-  botonMas.setAttribute('aria-label', `Sumar ${PASO_LITROS} litros`);
-  botonMas.textContent = '+';
-  botonMas.addEventListener('click', () => {
-    inputLitros.stepUp();
-    emitirCambioLitros();
-  });
-
-  // El número va en su propia celda, con un solo borde que la separa de los
-  // botones −/+ a los lados. Sin sufijo "L": la etiqueta de arriba ya dice
-  // "Litros a repostar", y repetirlo en cada cifra no aporta nada.
-  const campoNumero = document.createElement('div');
-  campoNumero.className = 'litros__campo';
-  campoNumero.append(inputLitros);
-
-  campoLitros.append(botonMenos, campoNumero, botonMas);
-  grupoLitros.append(etiquetaLitros, campoLitros);
-
-  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, puesto, evolucionCambio, ahorro, llegar, enlaceEvolucion, grupoLitros);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, puesto, evolucionCambio, ahorro, llegar, enlaceEvolucion);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
@@ -247,13 +182,6 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     contenedor.classList.toggle('totem--vacio', !estacion);
     vacio.hidden = Boolean(estacion);
     lleno.hidden = !estacion;
-
-    // Los litros se actualizan pase lo que pase, esté o no la ficha llena:
-    // si el usuario acaba de deseleccionar la estación a mitad de escribir
-    // un valor, no queremos perder ese cambio.
-    if (document.activeElement !== inputLitros) {
-      inputLitros.value = String(estado.litros);
-    }
 
     if (!estacion) {
       peticionEvolucion += 1;
@@ -335,15 +263,15 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       return;
     }
 
-    const euros = calcularAhorro(precioActivo, escala.maximo, estado.litros);
+    const euros = calcularAhorro(precioActivo, escala.maximo, LITROS_AHORRO);
     if (euros <= 0) {
       ahorroCifra.textContent = formatearEuros(0);
       ahorroTexto.textContent = 'Ya es de las más baratas de la zona con este combustible.';
-      ahorroResumen.textContent = `Sin ahorro adicional · ${estado.litros} L`;
+      ahorroResumen.textContent = 'Sin ahorro adicional';
     } else {
       ahorroCifra.textContent = formatearEuros(euros);
-      ahorroTexto.textContent = `de ahorro repostando aquí en vez de en la más cara de la zona, con ${estado.litros} L.`;
-      ahorroResumen.textContent = `Ahorras ${formatearEuros(euros)} · ${estado.litros} L`;
+      ahorroTexto.textContent = `de ahorro repostando aquí en vez de en la más cara de la zona, con ${LITROS_AHORRO} L.`;
+      ahorroResumen.textContent = `Ahorras ${formatearEuros(euros)} frente a la más cara de la zona · ${LITROS_AHORRO} L`;
     }
     ahorro.replaceChildren(ahorroCifra, ahorroTexto, ahorroResumen);
   }

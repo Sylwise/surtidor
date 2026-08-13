@@ -4,12 +4,9 @@
 // docs/05-diseno.md#Móvil lo pone siempre alcanzable en los tres estados de
 // la hoja, también en escritorio. El filtro "solo abiertas ahora" ya no vive
 // aquí: es una píldora en la cabecera de la lista (RF-82,
-// src/componentes/Lista.ts), junto al contador que modifica. Los litros a
-// repostar (RF-33) tampoco: se mudaron a la ficha de estación
-// (src/componentes/Totem.ts), junto al cálculo de ahorro, que es el único
-// sitio donde significa algo. Persistencia de combustible/zona la hace
-// src/logica/estado.ts al recibir cada actualización; aquí solo se dispara
-// el cambio de estado.
+// src/componentes/Lista.ts), junto al contador que modifica. Persistencia
+// de combustible/zona la hace src/logica/estado.ts al recibir cada
+// actualización; aquí solo se dispara el cambio de estado.
 //
 // RF-80: las pestañas solo se muestran en estado de lista. Con una estación
 // seleccionada (estado de ficha) desaparecen, porque la ficha ya lista los

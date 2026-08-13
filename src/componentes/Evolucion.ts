@@ -236,7 +236,9 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const rango = contenedor.querySelector<HTMLElement>('[data-rango-fechas]')!;
       rango.textContent = `${fecha(tramo[0]!.fecha)} — ${fecha(tramo.at(-1)!.fecha)}`;
       const tramoElemento = contenedor.querySelector<HTMLElement>('[data-tramo]')!;
-      tramoElemento.textContent = explicacion?.tramoIntenso ? `${fecha(explicacion.tramoIntenso.desde)} – ${fecha(explicacion.tramoIntenso.hasta)} · ${explicacion.tramoIntenso.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(explicacion.tramoIntenso.diferenciaMilesimas)} cts` : 'Sin tramo destacable';
+      const bloqueTramo = tramoElemento.closest<HTMLElement>('.evolucion-tramo')!;
+      bloqueTramo.hidden = !explicacion?.tramoIntenso;
+      if (explicacion?.tramoIntenso) tramoElemento.textContent = `${fecha(explicacion.tramoIntenso.desde)} – ${fecha(explicacion.tramoIntenso.hasta)} · ${explicacion.tramoIntenso.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(explicacion.tramoIntenso.diferenciaMilesimas)} cts`;
       const etiquetaMedia = contenedor.querySelector<HTMLElement>('[data-etiqueta-media]')!;
       const etiquetaMinimo = contenedor.querySelector<HTMLElement>('[data-etiqueta-minimo]')!;
       const etiquetaMuestra = contenedor.querySelector<HTMLElement>('[data-etiqueta-muestra]')!;
