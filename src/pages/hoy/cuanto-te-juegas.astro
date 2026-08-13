@@ -4,7 +4,7 @@ import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/li
 import { calcularCostePorNoComparar } from '../../../scripts/lib/cuanto-te-juegas.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearEuros, formatearFechaHora } from '../../logica/formato.ts';
+import { formatearEuros, formatearFechaHora, formatearNumero } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/cuanto-te-juegas/';
@@ -80,19 +80,19 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
         <div>
           <span>{etiquetaEditorial[mayorAhorro.combustible]}</span>
           <a href={`/${mayorAhorro.lider.id}/`}>{mayorAhorro.lider.nombre}</a>
-          <small>50 L · {mayorAhorro.lider.combustibles[mayorAhorro.combustible].n} estaciones</small>
+          <small>50 L · {formatearNumero(mayorAhorro.lider.combustibles[mayorAhorro.combustible].n)} estaciones</small>
         </div>
       </article>
     )}
   </header>
 
   <section class="editorial-resumen" aria-label="Mayor ahorro posible por depósito y combustible">
-    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+    {ORDEN_COMBUSTIBLES.map((combustible) => {
       const lider = lideres[combustible];
       const diferencia = lider ? coste(lider, combustible) : null;
       const resumen = lider?.combustibles[combustible] ?? null;
       return (
-        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+        <article class="editorial-tarjeta editorial-tarjeta--secundaria">
           <span class="editorial-tarjeta__combustible">{etiquetaEditorial[combustible]}</span>
           <strong class="editorial-tarjeta__precio">
             {diferencia === null ? 'sin datos' : formatearEuros(diferencia)}
@@ -104,7 +104,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
           )}
           {resumen && (
             <span class="editorial-tarjeta__muestra">
-              Calculado sobre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
+              Calculado sobre {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}
             </span>
           )}
         </article>
@@ -180,7 +180,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
                     {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
                   </td>
                   <td class="editorial-tabla__numero editorial-tabla__estaciones">
-                    {n}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
+                    {formatearNumero(n)}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
                   </td>
                 </tr>
               );
@@ -191,7 +191,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
 
       {rankingsGenerales[combustible].length > 6 && (
         <details class="editorial-detalles editorial-detalles--ranking">
-          <summary>Ver las {rankingsGenerales[combustible].length} provincias</summary>
+          <summary>Ver las {formatearNumero(rankingsGenerales[combustible].length)} provincias</summary>
           <div class="editorial-tabla-wrap">
             <table class="editorial-tabla" aria-label={`Resto del ranking de ${ETIQUETA[combustible]}`}>
               <thead>
@@ -214,7 +214,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
                         {diferencia === null ? 'no vende' : formatearEuros(diferencia)}
                       </td>
                       <td class="editorial-tabla__numero editorial-tabla__estaciones">
-                        {n}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
+                        {formatearNumero(n)}<span class="editorial-tabla__unidad"> {n === 1 ? 'estación' : 'estaciones'}</span>
                       </td>
                     </tr>
                   );
@@ -234,7 +234,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
             return <li>
               <span>
                 <strong><a href={`/${provincia.id}/`}>{etiquetaFiscal(provincia.nombre)}</a></strong>
-                <small>{resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+                <small>{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
               </span>
               <b>{diferencia === null ? 'no vende' : formatearEuros(diferencia)}</b>
             </li>;

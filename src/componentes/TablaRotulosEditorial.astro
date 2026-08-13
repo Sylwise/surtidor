@@ -2,7 +2,7 @@
 import type { AgregadoRotulo } from '../../scripts/lib/agregados.ts';
 import type { FilaRanking } from '../../scripts/lib/ranking.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
-import { formatearPrecio } from '../logica/formato.ts';
+import { formatearNumero, formatearPrecio } from '../logica/formato.ts';
 
 interface Props {
   filas: FilaRanking<AgregadoRotulo>[];
@@ -35,7 +35,7 @@ const { filas, combustible, etiqueta, principal = false } = Astro.props;
               {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
             </td>
             <td class="editorial-tabla__numero editorial-tabla__estaciones">
-              {resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
+              {formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>
             </td>
           </tr>
         );

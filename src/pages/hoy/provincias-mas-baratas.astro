@@ -5,7 +5,7 @@ import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import { formatearFechaHora, formatearNumero, formatearPrecio } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/provincias-mas-baratas/';
@@ -58,7 +58,7 @@ const lideres = Object.fromEntries(
             {lider && resumen && <div>
               <span>Provincia</span>
               <a href={`/${lider.id}/`}>{lider.nombre}</a>
-              <small>Media de {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+              <small>Media de {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
             </div>}
           </article>
         );
@@ -84,7 +84,7 @@ const lideres = Object.fromEntries(
             <h2 id={`titulo-${combustible}`}>{ETIQUETA[combustible]}</h2>
             <p>La media es simple y solo incluye estaciones públicas que publican este combustible.</p>
             <dl>
-              <div><dt>Provincias comparadas</dt><dd>{filas.length}</dd></div>
+              <div><dt>Provincias comparadas</dt><dd>{formatearNumero(filas.length)}</dd></div>
               <div><dt>Mercado general</dt><dd>Península y Baleares</dd></div>
             </dl>
           </aside>
@@ -92,7 +92,7 @@ const lideres = Object.fromEntries(
           <div class="editorial-ranking">
             <div class="editorial-ranking__cabecera">
               <span class="micro">Ranking provincial · Top 6</span>
-              <span>{conDatos.length} con datos</span>
+              <span>{formatearNumero(conDatos.length)} con datos</span>
             </div>
             {conDatos.length === 0 ? (
               <section class="editorial-estado" role="status">
@@ -107,21 +107,21 @@ const lideres = Object.fromEntries(
                     <tbody>
                       {conDatos.slice(0, 8).map(({ elemento: provincia, posicion }) => {
                         const resumen = provincia.combustibles[combustible];
-                        return <tr><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
+                        return <tr><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
                       })}
                     </tbody>
                   </table>
                 </div>
                 {conDatos.length > 6 && (
                   <details class="editorial-detalles editorial-detalles--ranking">
-                    <summary>Ver las {filas.length} provincias</summary>
+                    <summary>Ver las {formatearNumero(filas.length)} provincias</summary>
                     <div class="editorial-tabla-wrap">
                       <table class="editorial-tabla" aria-label={`Clasificación completa de ${ETIQUETA[combustible]}`}>
                         <thead><tr><th scope="col" class="editorial-tabla__posicion">Pos.</th><th scope="col">Provincia</th><th scope="col" class="editorial-tabla__numero">Media</th><th scope="col" class="editorial-tabla__numero">Estaciones</th></tr></thead>
                         <tbody>
                           {conDatos.slice(6).map(({ elemento: provincia, posicion }, indice) => {
                             const resumen = provincia.combustibles[combustible];
-                            return <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{resumen.n}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
+                            return <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
                           })}
                         </tbody>
                       </table>
@@ -140,7 +140,7 @@ const lideres = Object.fromEntries(
                 return <li>
                   <span>
                     <strong><a href={`/${provincia.id}/`}>{provincia.nombre}</a></strong>
-                    <small>{resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
+                    <small>{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
                   </span>
                   <b>{resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}</b>
                 </li>;

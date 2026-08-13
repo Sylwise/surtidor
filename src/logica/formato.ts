@@ -12,6 +12,21 @@ export function formatearEuros(cantidad: number): string {
   return `${cantidad.toFixed(2).replace('.', ',')} €`;
 }
 
+/** "10986" → "10.986", "5068" → "5.068". Separador de miles español, para
+ *  recuentos de estaciones, rótulos y zonas en las editoriales de "Hoy". Una
+ *  sola función para que un recuento no se quede sin separador en un sitio
+ *  mientras lo lleva en otro.
+ *
+ *  `useGrouping: true` explícito porque el valor por defecto de `es-ES`
+ *  (`'auto'`) usa `minimumGroupingDigits: 2` del propio CLDR: agrupa
+ *  "10.429" pero deja "5068" sin separador por tener un solo dígito antes
+ *  del primer punto. Sin este ajuste, el mismo bug que se está corrigiendo
+ *  aquí —un número de cuatro cifras sin separador junto a otro que sí lo
+ *  lleva— habría vuelto a aparecer con cifras distintas. */
+export function formatearNumero(cantidad: number): string {
+  return cantidad.toLocaleString('es-ES', { useGrouping: true });
+}
+
 /** Fecha y hora legibles ("06/08 a las 16:49"), para el aviso de frescura
  *  (RF-43) en el cliente y para la marca de "actualizado" de la tabla
  *  estática de zona. Misma función en los dos sitios para que no diverjan. */
