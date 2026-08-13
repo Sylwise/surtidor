@@ -39,6 +39,44 @@ await caso(
 );
 
 await caso(
+  'Recuperación de contexto WebGL',
+  '/asturias/',
+  `() => {
+    window.__eventosWebGL = [];
+    document.addEventListener('webglcontextlost', () => window.__eventosWebGL.push('perdido'), true);
+    document.addEventListener('webglcontextrestored', () => window.__eventosWebGL.push('restaurado'), true);
+    const fetchReal = window.fetch.bind(window);
+    window.fetch = (entrada, opciones) => {
+      const url = entrada instanceof Request ? entrada.url : String(entrada);
+      if (url.startsWith('https://tiles.openfreemap.org/styles/positron')) {
+        return Promise.resolve(new Response(JSON.stringify({ version: 8, sources: {}, layers: [] }), {
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      }
+      return fetchReal(entrada, opciones);
+    };
+  }`,
+  `(async()=>{
+    const lienzo = document.querySelector('.maplibregl-canvas');
+    const gl = lienzo?.getContext('webgl2') ?? lienzo?.getContext('webgl');
+    const extension = gl?.getExtension('WEBGL_lose_context');
+    if (!extension) return JSON.stringify({ disponible: false });
+    extension.loseContext();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    extension.restoreContext();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const contexto = lienzo?.getContext('webgl2') ?? lienzo?.getContext('webgl');
+    return JSON.stringify({
+      disponible: true,
+      eventos: window.__eventosWebGL,
+      recuperado: contexto?.isContextLost() === false,
+      fallback: document.querySelector('#mapa')?.textContent?.includes('La lista y la ficha de la izquierda funcionan igual.') ?? false,
+    });
+  })()`,
+  1800,
+);
+
+await caso(
   'Fallo total de datos',
   '/andalucia/',
   `() => { const original = window.fetch.bind(window); window.fetch = (entrada, opciones) => String(entrada).includes('/data/') ? Promise.resolve(new Response('', { status: 503 })) : original(entrada, opciones); }`,

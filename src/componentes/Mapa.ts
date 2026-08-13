@@ -58,6 +58,11 @@ const BOUNDS_ESPANA: [[number, number], [number, number]] = [
 // terminado de cargar en este plazo (tiles colgados, no caídos con error),
 // se trata como fallo igualmente en vez de dejar un mapa gris para siempre.
 const TIEMPO_ESPERA_MS = 10000;
+// Chrome móvil puede liberar el contexto WebGL mientras la pestaña está en
+// segundo plano. MapLibre reconstruye su pintor cuando el navegador emite
+// `webglcontextrestored`; si ese evento no llega, se aplica el mismo rescate
+// que a una carga bloqueada (RF-40) en vez de dejar un lienzo blanco.
+const TIEMPO_RECUPERACION_WEBGL_MS = 10000;
 
 // ADR-0006: por debajo de este zoom, las estaciones se agrupan en racimos en
 // vez de mostrarse una a una. Con datos reales, es donde el racimo de
@@ -296,6 +301,10 @@ export function montarMapa(
   let cargado = false;
   let fallido = false;
   let vigilante: ReturnType<typeof setTimeout> | null = null;
+  let vigilanteWebGL: ReturnType<typeof setTimeout> | null = null;
+  let fotogramaReactivacion: number | null = null;
+  let contextoWebGLPerdido = false;
+  let lienzoWebGL: HTMLCanvasElement | null = null;
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
   const hoja = contenedor.closest('.app')?.querySelector<HTMLElement>('.hoja') ?? null;
@@ -320,10 +329,64 @@ export function montarMapa(
   let ultimoEstado: EstadoApp = obtenerEstado();
   let ultimaEscala: Escala = crearEscala([]);
 
+  function cancelarVigilanteWebGL(): void {
+    if (vigilanteWebGL) clearTimeout(vigilanteWebGL);
+    vigilanteWebGL = null;
+  }
+
+  function desconectarCicloVidaWebGL(): void {
+    cancelarVigilanteWebGL();
+    if (fotogramaReactivacion !== null) cancelAnimationFrame(fotogramaReactivacion);
+    fotogramaReactivacion = null;
+    document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+    lienzoWebGL?.removeEventListener('webglcontextlost', alPerderContextoWebGL);
+    lienzoWebGL?.removeEventListener('webglcontextrestored', alRestaurarContextoWebGL);
+    lienzoWebGL = null;
+  }
+
+  function vigilarRecuperacionWebGL(): void {
+    if (!contextoWebGLPerdido || document.visibilityState !== 'visible' || vigilanteWebGL || fallido) return;
+    vigilanteWebGL = setTimeout(() => {
+      vigilanteWebGL = null;
+      if (contextoWebGLPerdido) fallar('el navegador no ha podido recuperar el contexto gráfico');
+    }, TIEMPO_RECUPERACION_WEBGL_MS);
+  }
+
+  function repintarAlVolver(): void {
+    if (!mapa || fallido) return;
+    mapa.resize();
+    mapa.triggerRepaint();
+    vigilarRecuperacionWebGL();
+  }
+
+  function alCambiarVisibilidad(): void {
+    if (document.visibilityState !== 'visible' || fotogramaReactivacion !== null) return;
+    // Esperar al siguiente frame da a Chrome tiempo para volver a asociar la
+    // superficie GPU al canvas antes de pedir a MapLibre que la repinte.
+    fotogramaReactivacion = requestAnimationFrame(() => {
+      fotogramaReactivacion = null;
+      repintarAlVolver();
+    });
+  }
+
+  function alPerderContextoWebGL(): void {
+    contextoWebGLPerdido = true;
+    vigilarRecuperacionWebGL();
+  }
+
+  function alRestaurarContextoWebGL(): void {
+    contextoWebGLPerdido = false;
+    cancelarVigilanteWebGL();
+    // El listener interno de MapLibre se registró antes que este y ya ha
+    // reconstruido el pintor. Este frame completa la recuperación visible.
+    alCambiarVisibilidad();
+  }
+
   function fallar(motivo: string): void {
     if (fallido) return;
     fallido = true;
     if (vigilante) clearTimeout(vigilante);
+    desconectarCicloVidaWebGL();
     observador?.disconnect();
     cancelarSuscripcion();
     for (const entrada of marcadores.values()) entrada.marker.remove();
@@ -888,6 +951,11 @@ export function montarMapa(
       attributionControl: {},
     });
 
+    lienzoWebGL = mapa.getCanvas();
+    lienzoWebGL.addEventListener('webglcontextlost', alPerderContextoWebGL);
+    lienzoWebGL.addEventListener('webglcontextrestored', alRestaurarContextoWebGL);
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+
     // RF-17: sobre el mapa, junto al resto de controles de MapLibre — no en
     // la cabecera (presupuesto de interfaz, docs/05-diseno.md).
     mapa.addControl(new ControlUbicacion(alEncontrarUbicacion, obtenerRelleno), 'top-right');
@@ -965,6 +1033,7 @@ export function montarMapa(
   return () => {
     cancelarSuscripcion();
     if (vigilante) clearTimeout(vigilante);
+    desconectarCicloVidaWebGL();
     observador?.disconnect();
     for (const entrada of marcadores.values()) entrada.marker.remove();
     marcadores.clear();
