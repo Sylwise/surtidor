@@ -53,7 +53,7 @@ estado de ejecución de cada versión se mantiene en
 | RF-22 | M | La ficha muestra rótulo, dirección, municipio, horario declarado y los cuatro combustibles con su precio. |
 | RF-23 | M | Un combustible que la estación no vende se muestra como "no vende", nunca como 0,000 ni en blanco. |
 | RF-24 | M | La ficha indica el puesto de la estación dentro de la zona para el combustible seleccionado, y su provincia cuando la zona abarca varias. |
-| RF-25 | M | La ficha calcula el ahorro en euros respecto a la estación más cara de la zona, según el tamaño de depósito indicado. |
+| RF-25 | M | La ficha calcula el ahorro en euros de repostar 50 litros en esta estación en vez de en la más cara de la zona con el combustible activo. Los 50 litros son la referencia fija de toda la aplicación (ver RF-98 y la nota tras RF-84): no hay control de usuario para cambiarlos, y cada cifra de ahorro dice en su propio texto contra qué se compara. |
 | RF-26 | S | Al conceder geolocalización, la lista se ordena por distancia geográfica y muestra la distancia aproximada en cada fila. Un control permite volver al orden por precio y recuperar cercanía sin pedir ubicación de nuevo durante la misma carga. |
 | RF-29 | M | La ficha indica de qué lado de la carretera está la estación, a partir del campo `Margen` (`D`, `I`, `N`). |
 | RF-27 | M | Botón de "cómo llegar" que abre la aplicación de mapas del dispositivo. En Android, esquema `geo:` para que salga el selector del sistema y se respete la app de cada uno. Enlace universal de Google Maps como opción por defecto, con Waze y Apple Maps como alternativas secundarias. |
@@ -79,10 +79,8 @@ estado de ejecución de cada versión se mantiene en
 | RF-77 | M | No existen zonas definidas a mano. Toda zona sale de un límite administrativo oficial o de la adyacencia geográfica. |
 | RF-36 | M | Una zona de varias provincias descarga sus ficheros en paralelo y los fusiona. Si alguno falla, se muestra lo que sí ha llegado y se avisa de qué falta. |
 | RF-37 | S | Cuando el usuario pulsa el botón de ubicación, se le propone además cambiar a la zona que le corresponde. |
-| RF-33 | M | Control de **litros a repostar** (no "depósito": casi nadie llena desde vacío), con 20 L por defecto. Vive en la ficha, no en la cabecera. |
-| RF-44 | M | Con los litros indicados, la ficha muestra **dos cifras**: coste total en esta estación y coste en la más cara de la zona. El ahorro es el número destacado; los totales, secundarios. |
 | RF-48 | M | El normalizador acepta los tres códigos de `Tipo Venta` (`P`, `R`, `A`) sin romper, y las estaciones con código distinto de `P` se excluyen de la lista y el mapa. Sin interfaz asociada en la v1: ver RF-56. |
-| RF-34 | M | Combustible, zona y litros a repostar se recuerdan entre visitas en `localStorage`. |
+| RF-34 | M | Combustible y zona se recuerdan entre visitas en `localStorage`. |
 | RF-35 | S | La URL refleja la zona, de modo que se pueda compartir un enlace concreto. El combustible **no** va en la URL: como parámetro de consulta crearía cuatro variantes rastreables de cada página del sitio y obligaría a un `canonical` en todas. El combustible elegido vive en `localStorage` (RF-34). |
 | RF-49 | M | Al entrar en la raíz, la zona se resuelve **sin servidor**: la guardada en `localStorage`, si no la página de aterrizaje por la que se ha entrado, y si no un selector. **Nunca se pide permiso de geolocalización al cargar.** |
 | RF-38 | M | En móvil, hoja inferior con tres posiciones de anclaje (asomada, media, completa), arrastrable. El selector de combustible y el filtro son visibles en las tres. |
@@ -92,6 +90,12 @@ estado de ejecución de cada versión se mantiene en
 | RF-82 | M | El filtro de abiertas no ocupa fila propia: es una píldora en la cabecera de la lista, junto al contador de estaciones. |
 | RF-83 | M | La ficha se cierra de tres formas, todas válidas: tocando el mapa, arrastrando la hoja hacia abajo, y con una X en la ficha. Ninguna franja de mapa visible queda sin respuesta al toque. |
 | RF-84 | M | En móvil, la cabecera muestra solo el icono, no la palabra "Surtidor". En escritorio se muestran los dos. |
+
+RF-33 y RF-44 se retiraron de aquí: describían el control de **litros a
+repostar** de la ficha (con 20 L por defecto) y las "dos cifras" de coste que
+dependían de él. La decisión ahora es que el ahorro se calcula siempre con 50
+litros fijos, sin control de usuario, igual en toda la aplicación: ver RF-25
+y RF-98.
 
 ### Estados de error
 
@@ -104,9 +108,9 @@ estado de ejecución de cada versión se mantiene en
 
 ### Coste y navegación (v1)
 
-RF-53, RF-54 y RF-55 se retiraron de aquí: duplicaban palabra por palabra a
-RF-33, RF-44 y RF-27 (misma regla, dos sitios). Queda solo lo que no vive en
-ningún otro sitio.
+RF-53, RF-54 y RF-55 se retiraron de aquí: duplicaban palabra por palabra el
+ahorro de la ficha (ahora RF-25) y "cómo llegar" (RF-27), misma regla en dos
+sitios. Queda solo lo que no vive en ningún otro sitio.
 
 | ID | Prioridad | Requisito |
 |---|---|---|

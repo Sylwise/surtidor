@@ -28,14 +28,30 @@ export function formatearNumero(cantidad: number): string {
 }
 
 /** Fecha y hora legibles ("06/08 a las 16:49"), para el aviso de frescura
- *  (RF-43) en el cliente y para la marca de "actualizado" de la tabla
- *  estática de zona. Misma función en los dos sitios para que no diverjan. */
+ *  (RF-43) en el cliente y para la marca de "actualizado" de las editoriales
+ *  y de la tabla estática de zona. Única función en toda la aplicación para
+ *  que no diverjan: `timeZone` fijo porque unas veces corre en el navegador
+ *  del usuario y otras en el servidor de build, y cada uno tiene su propia
+ *  hora local si no se fuerza una. */
 export function formatearFechaHora(iso: string): string {
   const fecha = new Date(iso);
   if (Number.isNaN(fecha.getTime())) return 'hora desconocida';
   return fecha.toLocaleString('es-ES', {
+    timeZone: 'Europe/Madrid',
     day: '2-digit',
     month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/** Solo la hora ("16:49"), para el hueco reducido de la barra de estado en
+ *  móvil. Misma zona horaria que {@link formatearFechaHora}. */
+export function formatearHora(iso: string): string {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return '--:--';
+  return fecha.toLocaleTimeString('es-ES', {
+    timeZone: 'Europe/Madrid',
     hour: '2-digit',
     minute: '2-digit',
   });

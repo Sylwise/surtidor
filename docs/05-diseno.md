@@ -412,6 +412,29 @@ una coordenada fija ni intenta fingir que nace del botón. Lleva borde, sombra y
 un fondo de bloqueo translúcido. Su altura se acota al viewport; solo la lista
 interior se desplaza.
 
+**Encuadre inicial, sin zona elegida: España entera es visible** — península,
+Baleares y Canarias, en su posición geográfica real, sin inset (mismo criterio
+que la pastilla provincial de la vista nacional). Antes se abría con un centro
+y zoom fijos pensados para escritorio (`CENTRO_INICIAL`/`ZOOM_INICIAL` en
+`Mapa.ts`) que en aspectos de pantalla muy anchos o muy estrechos dejaban fuera
+Canarias o mostraban de más países lejanos (Luxemburgo, Suiza, Marruecos,
+Túnez) sin necesidad: un zoom fijo no se adapta a la proporción real del
+contenedor. El encuadre se calcula con los límites geográficos reales del
+territorio (`fitBounds`, igual que `encuadrarTodas` al cargar una zona), no con
+un centro y zoom adivinados, así que se ajusta solo a cualquier proporción de
+pantalla. `ZOOM_ENTRADA_NACIONAL` (el umbral que decide si el mapa muestra
+pastillas provinciales o estaciones sueltas) es un concepto distinto y no
+cambia: el encuadre inicial queda muy por debajo de ese umbral, así que la
+vista nacional sigue siendo la que se ve al entrar.
+
+**El modal no tapa el centro del encuadre.** El centro geométrico de España
+entera —con Canarias tirando del cómputo hacia el suroeste— cae en el
+Atlántico, no sobre la península: el panel, centrado en el espacio del mapa,
+queda así sobre mar abierto en vez de sobre el territorio con más estaciones y
+más peso visual. No hace falta descentrar el panel para lograrlo; es
+consecuencia directa de encuadrar el territorio real en vez de un punto
+central artificial.
+
 **Sin precio.** Se valoró añadir el precio mínimo de cada zona y se
 descartó: nadie decide dónde repostar mirando la media de otra provincia, y
 un número que no informa ninguna decisión solo ocupa sitio.
@@ -583,9 +606,13 @@ a sacar otra cosa**, no a apretar más.
 El filtro de abiertas no cuenta porque no es un control global: vive en la
 cabecera de la lista, que es lo que modifica.
 
-**Revelación progresiva.** Las preferencias que se configuran una vez, como los
-litros habituales, **no viven en la pantalla principal**. Viven donde se usan:
-en la ficha, junto al cálculo que alimentan.
+**Revelación progresiva.** Lo que solo tiene sentido una vez elegida una
+estación **no vive en la pantalla principal**: vive donde se usa, junto al
+cálculo que alimenta. El ejemplo que motivó esta regla era el estepador de
+litros a repostar de la ficha; se retiró después porque el ahorro pasó a
+calcularse con 50 L fijos en toda la aplicación, sin preferencia de usuario
+(RF-25 en `docs/02-requisitos.md`). La regla se queda para lo próximo que
+aparezca en ese estrato.
 
 **Ningún número sin origen visible.** Si se muestra un ahorro, se ve respecto a
 qué. Si se muestra un coste, se ve de cuántos litros sale. Si un día se mostrase
@@ -627,8 +654,8 @@ selector de combustible, filtro de abiertas, selector de zona. **Está lleno. No
 cabe nada más.** Meter algo aquí obliga a sacar otra cosa y a justificarlo.
 
 **Estrato 2 — dentro de la ficha de estación.** Lo que solo tiene sentido con una
-estación delante: litros a repostar, coste total, ahorro, cómo llegar, lado de la
-carretera, horario.
+estación delante: coste total, ahorro, cómo llegar, lado de la carretera,
+horario.
 
 **Estrato 3 — ajustes.** Lo que se configura una vez y luego se olvida: mostrar u
 ocultar las de venta restringida. Se llega desde un único acceso discreto en la
@@ -636,7 +663,8 @@ barra superior. Favoritos no entra: ADR-0023 descarta una colección cuya
 persistencia no puede garantizarse entre dispositivos.
 
 El error que ya cometimos: el selector de litros estaba en el estrato 1 comiendo
-95 px permanentes cuando pertenece al 2.
+95 px permanentes cuando pertenecía al 2. El propio selector se retiró después
+del estrato 2 también: ver la nota de "Revelación progresiva" más arriba.
 
 ### El precio de pantalla es el precio del cartel
 

@@ -63,6 +63,7 @@ const lideres = Object.fromEntries(
 
     {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
       const filas = rankingsGenerales[combustible];
+      const filasPrincipales = filas.slice(0, 8);
       const resumenFiscal = mercadosFiscales.map((mercado) => {
         // Solo rótulos que llegan al umbral de la página (UMBRAL_ESTACIONES_ROTULO):
         // sin este límite, el "líder" de un territorio pequeño podía acabar
@@ -88,9 +89,9 @@ const lideres = Object.fromEntries(
         </aside>
 
         <div class="editorial-ranking">
-          <div class="editorial-ranking__cabecera"><span class="micro">Ranking de rótulos · Top 6</span><span>{ETIQUETA[combustible]}</span></div>
+          <div class="editorial-ranking__cabecera"><span class="micro">Ranking de rótulos · Top {filasPrincipales.length}</span><span>{ETIQUETA[combustible]}</span></div>
           {filas.length === 0 ? <section class="editorial-estado" role="status"><h3>Sin rótulos con muestra suficiente</h3><p>Ningún rótulo que supera el umbral publica {ETIQUETA[combustible].toLowerCase()} hoy.</p></section> : <>
-            <TablaRotulosEditorial filas={filas.slice(0, 8)} combustible={combustible} principal />
+            <TablaRotulosEditorial filas={filasPrincipales} combustible={combustible} principal />
             {filas.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver los {formatearNumero(filas.length)} rótulos</summary><TablaRotulosEditorial filas={filas.slice(6)} combustible={combustible} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
           </>}
         </div>

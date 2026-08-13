@@ -154,9 +154,10 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
 
   {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
     const siguiente = ORDEN_COMBUSTIBLES[(indiceCombustible + 1) % ORDEN_COMBUSTIBLES.length]!;
+    const filasPrincipales = rankingsGenerales[combustible].slice(0, 8);
     return <section class="editorial-combustible" id={combustible} data-panel-combustible hidden={indiceCombustible > 0}>
       <h2>{etiquetaEditorial[combustible]}</h2>
-      <p><span class="editorial-combustible__descripcion">Provincias donde más puedes ahorrar frente al precio medio al llenar 50 litros.</span><span class="editorial-combustible__descripcion-movil">Mayor ahorro por provincia</span><span class="editorial-combustible__top">Top 6</span></p>
+      <p><span class="editorial-combustible__descripcion">Provincias donde más puedes ahorrar frente al precio medio al llenar 50 litros.</span><span class="editorial-combustible__descripcion-movil">Mayor ahorro por provincia</span><span class="editorial-combustible__top">Top {filasPrincipales.length}</span></p>
 
       <div class="editorial-tabla-wrap">
         <table class="editorial-tabla editorial-tabla--principal">
@@ -169,7 +170,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
             </tr>
           </thead>
           <tbody>
-            {rankingsGenerales[combustible].slice(0, 8).map(({ elemento: provincia, posicion }) => {
+            {filasPrincipales.map(({ elemento: provincia, posicion }) => {
               const diferencia = coste(provincia, combustible);
               const { n } = provincia.combustibles[combustible];
               return (

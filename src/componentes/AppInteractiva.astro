@@ -273,7 +273,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   import { montarTotem } from './Totem.ts';
   import { montarHoja } from './Hoja.ts';
   import { datosDesactualizados } from '../logica/frescura.ts';
-  import { formatearFechaHora } from '../logica/formato.ts';
+  import { formatearFechaHora, formatearHora } from '../logica/formato.ts';
   import { tituloZona, descripcionZona } from '../logica/metaZona.ts';
   import { PREFIJO_COMUNIDAD } from '../../scripts/lib/slug.ts';
   import type { Indice } from '../../scripts/lib/tipos.ts';
@@ -391,7 +391,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
         ? 'Cargando datos de la zona…'
         : `${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}`;
     const textoMovil = actualizadoZona
-      ? `ACT. ${new Date(actualizadoZona).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+      ? `ACT. ${formatearHora(actualizadoZona)}`
       : estado.cargando
         ? 'ACTUALIZANDO…'
         : `${estado.estaciones.length} EST.`;

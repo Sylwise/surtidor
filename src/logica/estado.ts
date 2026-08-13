@@ -24,9 +24,6 @@ export interface EstadoApp {
   estacionId: string | null;
   /** Filtro "solo abiertas ahora" (CU-4). */
   soloAbiertas: boolean;
-  /** Litros a repostar, para el cálculo de ahorro (RF-33). No "depósito":
-   *  casi nadie llena desde vacío. */
-  litros: number;
   /** Posición concedida durante esta carga. Es efímera: RNF-31 y V2-13. */
   ubicacionUsuario: PosicionUsuario | null;
   /** Orden actual de la lista. Tampoco se persiste entre visitas. */
@@ -49,7 +46,6 @@ const CLAVE_LOCALSTORAGE = 'surtidor:preferencias';
 export interface Preferencias {
   zonaId?: string;
   combustible?: ClavePrecio;
-  litros?: number;
 }
 
 export function normalizarPreferencias(valor: unknown): Preferencias {
@@ -58,7 +54,6 @@ export function normalizarPreferencias(valor: unknown): Preferencias {
   const resultado: Preferencias = {};
   if (typeof datos.zonaId === 'string') resultado.zonaId = datos.zonaId;
   if (typeof datos.combustible === 'string') resultado.combustible = datos.combustible as ClavePrecio;
-  if (typeof datos.litros === 'number' && Number.isFinite(datos.litros) && datos.litros > 0) resultado.litros = datos.litros;
   return resultado;
 }
 
@@ -79,7 +74,6 @@ function guardarPreferencias(estado: EstadoApp): void {
     const preferencias: Preferencias = {
       zonaId: estado.zonaId ?? undefined,
       combustible: estado.combustible,
-      litros: estado.litros,
     };
     localStorage.setItem(CLAVE_LOCALSTORAGE, JSON.stringify(preferencias));
   } catch {
@@ -93,7 +87,6 @@ function guardarPreferencias(estado: EstadoApp): void {
 // `null` y cada página decide qué hacer mientras tanto: src/pages/index.astro
 // abre el selector, src/pages/[zona]/index.astro usa la zona de su URL.
 const COMBUSTIBLE_POR_DEFECTO: ClavePrecio = 'gasolina95e5';
-const LITROS_POR_DEFECTO = 20;
 
 const guardado = typeof localStorage === 'undefined' ? {} : leerPreferencias();
 
@@ -103,7 +96,6 @@ let estado: EstadoApp = {
   combustible: guardado.combustible ?? COMBUSTIBLE_POR_DEFECTO,
   estacionId: null,
   soloAbiertas: false,
-  litros: guardado.litros ?? LITROS_POR_DEFECTO,
   ubicacionUsuario: null,
   ordenLista: 'precio',
   estaciones: [],
@@ -129,10 +121,10 @@ export function suscribir(fn: Suscriptor): () => void {
   return () => suscriptores.delete(fn);
 }
 
-const CLAVES_PERSISTIDAS = new Set<keyof EstadoApp>(['zonaId', 'combustible', 'litros']);
+const CLAVES_PERSISTIDAS = new Set<keyof EstadoApp>(['zonaId', 'combustible']);
 
 /** Aplica un parche al estado y avisa a quien esté suscrito. Si el parche
- *  toca zona, combustible o litros, se persiste (RF-34). */
+ *  toca zona o combustible, se persiste (RF-34). */
 export function actualizarEstado(cambios: Partial<EstadoApp>): void {
   estado = { ...estado, ...cambios };
   if (Object.keys(cambios).some((clave) => CLAVES_PERSISTIDAS.has(clave as keyof EstadoApp))) {

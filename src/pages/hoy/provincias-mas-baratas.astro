@@ -71,6 +71,7 @@ const lideres = Object.fromEntries(
     {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
       const filas = rankingsGenerales[combustible];
       const conDatos = filas.filter(({ elemento }) => elemento.combustibles[combustible].media !== null);
+      const filasPrincipales = conDatos.slice(0, 8);
       return (
         <section
           id={`panel-${combustible}`}
@@ -91,7 +92,7 @@ const lideres = Object.fromEntries(
 
           <div class="editorial-ranking">
             <div class="editorial-ranking__cabecera">
-              <span class="micro">Ranking provincial · Top 6</span>
+              <span class="micro">Ranking provincial · Top {filasPrincipales.length}</span>
               <span>{formatearNumero(conDatos.length)} con datos</span>
             </div>
             {conDatos.length === 0 ? (
@@ -105,7 +106,7 @@ const lideres = Object.fromEntries(
                   <table class="editorial-tabla editorial-tabla--principal">
                     <thead><tr><th scope="col" class="editorial-tabla__posicion">Pos.</th><th scope="col">Provincia</th><th scope="col" class="editorial-tabla__numero">Media</th><th scope="col" class="editorial-tabla__numero">Estaciones</th></tr></thead>
                     <tbody>
-                      {conDatos.slice(0, 8).map(({ elemento: provincia, posicion }) => {
+                      {filasPrincipales.map(({ elemento: provincia, posicion }) => {
                         const resumen = provincia.combustibles[combustible];
                         return <tr><td class="editorial-tabla__posicion">{posicion}</td><td class="editorial-tabla__zona"><a href={`/${provincia.id}/`}>{provincia.nombre}</a></td><td class="editorial-tabla__numero editorial-tabla__media">{formatearPrecio(resumen.media!)} €/L</td><td class="editorial-tabla__numero editorial-tabla__estaciones">{formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span></td></tr>;
                       })}

@@ -42,10 +42,17 @@ import type { EstacionZona } from '../logica/zona.ts';
 import type { ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
 
 const ESTILO_TILES = 'https://tiles.openfreemap.org/styles/positron';
-// Centro y zoom antes de que lleguen las estaciones: España peninsular vista
-// entera. En cuanto hay estaciones, `encuadrarTodas` lo sustituye.
-const CENTRO_INICIAL: [number, number] = [-3.7038, 40.4168];
-const ZOOM_INICIAL = 5;
+// Encuadre antes de que lleguen las estaciones, o mientras no hay zona
+// elegida: España entera visible, península + Baleares + Canarias, en su
+// posición geográfica real (docs/05-diseno.md#Selector-de-zona). Límites
+// geográficos reales, no un centro y zoom adivinados: así se ajustan solos a
+// cualquier proporción de pantalla (`fitBounds`, igual que `encuadrarTodas`
+// al cargar una zona). En cuanto hay estaciones, `encuadrarTodas` lo
+// sustituye.
+const BOUNDS_ESPANA: [[number, number], [number, number]] = [
+  [-18.2, 27.6], // El Hierro (Canarias), esquina suroeste
+  [4.4, 43.9], // Menorca (Baleares) al este, costa cantábrica al norte
+];
 // Regla dura 1 de CLAUDE.md: temporizador de rescate. Si el estilo no ha
 // terminado de cargar en este plazo (tiles colgados, no caídos con error),
 // se trata como fallo igualmente en vez de dejar un mapa gris para siempre.
@@ -859,8 +866,8 @@ export function montarMapa(
     mapa = new MapaLibre({
       container: lienzo,
       style: ESTILO_TILES,
-      center: CENTRO_INICIAL,
-      zoom: ZOOM_INICIAL,
+      bounds: BOUNDS_ESPANA,
+      fitBoundsOptions: { padding: 24 },
       attributionControl: {},
     });
 

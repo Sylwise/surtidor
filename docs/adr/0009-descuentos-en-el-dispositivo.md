@@ -68,3 +68,19 @@ descuentos cambian quién es la más barata**, no que cambian el orden de las
 posiciones sexta a duodécima.
 
 Mientras la brecha entre low-cost y marca siga en treinta céntimos, no lo hará.
+
+## Nota de 2026-08-13 · el ejemplo de "20 litros" queda desactualizado
+
+Los "20 litros" de la comparativa más arriba eran el valor por defecto del
+estepador de litros a repostar que entonces vivía en la ficha (RF-33). Ese
+control se retiró después: el ahorro se calcula ahora con 50 L fijos en toda la
+aplicación, sin preferencia de usuario, y cada cifra dice contra qué se compara
+(RF-25 en `docs/02-requisitos.md`).
+
+La cifra de este ADR no se ha reescrito porque la decisión que documenta —por
+qué se descartan los descuentos por marca— no depende de si el ejemplo usa 20
+o 50 litros: la brecha entre low-cost y marca sigue siendo muchas veces mayor
+que cualquier descuento de programa, con cualquier tamaño de depósito. Los
+"treinta o cincuenta litros" del tope mensual de Waylet, más abajo, son un dato
+del propio programa de fidelización y no tienen relación con el estepador
+retirado.
