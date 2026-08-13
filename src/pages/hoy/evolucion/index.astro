@@ -3,7 +3,7 @@ import '../../../estilos/evolucion.css';
 import DocumentoEditorial from '../../../layouts/DocumentoEditorial.astro';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { cajaDeTitulo } from '../../../logica/formato.ts';
+import { nombreVisible } from '../../../logica/formato.ts';
 import type { Indice } from '../../../../scripts/lib/tipos.ts';
 const indice = JSON.parse(readFileSync(join(process.cwd(), 'public/data/indice.json'), 'utf8')) as Indice;
 const provincias = [...indice.provincias].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -11,6 +11,6 @@ const provincias = [...indice.provincias].sort((a, b) => a.nombre.localeCompare(
 <DocumentoEditorial titulo="Evolución de precios · Surtidor" descripcion="Consulta cómo han cambiado los precios de carburante durante los últimos 90 días." ruta="/hoy/evolucion/">
   <main class="evolucion-indice">
     <header class="evolucion-intro"><p class="evolucion-eyebrow">Histórico diario</p><h1>Entiende el precio cerca de ti</h1><p>Elige una provincia para explorar 90 días de cambios reales, estación por estación, y compararlos con su entorno.</p></header>
-    <nav class="evolucion-provincias" aria-label="Provincias"><h2>¿Dónde quieres mirar?</h2><ul>{provincias.map((provincia) => <li><a href={`/hoy/evolucion/${provincia.id}/`}><span>{cajaDeTitulo(provincia.nombre)}</span><small>{provincia.estaciones} estaciones</small><b aria-hidden="true">→</b></a></li>)}</ul></nav>
+    <nav class="evolucion-provincias" aria-label="Provincias"><h2>¿Dónde quieres mirar?</h2><ul>{provincias.map((provincia) => <li><a href={`/hoy/evolucion/${provincia.id}/`}><span>{nombreVisible(provincia.nombre, 'provincia')}</span><small>{provincia.estaciones} estaciones</small><b aria-hidden="true">→</b></a></li>)}</ul></nav>
   </main>
 </DocumentoEditorial>

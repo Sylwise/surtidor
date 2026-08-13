@@ -5,7 +5,7 @@ import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosCapitales, type AgregadoCapital } from '../../../scripts/lib/capitales.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearFechaHora, formatearNumero, formatearPrecio } from '../../logica/formato.ts';
+import { formatearFechaHora, formatearNumero, formatearPrecio, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/capitales-de-provincia/';
@@ -46,7 +46,7 @@ const lideres = Object.fromEntries(
           <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
           {lider && resumen && <div>
             <span>Capital</span>
-            <a href={lider.href}>{lider.nombre}</a>
+            <a href={lider.href}>{nombreVisible(lider.nombre, 'municipio')}</a>
             <small>Media de {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
           </div>}
         </article>;
@@ -86,7 +86,7 @@ const lideres = Object.fromEntries(
               const resumen = capital.combustibles[combustible];
               return <li>
                 <span>
-                  <strong><a href={capital.href}>{capital.nombre}</a></strong>
+                  <strong><a href={capital.href}>{nombreVisible(capital.nombre, 'municipio')}</a></strong>
                   <small>{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
                 </span>
                 <b>{resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}</b>

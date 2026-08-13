@@ -2,7 +2,7 @@
 import type { AgregadoZona } from '../../scripts/lib/agregados.ts';
 import type { FilaRanking } from '../../scripts/lib/ranking.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
-import { formatearNumero, formatearPrecio } from '../logica/formato.ts';
+import { formatearNumero, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 
 interface Props {
   filas: FilaRanking<AgregadoZona>[];
@@ -29,7 +29,7 @@ const { filas, combustible } = Astro.props;
           <tr>
             <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
             <td class="editorial-tabla__zona">
-              <a href={`/${provincia.id}/`}>{provincia.nombre}</a>
+              <a href={`/${provincia.id}/`}>{nombreVisible(provincia.nombre, 'provincia')}</a>
               <small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
             </td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>

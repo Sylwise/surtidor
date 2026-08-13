@@ -2,7 +2,7 @@
 import type { MinimosZona } from '../../scripts/lib/minimos.ts';
 import type { FilaRanking } from '../../scripts/lib/ranking.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
-import { formatearNumero, formatearPrecio } from '../logica/formato.ts';
+import { formatearNumero, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 
 interface Props {
   filas: FilaRanking<MinimosZona>[];
@@ -32,14 +32,14 @@ const { filas, combustible, etiqueta, principal = false, duplicadas = 0 } = Astr
           <tr class:list={{ 'editorial-continuacion__duplicada': indice < duplicadas }}>
             <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
             <td class="editorial-tabla__zona">
-              <a href={`/${zona.id}/`}>{zona.nombre}</a>
+              <a href={`/${zona.id}/`}>{nombreVisible(zona.nombre, 'ccaa')}</a>
               {resumen.origenes.length > 0 && (
                 <span class="editorial-tabla__origen">
                   {resumen.origenes.map((origen, indice) => (
                     <>
                       {indice > 0 && ', '}
-                      <a href={origen.href}>{origen.municipio}</a>
-                      {origen.destino === 'provincia' && ` · ${origen.provinciaNombre}`}
+                      <a href={origen.href}>{nombreVisible(origen.municipio, 'municipio')}</a>
+                      {origen.destino === 'provincia' && ` · ${nombreVisible(origen.provinciaNombre, 'provincia')}`}
                     </>
                   ))}
                 </span>

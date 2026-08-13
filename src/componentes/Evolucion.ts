@@ -1,5 +1,5 @@
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import { cajaDeTitulo } from '../logica/formato.ts';
+import { cajaDeTitulo, nombreVisible } from '../logica/formato.ts';
 import { cambioEnPeriodo, cambiosDeEstaciones, serieDeEstacion, serieMedia, validarHistoricoPublico, type CambioEstacion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
@@ -185,7 +185,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         if (periodo !== 30) { const ampliar = document.createElement('button'); ampliar.type = 'button'; ampliar.textContent = 'Ver periodo de 30 días →'; ampliar.onclick = () => { periodo = 30; render(); }; li.append(ampliar); }
         lista.append(li); return false;
       }
-      grupos.slice(0, 3).forEach((grupo) => { const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = grupo.estaciones[0]!.rotulo; const detalle = document.createElement('small'); detalle.textContent = grupo.estaciones.length > 1 ? `${grupo.estaciones.length} estaciones con la misma serie` : `${cajaDeTitulo(grupo.estaciones[0]!.direccion)} · ${cajaDeTitulo(grupo.estaciones[0]!.municipio)}`; identidad.append(nombre, detalle); const cifra = document.createElement('b'); cifra.textContent = `${grupo.representante.diferenciaMilesimas < 0 ? '−' : '+'}${(Math.abs(grupo.representante.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(grupo.estaciones[0]!); li.append(boton); lista.append(li); });
+      grupos.slice(0, 3).forEach((grupo) => { const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = grupo.estaciones[0]!.rotulo; const detalle = document.createElement('small'); detalle.textContent = grupo.estaciones.length > 1 ? `${grupo.estaciones.length} estaciones con la misma serie` : `${cajaDeTitulo(grupo.estaciones[0]!.direccion)} · ${nombreVisible(grupo.estaciones[0]!.municipio, 'municipio')}`; identidad.append(nombre, detalle); const cifra = document.createElement('b'); cifra.textContent = `${grupo.representante.diferenciaMilesimas < 0 ? '−' : '+'}${(Math.abs(grupo.representante.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(grupo.estaciones[0]!); li.append(boton); lista.append(li); });
       return true;
     };
 
@@ -204,7 +204,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const explicacion = estacionActiva ? null : explicarEvolucion(historico, estaciones, combustible, periodo);
       const ultimoAgregado = historico.provincia[combustible].at(-1) ?? [0, 0, null];
       contenedor.querySelector<HTMLElement>('[data-titulo-panel]')!.textContent = estacionActiva ? estacionActiva.rotulo : ETIQUETA[combustible];
-      contenedor.querySelector<HTMLElement>('[data-ambito]')!.textContent = estacionActiva ? `${cajaDeTitulo(estacionActiva.municipio)} · frente a la media provincial` : `Media de ${actual.provincia.nombre}`;
+      contenedor.querySelector<HTMLElement>('[data-ambito]')!.textContent = estacionActiva ? `${nombreVisible(estacionActiva.municipio, 'municipio')} · frente a la media provincial` : `Media de ${nombreVisible(actual.provincia.nombre, 'provincia')}`;
       const precioActualEstacion = estacionActiva?.precios[combustible] ?? null;
       contenedor.querySelector<HTMLElement>('[data-etiqueta-precio]')!.textContent = estacionActiva ? 'Precio actual' : 'Último cierre';
       contenedor.querySelector<HTMLElement>('[data-precio]')!.textContent = estacionActiva ? (precioActualEstacion === null ? 'no vende' : eur(Math.round(precioActualEstacion * 1000))) : eur(seriePrincipal.at(-1)?.milesimas ?? null);
@@ -221,7 +221,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         fraseMovil.textContent = `en ${periodo} días`;
       }
       const contextoTexto = contenedor.querySelector<HTMLElement>('[data-contexto]')!;
-      contextoTexto.textContent = estacionActiva ? `Compárala con la media de ${actual.provincia.nombre} para saber si es un caso aislado.` : explicacion && explicacion.amplitud.proporcionAlineada !== null && explicacion.amplitud.comparables > 0
+      contextoTexto.textContent = estacionActiva ? `Compárala con la media de ${nombreVisible(actual.provincia.nombre, 'provincia')} para saber si es un caso aislado.` : explicacion && explicacion.amplitud.proporcionAlineada !== null && explicacion.amplitud.comparables > 0
         ? `${explicacion.amplitud.alineadas} de ${explicacion.amplitud.comparables} estaciones ${cambio && cambio.diferenciaMilesimas < 0 ? 'bajaron' : 'subieron'}.`
         : 'No hay suficientes estaciones comparables para medir el alcance.';
       const claves = contenedor.querySelector<HTMLOListElement>('[data-claves]')!; claves.replaceChildren();
@@ -302,7 +302,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         const minimoActual = preciosActuales.length ? Math.min(...preciosActuales) : null;
         const diferencia = precioEstacion === null || mediaActual === null ? null : precioEstacion - mediaActual;
         contenedor.querySelector<HTMLElement>('[data-comparacion-nombre]')!.textContent = estacionActiva.rotulo;
-        contenedor.querySelector<HTMLElement>('[data-comparacion-lugar]')!.textContent = `${cajaDeTitulo(estacionActiva.municipio)} · ${cajaDeTitulo(estacionActiva.direccion)}`;
+        contenedor.querySelector<HTMLElement>('[data-comparacion-lugar]')!.textContent = `${nombreVisible(estacionActiva.municipio, 'municipio')} · ${cajaDeTitulo(estacionActiva.direccion)}`;
         contenedor.querySelector<HTMLElement>('[data-comparacion-precio]')!.textContent = eur(precioEstacion);
         const comparacionDiferencia = contenedor.querySelector<HTMLElement>('[data-comparacion-diferencia]')!;
         comparacionDiferencia.textContent = diferencia === null ? 'No comparable' : `${diferencia > 0 ? '+' : '−'}${centimos(diferencia)} cts/L`;
@@ -330,7 +330,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       contenedor.querySelector<HTMLElement>('.evolucion-ranking')!.hidden = false;
       const movimientosMovil = contenedor.querySelector<HTMLOListElement>('[data-movimientos-movil]')!; movimientosMovil.replaceChildren();
       const destacados = [cambios.filter((c) => c.diferenciaMilesimas > 0).at(-1), cambios.find((c) => c.diferenciaMilesimas < 0)].filter((c): c is CambioEstacion => Boolean(c));
-      destacados.forEach((movimiento) => { const estacion = estaciones.find((e) => e.id === movimiento.estacionId); if (!estacion) return; const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; boton.ariaLabel = `Ver evolución de ${estacion.rotulo}, ${cajaDeTitulo(estacion.municipio)}`; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = cajaDeTitulo(estacion.municipio); identidad.append(nombre, lugar); const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(estacion); li.append(boton); movimientosMovil.append(li); });
+      destacados.forEach((movimiento) => { const estacion = estaciones.find((e) => e.id === movimiento.estacionId); if (!estacion) return; const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; boton.ariaLabel = `Ver evolución de ${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}`; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = nombreVisible(estacion.municipio, 'municipio'); identidad.append(nombre, lugar); const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(estacion); li.append(boton); movimientosMovil.append(li); });
       let estacionesCombustible = estaciones.filter((e) => e.precios[combustible] !== null);
       if (filtroSheet === 'abiertas') estacionesCombustible = estacionesCombustible.filter((e) => estaAbierta(e.horario, new Date()));
       const ordenarPorCercania = filtroSheet === 'cercanas' && ubicacionUsuario !== null;
@@ -345,12 +345,12 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       estacionesCombustible.forEach((estacion, indice) => {
         const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button';
         const posicion = document.createElement('i'); posicion.textContent = ordenarPorCercania ? formatearDistancia(distanciaKm(ubicacionUsuario!, estacion)) : String(indice + 1);
-        const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = cajaDeTitulo(estacion.municipio); identidad.append(nombre, lugar);
+        const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = nombreVisible(estacion.municipio, 'municipio'); identidad.append(nombre, lugar);
         const precio = document.createElement('b'); precio.textContent = (estacion.precios[combustible] ?? 0).toLocaleString('es-ES', { minimumFractionDigits: 3 });
         boton.append(posicion, identidad, precio); boton.onclick = () => { cerrarSheet(); abrirEstacion(estacion); }; li.append(boton); listaSheet.append(li);
       });
       const detalle = contenedor.querySelector<HTMLElement>('[data-detalle-estacion]')!; detalle.hidden = !estacionActiva;
-      if (estacionActiva) { contenedor.querySelector<HTMLElement>('[data-estacion-titulo]')!.textContent = estacionActiva.rotulo; contenedor.querySelector<HTMLElement>('[data-estacion-resumen]')!.textContent = `${cajaDeTitulo(estacionActiva.direccion)}, ${cajaDeTitulo(estacionActiva.municipio)}.`; }
+      if (estacionActiva) { contenedor.querySelector<HTMLElement>('[data-estacion-titulo]')!.textContent = estacionActiva.rotulo; contenedor.querySelector<HTMLElement>('[data-estacion-resumen]')!.textContent = `${cajaDeTitulo(estacionActiva.direccion)}, ${nombreVisible(estacionActiva.municipio, 'municipio')}.`; }
     };
     botonesCombustible.forEach((b) => b.onclick = () => { combustible = b.dataset.clave as ClavePrecio; render(); });
     botonesPeriodo.forEach((b) => b.onclick = () => { periodo = Number(b.dataset.periodo) as 7 | 30 | 90; render(); });
@@ -378,7 +378,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       resumenBusqueda.textContent = `“${consulta}” · ${coincidencias.length} ${coincidencias.length === 1 ? 'resultado' : 'resultados'}`; resumenBusqueda.hidden = false;
       coincidencias.slice(0, 8).forEach((estacion) => {
         const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button';
-        const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = `${cajaDeTitulo(estacion.municipio)} · ${cajaDeTitulo(estacion.direccion)}`; identidad.append(nombre, lugar);
+        const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = `${nombreVisible(estacion.municipio, 'municipio')} · ${cajaDeTitulo(estacion.direccion)}`; identidad.append(nombre, lugar);
         const precio = document.createElement('b'); precio.textContent = estacion.precios[combustible] === null ? 'No vende' : estacion.precios[combustible]!.toLocaleString('es-ES', { minimumFractionDigits: 3 }); boton.append(identidad, precio); boton.onclick = () => abrirEstacion(estacion); li.append(boton); resultados.append(li);
       });
     };

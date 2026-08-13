@@ -4,7 +4,7 @@ import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/li
 import { calcularCostePorNoComparar } from '../../../scripts/lib/cuanto-te-juegas.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearEuros, formatearFechaHora, formatearNumero } from '../../logica/formato.ts';
+import { formatearEuros, formatearFechaHora, formatearNumero, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/cuanto-te-juegas/';
@@ -49,11 +49,6 @@ const etiquetaEditorial: Record<ClavePrecio, string> = {
   gasolina98e5: 'Gasolina 98',
   gasoleoPremium: 'Diésel +',
 };
-function etiquetaFiscal(nombre: string): string {
-  if (nombre.includes('TENERIFE')) return 'Tenerife';
-  if (nombre.includes('PALMAS')) return 'Las Palmas';
-  return nombre.charAt(0) + nombre.slice(1).toLocaleLowerCase('es');
-}
 const mayorAhorro = ORDEN_COMBUSTIBLES
   .map((combustible) => {
     const lider = lideres[combustible];
@@ -79,7 +74,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
         <strong>{formatearEuros(mayorAhorro.diferencia)}</strong>
         <div>
           <span>{etiquetaEditorial[mayorAhorro.combustible]}</span>
-          <a href={`/${mayorAhorro.lider.id}/`}>{mayorAhorro.lider.nombre}</a>
+          <a href={`/${mayorAhorro.lider.id}/`}>{nombreVisible(mayorAhorro.lider.nombre, 'provincia')}</a>
           <small>50 L · {formatearNumero(mayorAhorro.lider.combustibles[mayorAhorro.combustible].n)} estaciones</small>
         </div>
       </article>
@@ -99,7 +94,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
           </strong>
           {lider && (
             <a class="editorial-tarjeta__zona" href={`/${lider.id}/`}>
-              {lider.nombre}
+              {nombreVisible(lider.nombre, 'provincia')}
             </a>
           )}
           {resumen && (
@@ -177,7 +172,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
                 <tr>
                   <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
                   <td class="editorial-tabla__zona">
-                    <a href={`/${provincia.id}/`}>{provincia.nombre}</a>
+                    <a href={`/${provincia.id}/`}>{nombreVisible(provincia.nombre, 'provincia')}</a>
                     <small class="editorial-tabla__muestra">{formatearNumero(n)} {n === 1 ? 'estación' : 'estaciones'}</small>
                   </td>
                   <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
@@ -214,7 +209,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
                     <tr class:list={{ 'editorial-continuacion__duplicada': indice < 2 }}>
                       <td class="editorial-tabla__posicion">{posicion ?? '—'}</td>
                       <td class="editorial-tabla__zona">
-                        <a href={`/${provincia.id}/`}>{provincia.nombre}</a>
+                        <a href={`/${provincia.id}/`}>{nombreVisible(provincia.nombre, 'provincia')}</a>
                         <small class="editorial-tabla__muestra">{formatearNumero(n)} {n === 1 ? 'estación' : 'estaciones'}</small>
                       </td>
                       <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': diferencia === null }]}>
@@ -240,7 +235,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
             const resumen = provincia.combustibles[combustible];
             return <li>
               <span>
-                <strong><a href={`/${provincia.id}/`}>{etiquetaFiscal(provincia.nombre)}</a></strong>
+                <strong><a href={`/${provincia.id}/`}>{nombreVisible(provincia.nombre, 'provincia')}</a></strong>
                 <small>{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
               </span>
               <b>{diferencia === null ? 'no vende' : formatearEuros(diferencia)}</b>

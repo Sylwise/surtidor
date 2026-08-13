@@ -10,7 +10,7 @@ import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../l
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
 import { calcularAhorro } from '../logica/ahorro.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import { cajaDeTitulo, formatearEuros, formatearPrecio } from '../logica/formato.ts';
+import { cajaDeTitulo, formatearEuros, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
 import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
@@ -192,15 +192,15 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     const multiProvincia = multiProvinciaDe(visiblesTipoVenta);
 
     // RF-86: el rótulo es el cartel de la gasolinera y se muestra verbatim;
-    // dirección y municipio son prosa y se pasan a caja de título; la
-    // provincia, verbatim (RF-76).
+    // la dirección pasa a caja de título y los territorios usan el único
+    // nombre visible de RF-76.
     rotulo.textContent = estacion.rotulo;
     enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?estacion=${encodeURIComponent(estacion.id)}`;
     void actualizarEvolucion(estacion.id, estacion.provinciaId, estado.combustible);
 
-    const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${cajaDeTitulo(estacion.municipio)}`;
+    const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${nombreVisible(estacion.municipio, 'municipio')}`;
     direccion.textContent = multiProvincia
-      ? `${direccionLegible} (${estacion.provinciaNombre})`
+      ? `${direccionLegible} (${nombreVisible(estacion.provinciaNombre, 'provincia')})`
       : direccionLegible;
 
     // RF-87: con `N` no hay lado que decir en una vía de doble sentido, así
@@ -254,7 +254,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
     const ordenadas = ordenarPorPrecio(visiblesTipoVenta, estado.combustible);
     const posicion = ordenadas.indexOf(estacion) + 1;
-    const sufijoLugar = multiProvincia ? ` · ${estacion.provinciaNombre}` : '';
+    const sufijoLugar = multiProvincia ? ` · ${nombreVisible(estacion.provinciaNombre, 'provincia')}` : '';
     puesto.textContent = `#${posicion} ${estado.zonaNombre || 'la zona'}${sufijoLugar}`;
 
     const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));

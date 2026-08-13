@@ -5,7 +5,7 @@ import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosMinimos, type MinimosZona } from '../../../scripts/lib/minimos.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearFechaHora, formatearNumero, formatearPrecio } from '../../logica/formato.ts';
+import { formatearFechaHora, formatearNumero, formatearPrecio, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/la-mas-barata-de-espana/';
@@ -39,7 +39,7 @@ const rankingsFiscales = Object.fromEntries(
           <strong>{resumen.minimo === null ? 'sin datos' : `${formatearPrecio(resumen.minimo)} €/L`}</strong>
           <div>
             <span>{resumen.origenes.length === 1 ? 'Dónde' : `${resumen.origenes.length} municipios empatados`}</span>
-            {resumen.origenes.map((origen) => <a href={origen.href}>{origen.municipio} · {origen.provinciaNombre}</a>)}
+            {resumen.origenes.map((origen) => <a href={origen.href}>{nombreVisible(origen.municipio, 'municipio')} · {nombreVisible(origen.provinciaNombre, 'provincia')}</a>)}
             <small>Entre {formatearNumero(resumen.n)} estaciones analizadas</small>
           </div>
         </article>;
@@ -52,7 +52,7 @@ const rankingsFiscales = Object.fromEntries(
         return <article class="editorial-tarjeta editorial-tarjeta--secundaria">
           <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
           <strong class="editorial-tarjeta__precio">{resumen.minimo === null ? 'sin datos' : `${formatearPrecio(resumen.minimo)} €/L`}</strong>
-          {resumen.origenes[0] && <a class="editorial-tarjeta__zona" href={resumen.origenes[0].href}>{resumen.origenes[0].municipio} · {resumen.origenes[0].provinciaNombre}{resumen.origenes.length > 1 && ` +${resumen.origenes.length - 1}`}</a>}
+          {resumen.origenes[0] && <a class="editorial-tarjeta__zona" href={resumen.origenes[0].href}>{nombreVisible(resumen.origenes[0].municipio, 'municipio')} · {nombreVisible(resumen.origenes[0].provinciaNombre, 'provincia')}{resumen.origenes.length > 1 && ` +${resumen.origenes.length - 1}`}</a>}
           <span class="editorial-tarjeta__muestra">Mínimo entre {formatearNumero(resumen.n)} estaciones</span>
         </article>;
       })}
@@ -94,8 +94,8 @@ const rankingsFiscales = Object.fromEntries(
               const origen = resumen.origenes[0];
               return <li>
                 <span>
-                  <strong><a href={`/${zona.id}/`}>{zona.nombre}</a></strong>
-                  <small>{origen ? `${origen.municipio}${resumen.origenes.length > 1 ? ` +${resumen.origenes.length - 1}` : ''}` : 'Sin ubicación publicada'}</small>
+                  <strong><a href={`/${zona.id}/`}>{nombreVisible(zona.nombre, 'ccaa')}</a></strong>
+                  <small>{origen ? `${nombreVisible(origen.municipio, 'municipio')}${resumen.origenes.length > 1 ? ` +${resumen.origenes.length - 1}` : ''}` : 'Sin ubicación publicada'}</small>
                 </span>
                 <b>{resumen.minimo === null ? 'no vende' : `${formatearPrecio(resumen.minimo)} €/L`}</b>
               </li>;

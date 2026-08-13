@@ -12,7 +12,7 @@ import { calcularListaCombustible } from '../logica/listaEstaciones.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from '../logica/municipios.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
-import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
+import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { compararPorDistancia, distanciaKm, formatearDistancia } from '../logica/cercania.ts';
 import type { Precios } from '../../scripts/lib/tipos.ts';
 
@@ -158,7 +158,7 @@ function crearEnlacesCierre(estado: EstadoApp, enlacesEstaticos?: EnlacesEstatic
     entradas = resumenMunicipiosDe(estado.estaciones)
       .map((resumen) => {
         const href = hrefMunicipioZona(resumen);
-        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precios: resumen.precios } : null;
+        return href ? { href, nombre: nombreVisible(resumen.municipio, 'municipio'), precios: resumen.precios } : null;
       })
       .filter((entrada): entrada is { href: string; nombre: string; precios: Precios } => entrada !== null);
     titulo = `Municipios de ${estado.zonaNombre || 'esta zona'}`;

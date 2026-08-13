@@ -29,7 +29,7 @@ import { Resvg } from '@resvg/resvg-js';
 import { fusionarProvincias, type EstacionZona } from '../src/logica/zona.ts';
 import { estacionesVisibles } from '../src/logica/visibilidad.ts';
 import { ETIQUETA } from '../src/logica/combustibles.ts';
-import { cajaDeTitulo, formatearEuros, formatearFechaHora, formatearPrecio } from '../src/logica/formato.ts';
+import { formatearEuros, formatearFechaHora, formatearPrecio, nombreVisible } from '../src/logica/formato.ts';
 import { calcularAgregadosEditoriales, type AgregadoZona, type MediaConN } from './lib/agregados.ts';
 import { calcularAgregadosCapitales } from './lib/capitales.ts';
 import { calcularCostePorNoComparar } from './lib/cuanto-te-juegas.ts';
@@ -522,7 +522,7 @@ function mayorCoste(
     .filter((fila): fila is { zona: AgregadoZona; coste: number } => fila.coste !== null)
     .sort((a, b) => b.coste - a.coste || a.zona.nombre.localeCompare(b.zona.nombre, 'es'));
   return ordenadas[0]
-    ? { valor: ordenadas[0].coste, origen: cajaDeTitulo(ordenadas[0].zona.nombre) }
+    ? { valor: ordenadas[0].coste, origen: nombreVisible(ordenadas[0].zona.nombre, 'provincia') }
     : { valor: null, origen: 'Sin origen disponible' };
 }
 
@@ -568,15 +568,17 @@ export function construirTarjetasEditoriales(): TarjetaEditorial[] {
   });
   const origenMinimo = (combustible: 'gasolina95e5' | 'gasoleoA') => ({
     cifra: cifraPrecio(minimos[combustible].minimo),
-    origen: minimos[combustible].origenes[0]?.municipio ?? 'Sin origen disponible',
+    origen: minimos[combustible].origenes[0]
+      ? nombreVisible(minimos[combustible].origenes[0].municipio, 'municipio')
+      : 'Sin origen disponible',
   });
 
   return [
     tarjeta(
       'provincias-mas-baratas',
       'Las provincias más baratas para repostar',
-      precioConOrigen(menorMedia(provincias, 'gasolina95e5', (zona) => cajaDeTitulo(zona.nombre))),
-      precioConOrigen(menorMedia(provincias, 'gasoleoA', (zona) => cajaDeTitulo(zona.nombre))),
+      precioConOrigen(menorMedia(provincias, 'gasolina95e5', (zona) => nombreVisible(zona.nombre, 'provincia'))),
+      precioConOrigen(menorMedia(provincias, 'gasoleoA', (zona) => nombreVisible(zona.nombre, 'provincia'))),
     ),
     tarjeta(
       'cuanto-te-juegas',
@@ -593,8 +595,8 @@ export function construirTarjetasEditoriales(): TarjetaEditorial[] {
     tarjeta(
       'capitales-de-provincia',
       'Qué capitales tienen el combustible más barato',
-      precioConOrigen(menorMedia(capitales, 'gasolina95e5', (capital) => capital.nombre)),
-      precioConOrigen(menorMedia(capitales, 'gasoleoA', (capital) => capital.nombre)),
+      precioConOrigen(menorMedia(capitales, 'gasolina95e5', (capital) => nombreVisible(capital.nombre, 'municipio'))),
+      precioConOrigen(menorMedia(capitales, 'gasoleoA', (capital) => nombreVisible(capital.nombre, 'municipio'))),
     ),
     tarjeta(
       'la-mas-barata-de-espana',
@@ -605,8 +607,8 @@ export function construirTarjetasEditoriales(): TarjetaEditorial[] {
     tarjeta(
       'canarias-ceuta-melilla',
       'Gasolina y diésel en Canarias, Ceuta y Melilla',
-      precioConOrigen(menorMedia(fiscales, 'gasolina95e5', (zona) => cajaDeTitulo(zona.nombre))),
-      precioConOrigen(menorMedia(fiscales, 'gasoleoA', (zona) => cajaDeTitulo(zona.nombre))),
+      precioConOrigen(menorMedia(fiscales, 'gasolina95e5', (zona) => nombreVisible(zona.nombre, 'provincia'))),
+      precioConOrigen(menorMedia(fiscales, 'gasoleoA', (zona) => nombreVisible(zona.nombre, 'provincia'))),
     ),
   ];
 }
@@ -640,7 +642,7 @@ export function construirTarjetas(): Tarjeta[] {
     const barata = estacionMasBarata(visibles);
     tarjetas.push({
       rutaSalida: join(DIR_SALIDA, `${zona.id}.png`),
-      antetitulo: zona.nombre,
+      antetitulo: nombreVisible(zona.nombre, zona.tipo),
       precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
       precioDiesel: precioMinimo(visibles, 'gasoleoA'),
       estacionMasBarata: barata?.rotulo ?? null,
@@ -662,9 +664,7 @@ export function construirTarjetas(): Tarjeta[] {
     const municipioSlug = generarSlug(municipio.nombre);
     tarjetas.push({
       rutaSalida: join(DIR_SALIDA, provinciaSlug, `${municipioSlug}.png`),
-      // (b) Municipio y provincia, antetítulo: municipio en caja de título
-      // (RF-86, es prosa), provincia verbatim (RF-76, es como el catálogo).
-      antetitulo: `${cajaDeTitulo(municipio.nombre)}, ${provincia.nombre}`,
+      antetitulo: `${nombreVisible(municipio.nombre, 'municipio')}, ${nombreVisible(provincia.nombre, 'provincia')}`,
       precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
       precioDiesel: precioMinimo(visibles, 'gasoleoA'),
       estacionMasBarata: barata?.rotulo ?? null,

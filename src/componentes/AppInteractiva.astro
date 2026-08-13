@@ -24,7 +24,7 @@
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
 import { ORDEN_COMBUSTIBLES, ETIQUETA } from '../logica/combustibles.ts';
-import { cajaDeTitulo, formatearPrecio } from '../logica/formato.ts';
+import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 import type { ClavePrecio, Precios } from '../../scripts/lib/tipos.ts';
 import type { EnlacesEstaticos } from './Lista.ts';
@@ -102,7 +102,7 @@ const entradasCierre: { href: string; nombre: string; precios: Precios }[] = enl
   : resumenMunicipiosDe(estaciones)
       .map((resumen) => {
         const href = hrefMunicipioZona(resumen);
-        return href ? { href, nombre: cajaDeTitulo(resumen.municipio), precios: resumen.precios } : null;
+        return href ? { href, nombre: nombreVisible(resumen.municipio, 'municipio'), precios: resumen.precios } : null;
       })
       .filter((entrada): entrada is { href: string; nombre: string; precios: Precios } => entrada !== null);
 
@@ -273,7 +273,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   import { montarTotem } from './Totem.ts';
   import { montarHoja } from './Hoja.ts';
   import { datosDesactualizados } from '../logica/frescura.ts';
-  import { formatearFechaHora } from '../logica/formato.ts';
+  import { formatearFechaHora, nombreVisible } from '../logica/formato.ts';
   import { tituloZona, descripcionZona } from '../logica/metaZona.ts';
   import { PREFIJO_COMUNIDAD } from '../../scripts/lib/slug.ts';
   import type { Indice } from '../../scripts/lib/tipos.ts';
@@ -408,7 +408,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       return;
     }
     if (estado.provinciasFallidas.length > 0) {
-      const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
+      const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => nombreVisible(p.nombre, 'provincia')).join(', ');
       contenedorAvisos.append(
         crearAviso(
           `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
@@ -479,14 +479,14 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       actualizadoZona = resultado.actualizado;
 
       actualizarEstado({
-        zonaNombre: zona.nombre,
+        zonaNombre: nombreVisible(zona.nombre, zona.tipo),
         estaciones: resultado.estaciones,
         provinciasFallidas: resultado.provinciasFallidas,
         mock: resultado.mock,
         cargando: false,
         error:
           resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
-            ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+            ? `No se ha podido cargar ninguna provincia de ${nombreVisible(zona.nombre, zona.tipo)}.`
             : null,
       });
     } catch (error) {
@@ -550,7 +550,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
 
       const resultado = await cargarZona(zona, indiceActual.provincias);
       if (resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0) {
-        throw new Error(`No se ha podido cargar ninguna provincia de ${zona.nombre}.`);
+        throw new Error(`No se ha podido cargar ninguna provincia de ${nombreVisible(zona.nombre, zona.tipo)}.`);
       }
       if (zonaSolicitada !== nuevaZonaId) return; // una elección más reciente ha tomado el relevo
 
@@ -562,8 +562,8 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       // filas Y los enlaces de municipio a partir de las estaciones nuevas
       // (RF-88, ADR-0016 — antes esto era renderizarTablaZona sobre
       // #tabla-zona, que ya no existe).
-      document.title = tituloZona(zona.nombre);
-      document.querySelector('meta[name="description"]')?.setAttribute('content', descripcionZona(zona.nombre));
+      document.title = tituloZona(zona.nombre, zona.tipo);
+      document.querySelector('meta[name="description"]')?.setAttribute('content', descripcionZona(zona.nombre, zona.tipo));
       if (actualizarHistorial) {
         history.pushState(null, '', `/${zona.id}/`);
       } else {
@@ -573,7 +573,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       const estacionActual = obtenerEstado().estacionId;
       actualizarEstado({
         zonaId: zona.id,
-        zonaNombre: zona.nombre,
+        zonaNombre: nombreVisible(zona.nombre, zona.tipo),
         estaciones: resultado.estaciones,
         provinciasFallidas: resultado.provinciasFallidas,
         mock: resultado.mock,

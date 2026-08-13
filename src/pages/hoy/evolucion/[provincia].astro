@@ -6,6 +6,7 @@ import '../../../estilos/navegacion-global.css';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Indice } from '../../../../scripts/lib/tipos.ts';
+import { nombreVisible } from '../../../logica/formato.ts';
 
 export function getStaticPaths() {
   const indice = JSON.parse(readFileSync(join(process.cwd(), 'public/data/indice.json'), 'utf8')) as Indice;
@@ -20,7 +21,8 @@ export function getStaticPaths() {
   }));
 }
 const provinciaId = Astro.params.provincia!;
-const { nombre, zonaId, actualJson, historicoJson } = Astro.props as { nombre: string; zonaId: string; actualJson: string; historicoJson: string };
+const { nombre: nombreCrudo, zonaId, actualJson, historicoJson } = Astro.props as { nombre: string; zonaId: string; actualJson: string; historicoJson: string };
+const nombre = nombreVisible(nombreCrudo, 'provincia');
 const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
 ---
 <html lang="es">

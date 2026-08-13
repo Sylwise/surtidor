@@ -1,7 +1,7 @@
 ---
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { cajaDeTitulo } from '../logica/formato.ts';
+import { nombreVisible } from '../logica/formato.ts';
 import { estacionesDeZona } from '../logica/zona.ts';
 import type { Indice, Zona } from '../../scripts/lib/tipos.ts';
 import MenuHoy from './MenuHoy.astro';
@@ -24,7 +24,7 @@ const {
 const indice = JSON.parse(
   readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8'),
 ) as Indice;
-const zonas = [...indice.zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+const zonas = [...indice.zonas].sort((a, b) => nombreVisible(a.nombre, a.tipo).localeCompare(nombreVisible(b.nombre, b.tipo), 'es'));
 const nombresRepetidos = new Set(
   zonas
     .map((zona) => zona.nombre.trim().toLocaleLowerCase('es'))
@@ -35,6 +35,7 @@ const tipos: { tipo: Zona['tipo']; etiqueta: string }[] = [
   { tipo: 'ccaa', etiqueta: 'Comunidades autónomas' },
 ];
 const zonaActual = zonas.find((zona) => zona.id === zonaId);
+const zonaNombreVisible = zonaActual ? nombreVisible(zonaActual.nombre, zonaActual.tipo) : zonaNombre;
 const estacionesZonaActual = zonaActual
   ? estacionesDeZona(zonaActual, indice.provincias)
   : null;
@@ -43,9 +44,9 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
 
 <div id="controles-identidad" class="controles-identidad" aria-label="Zona">
   <div class="controles__zona">
-    <button id="boton-zona" type="button" class="boton-zona" aria-expanded="false" aria-controls="panel-zona" aria-label={zonaNombre ? `Cambiar zona. Zona actual: ${zonaNombre}` : 'Elegir zona'}>
+    <button id="boton-zona" type="button" class="boton-zona" aria-expanded="false" aria-controls="panel-zona" aria-label={zonaNombreVisible ? `Cambiar zona. Zona actual: ${zonaNombreVisible}` : 'Elegir zona'}>
       <span class="boton-zona__etiqueta">Zona</span>
-      <span id="nombre-zona" class="boton-zona__nombre">{zonaNombre ?? 'Elige tu zona'}</span>
+      <span id="nombre-zona" class="boton-zona__nombre">{zonaNombreVisible ?? 'Elige tu zona'}</span>
       <span class="boton-zona__flecha" aria-hidden="true"></span>
     </button>
 
@@ -73,7 +74,7 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
           >
             <span class="panel-zona__actual-textos">
               <span class="panel-zona__actual-etiqueta">Zona actual</span>
-              <strong>{cajaDeTitulo(zonaActual.nombre)}</strong>
+              <strong>{nombreVisible(zonaActual.nombre, zonaActual.tipo)}</strong>
             </span>
             <span class="panel-zona__actual-recuento">
               {estacionesZonaActual}<span> estaciones</span>
@@ -87,7 +88,7 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
               <h3 class="enlaces-bloque__titulo micro">{etiqueta}</h3>
               <ul class="enlaces-bloque__filas">
                 {opciones.map((zona) => (
-                  <li data-opcion-zona data-busqueda={zona.nombre}>
+                  <li data-opcion-zona data-busqueda={`${zona.nombre} ${nombreVisible(zona.nombre, zona.tipo)}`}>
                     <a
                       href={`/${zona.id}/`}
                       class="enlaces-bloque__fila enlaces-bloque__fila--zona"
@@ -95,7 +96,7 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
                       aria-current={zona.id === zonaId ? 'page' : undefined}
                     >
                       <span class="enlaces-bloque__info">
-                        <span class="enlaces-bloque__nombre">{cajaDeTitulo(zona.nombre)}</span>
+                        <span class="enlaces-bloque__nombre">{nombreVisible(zona.nombre, zona.tipo)}</span>
                         {nombresRepetidos.has(zona.nombre.trim().toLocaleLowerCase('es')) && (
                           <span class="enlaces-bloque__tipo">
                             {zona.tipo === 'provincia' ? 'Provincia' : 'Comunidad autónoma'}

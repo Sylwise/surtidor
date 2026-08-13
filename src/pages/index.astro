@@ -82,7 +82,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
       import { montarTotem } from '../componentes/Totem.ts';
       import { montarHoja } from '../componentes/Hoja.ts';
       import { datosDesactualizados } from '../logica/frescura.ts';
-      import { formatearFechaHora } from '../logica/formato.ts';
+      import { formatearFechaHora, nombreVisible } from '../logica/formato.ts';
       import type { FalloProvincia } from '../logica/zona.ts';
       import type { Indice } from '../../scripts/lib/tipos.ts';
 
@@ -168,7 +168,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
             return;
           }
           if (estado.provinciasFallidas.length > 0) {
-            const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => p.nombre).join(', ');
+            const nombres = estado.provinciasFallidas.map((p: FalloProvincia) => nombreVisible(p.nombre, 'provincia')).join(', ');
             contenedorAvisos.append(
               crearAviso(
                 `No se han podido cargar estos datos: ${nombres}. Se muestra el resto de la zona.`,
@@ -224,14 +224,14 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
               : null;
 
             actualizarEstado({
-              zonaNombre: zona.nombre,
+              zonaNombre: nombreVisible(zona.nombre, zona.tipo),
               estaciones: resultado.estaciones,
               provinciasFallidas: resultado.provinciasFallidas,
               mock: resultado.mock,
               cargando: false,
               error:
                 resultado.estaciones.length === 0 && resultado.provinciasFallidas.length > 0
-                  ? `No se ha podido cargar ninguna provincia de ${zona.nombre}.`
+                  ? `No se ha podido cargar ninguna provincia de ${nombreVisible(zona.nombre, zona.tipo)}.`
                   : null,
               estacionId: siguienteSeleccion,
             });

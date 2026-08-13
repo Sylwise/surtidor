@@ -15,6 +15,7 @@
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { nombreVisible } from '../logica/formato.ts';
 import { montarSelectorZona } from './SelectorZona.ts';
 import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
@@ -155,10 +156,11 @@ export function montarControles(
     // zona sin recargar (ADR-0016)— el botón lo dice, para que la interfaz
     // no se quede congelada sin señal mientras el resto (mapa, lista,
     // #tabla-zona) sigue mostrando la zona anterior a propósito.
+    const nombreZonaVisible = zonaActual ? nombreVisible(zonaActual.nombre, zonaActual.tipo) : null;
     nombreZonaSpan.textContent = estado.cargando
       ? 'Cargando…'
-      : (zonaActual?.nombre ?? estado.zonaId ?? 'Elige tu zona');
-    botonZona.setAttribute('aria-label', zonaActual ? `Cambiar zona. Zona actual: ${zonaActual.nombre}` : 'Elegir zona');
+      : (nombreZonaVisible ?? estado.zonaId ?? 'Elige tu zona');
+    botonZona.setAttribute('aria-label', nombreZonaVisible ? `Cambiar zona. Zona actual: ${nombreZonaVisible}` : 'Elegir zona');
 
     for (const enlace of enlacesZona) {
       const activo = enlace.dataset.zonaId === estado.zonaId;

@@ -27,7 +27,7 @@ import type { EnlacesEstaticos } from '../../../componentes/Lista.ts';
 import { fusionarProvincias, type EstacionZona } from '../../../logica/zona.ts';
 import { estacionesVisibles } from '../../../logica/visibilidad.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../../logica/combustibles.ts';
-import { cajaDeTitulo, formatearFechaHora, formatearPrecio } from '../../../logica/formato.ts';
+import { cajaDeTitulo, formatearFechaHora, formatearPrecio, nombreVisible } from '../../../logica/formato.ts';
 import { generarSlug } from '../../../../scripts/lib/slug.ts';
 import {
   MINIMO_ESTACIONES_MUNICIPIO,
@@ -84,7 +84,8 @@ interface Props {
 
 const { municipio, provincia, vecinos } = Astro.props;
 
-const nombreMunicipio = cajaDeTitulo(municipio.nombre);
+const nombreMunicipio = nombreVisible(municipio.nombre, 'municipio');
+const nombreProvincia = nombreVisible(provincia.nombre, 'provincia');
 const provinciaSlug = generarSlug(provincia.nombre);
 const municipioSlug = generarSlug(municipio.nombre);
 // ADR-0018: la zona de una provincia es siempre el slug de su nombre, el
@@ -155,10 +156,10 @@ function preciosDeVecino(nombreMunicipio: string): Precios {
 // RF-90: enlace de vuelta a la provincia entera, y a los municipios vecinos
 // (ya filtrados a los que tienen página propia en getStaticPaths, arriba).
 const enlacesMunicipio: EnlacesEstaticos = {
-  volverA: { href: hrefProvincia, nombre: provincia.nombre },
+  volverA: { href: hrefProvincia, nombre: nombreProvincia },
   vecinos: vecinos.map((vecino) => ({
     href: `/${provinciaSlug}/${generarSlug(vecino.nombre)}/`,
-    nombre: cajaDeTitulo(vecino.nombre),
+    nombre: nombreVisible(vecino.nombre, 'municipio'),
     precios: preciosDeVecino(vecino.nombre),
   })),
 };
@@ -183,7 +184,7 @@ const fraseMinimo =
     ? ` ${ETIQUETA[claveTitulo]} desde ${formatearPrecio(precioTitulo)} €/L.`
     : '';
 const descripcion =
-  `Precios de gasolina y diésel en ${nombreMunicipio} (${provincia.nombre})${fraseActualizado}, ` +
+  `Precios de gasolina y diésel en ${nombreMunicipio} (${nombreProvincia})${fraseActualizado}, ` +
   `con ${filasMunicipio.length} gasolinera${filasMunicipio.length === 1 ? '' : 's'}.${fraseMinimo} ` +
   'Sin anuncios ni registro.';
 
@@ -205,7 +206,7 @@ const jsonLd = {
       address: {
         '@type': 'PostalAddress',
         streetAddress: cajaDeTitulo(estacion.direccion),
-        addressLocality: cajaDeTitulo(estacion.municipio),
+        addressLocality: nombreVisible(estacion.municipio, 'municipio'),
         addressCountry: 'ES',
       },
       makesOffer: ORDEN_COMBUSTIBLES.filter((clave) => estacion.precios[clave] !== null).map((clave) => ({
@@ -251,7 +252,7 @@ const jsonLd = {
     <h1 class="sr-only">Gasolineras en {nombreMunicipio}</h1>
     <AppInteractiva
       zonaId={provinciaSlug}
-      zonaNombre={provincia.nombre}
+      zonaNombre={nombreProvincia}
       hidratacionEmbebida={true}
       estaciones={filasMunicipio}
       mock={mock}

@@ -29,7 +29,7 @@ import {
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
-import { formatearPrecio } from '../logica/formato.ts';
+import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { estacionesQueVenden, estacionesVisibles } from '../logica/visibilidad.ts';
 import {
   cargarResumenNacional,
@@ -484,12 +484,12 @@ export function montarMapa(
       // usa un guion, nunca "0,000" (mismo espíritu que RF-23 en la ficha).
       clases.push('marcador--sin-dato');
       texto = '—';
-      etiqueta = `${estacion.rotulo}, ${estacion.municipio}: no vende ${ETIQUETA[estado.combustible].toLowerCase()}`;
+      etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: no vende ${ETIQUETA[estado.combustible].toLowerCase()}`;
     } else {
       const barata = escala.esMasBarata(precio);
       clases.push(barata ? 'marcador--barata' : `marcador--${escala.banda(precio)}`);
       texto = formatearPrecio(precio);
-      etiqueta = `${estacion.rotulo}, ${estacion.municipio}: ${texto} euros${barata ? ', la más barata de la zona' : ''}`;
+      etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: ${texto} euros${barata ? ', la más barata de la zona' : ''}`;
       prioridad = barata ? 3 : 2;
     }
 
@@ -632,13 +632,14 @@ export function montarMapa(
   function actualizarProvincia(entrada: EntradaProvincia, estado: EstadoApp): void {
     const { media, n } = entrada.provincia.combustibles[estado.combustible];
     const combustible = ETIQUETA[estado.combustible].toLowerCase();
-    entrada.nombre.textContent = entrada.provincia.nombre;
+    const provinciaVisible = nombreVisible(entrada.provincia.nombre, 'provincia');
+    entrada.nombre.textContent = provinciaVisible;
     if (media === null) {
       entrada.precio.textContent = `No vende ${ETIQUETA[estado.combustible]}`;
       entrada.cuenta.textContent = '0 estaciones';
       entrada.boton.setAttribute(
         'aria-label',
-        `${entrada.provincia.nombre}. Ninguna estación vende ${combustible}. Pulsa para abrir la provincia.`,
+        `${provinciaVisible}. Ninguna estación vende ${combustible}. Pulsa para abrir la provincia.`,
       );
       return;
     }
@@ -648,7 +649,7 @@ export function montarMapa(
     entrada.cuenta.textContent = `${n} ${n === 1 ? 'estación' : 'estaciones'}`;
     entrada.boton.setAttribute(
       'aria-label',
-      `${entrada.provincia.nombre}. Precio medio de ${combustible}: ${textoPrecio} euros por litro, ` +
+      `${provinciaVisible}. Precio medio de ${combustible}: ${textoPrecio} euros por litro, ` +
         `calculado sobre ${n} ${n === 1 ? 'estación' : 'estaciones'}. Pulsa para abrir la provincia.`,
     );
   }

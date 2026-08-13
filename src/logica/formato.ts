@@ -52,11 +52,6 @@ export function formatearFechaHora(iso: string): string {
 // partículas en minúscula (docs/05-diseno.md#Mayúsculas). El rótulo de la
 // estación se deja verbatim: esta función no se aplica ahí.
 //
-// La provincia también se deja verbatim (RF-76) en todo lo que un
-// rastreador ve: portada, `<h1>`, `<title>`, JSON-LD. La única excepción es
-// el panel del selector de zona (docs/05-diseno.md#Selector-de-zona): es un
-// `<button>` sin `href` (ADR-0017), invisible para un rastreador, así que
-// ahí sí gana la legibilidad y se pasa por esta misma función.
 const PARTICULAS = new Set(['de', 'del', 'la', 'las', 'lo', 'los', 'y', 'e', 'a', 'en']);
 
 /** "AVENIDA DE LOS HUETOS, 64" → "Avenida de los Huetos, 64". */
@@ -67,4 +62,50 @@ export function cajaDeTitulo(texto: string): string {
     esPrimeraPalabra = false;
     return capitalizar ? palabra.charAt(0).toUpperCase() + palabra.slice(1) : palabra;
   });
+}
+
+export type TipoNombreTerritorial = 'ccaa' | 'provincia' | 'municipio';
+
+// RF-76: estas son claves del catálogo, no aliases para emparejar. La tabla
+// solo decide qué se pinta y deliberadamente tiene las 19 filas completas.
+const NOMBRES_VISIBLES_CCAA: Readonly<Record<string, string>> = {
+  'Castilla la Mancha': 'Castilla-La Mancha',
+  'Comunidad Valenciana': 'Comunitat Valenciana',
+  Andalucia: 'Andalucía',
+  'País Vasco': 'País Vasco',
+  Asturias: 'Asturias',
+  'Castilla y León': 'Castilla y León',
+  Extremadura: 'Extremadura',
+  Baleares: 'Illes Balears',
+  Cataluña: 'Cataluña',
+  Cantabria: 'Cantabria',
+  Ceuta: 'Ceuta',
+  Galicia: 'Galicia',
+  Aragón: 'Aragón',
+  Madrid: 'Madrid',
+  Melilla: 'Melilla',
+  Murcia: 'Murcia',
+  Navarra: 'Navarra',
+  Canarias: 'Canarias',
+  'Rioja (La)': 'La Rioja',
+};
+
+const ARTICULO_FINAL = /\s+\((La|A|El|Els|Les|Illes|Las|Los)\)$/i;
+
+/** Devuelve solo la etiqueta visible; la cadena cruda sigue siendo la clave. */
+export function nombreVisible(nombreMinisterio: string, tipo: TipoNombreTerritorial): string {
+  if (tipo === 'ccaa') {
+    const visible = NOMBRES_VISIBLES_CCAA[nombreMinisterio];
+    if (!visible) {
+      throw new Error(`Falta el nombre visible de la comunidad autónoma \"${nombreMinisterio}\" del catálogo del ministerio.`);
+    }
+    return visible;
+  }
+
+  const sinEspacios = nombreMinisterio.trim();
+  const coincidencia = sinEspacios.match(ARTICULO_FINAL);
+  const reordenado = coincidencia
+    ? `${coincidencia[1]} ${sinEspacios.slice(0, coincidencia.index)}`
+    : sinEspacios;
+  return cajaDeTitulo(reordenado);
 }

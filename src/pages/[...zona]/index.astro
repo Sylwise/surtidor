@@ -30,6 +30,7 @@ import '../../estilos/interfaz.css';
 import AppInteractiva from '../../componentes/AppInteractiva.astro';
 import { fusionarProvincias, UMBRAL_HIDRATACION_EMBEBIDA } from '../../logica/zona.ts';
 import { tituloZona, descripcionZona } from '../../logica/metaZona.ts';
+import { nombreVisible } from '../../logica/formato.ts';
 import type { DatosProvincia, Indice, Zona } from '../../../scripts/lib/tipos.ts';
 
 const DIRECTORIO_DATOS = join(process.cwd(), 'public', 'data');
@@ -53,8 +54,9 @@ interface Props {
 
 const { zona } = Astro.props;
 
-const titulo = tituloZona(zona.nombre);
-const descripcion = descripcionZona(zona.nombre);
+const zonaVisible = nombreVisible(zona.nombre, zona.tipo);
+const titulo = tituloZona(zona.nombre, zona.tipo);
+const descripcion = descripcionZona(zona.nombre, zona.tipo);
 const canonical = new URL(`/${zona.id}/`, Astro.site);
 // H11 (RF-66): la tarjeta la genera scripts/generar-imagenes-compartir.ts en
 // el build, con el mismo id de zona que esta ruta. og:image tiene que ser
@@ -107,10 +109,10 @@ const hidratacionEmbebida = estaciones.length <= UMBRAL_HIDRATACION_EMBEBIDA;
          del documento, fuera de pantalla — igual que en la página de
          municipio: el "una pantalla, una pregunta" del diseño no tiene sitio
          para un título grande sin quitarle presupuesto a la lista. -->
-    <h1 class="sr-only">Gasolineras en {zona.nombre}</h1>
+    <h1 class="sr-only">Gasolineras en {zonaVisible}</h1>
     <AppInteractiva
       zonaId={zona.id}
-      zonaNombre={zona.nombre}
+      zonaNombre={zonaVisible}
       hidratacionEmbebida={hidratacionEmbebida}
       estaciones={estaciones}
       mock={mock}
