@@ -5,12 +5,15 @@ import '../estilos/navegacion-global.css';
 import marcaSvg from '../assets/marca.svg?raw';
 import CabeceraGlobal from '../componentes/CabeceraGlobal.astro';
 import NavegacionApp from '../componentes/NavegacionApp.astro';
+import { EDITORIALES_HOY, HERRAMIENTAS_HOY, hrefEntradaHoy } from '../datos/navegacion.ts';
+import { formatearFechaHora } from '../logica/formato.ts';
 
 interface Props {
   titulo: string;
   descripcion: string;
   ruta: string;
   imagenCompartir?: string;
+  actualizado?: string;
 }
 
 const {
@@ -18,6 +21,7 @@ const {
   descripcion,
   ruta,
   imagenCompartir = '/og/predeterminada.png',
+  actualizado,
 } = Astro.props;
 const canonical = new URL(ruta, Astro.site);
 const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
@@ -54,22 +58,26 @@ const imagenAbsoluta = new URL(imagenCompartir, Astro.site);
     <main class="editorial-documento">
       <slot />
     </main>
-    <footer class="editorial-pie">
+    <footer class="editorial-pie" id="pie-editorial">
       <div class="editorial-pie__interior">
         <div class="editorial-pie__proyecto">
           <a class="editorial-pie__marca" href="/">
             <span class="editorial-marca__icono" aria-hidden="true" set:html={marcaSvg} />
             <span>Surtidor</span>
           </a>
-          <p>Precios de carburantes de España, sin anuncios ni registro.</p>
+          <p class="editorial-pie__lema">Sin anuncios · Sin registro · Sin rastreo</p>
+          <span class="editorial-pie__separador" aria-hidden="true"></span>
           <p class="editorial-pie__fuente">Datos oficiales del Ministerio para la Transición Ecológica y el Reto Demográfico.</p>
+          {actualizado && <p class="editorial-pie__actualizado">Datos actualizados · <time datetime={actualizado}>{formatearFechaHora(actualizado)}</time></p>}
         </div>
-        <nav class="editorial-pie__navegacion" aria-label="Pie de página">
-          <a href="/">Precios</a>
-          <a href="/hoy/provincias-mas-baratas/">Análisis de hoy</a>
-          <a href="/como-calculamos-los-datos/">Cómo calculamos los datos</a>
+        <nav class="editorial-pie__navegacion" aria-label="Más en Surtidor">
+          <p>MÁS EN SURTIDOR</p>
+          <div class="editorial-pie__enlaces">
+            {EDITORIALES_HOY.map((entrada) => <a href={hrefEntradaHoy(entrada)}>{entrada.nombre}</a>)}
+            {HERRAMIENTAS_HOY.map((entrada) => <a href={hrefEntradaHoy(entrada)}>{entrada.nombre}</a>)}
+          </div>
         </nav>
-        <a class="editorial-pie__arriba" href="#">Volver arriba ↑</a>
+        <a class="editorial-pie__arriba" href="/">PORTADA</a>
       </div>
     </footer>
     <script>

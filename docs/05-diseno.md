@@ -454,6 +454,24 @@ Solo un panel de navegación puede estar abierto a la vez. Abrir «Hoy» cierra 
 selector territorial y viceversa. Los controles conservan un área de pulsación
 de 44 px y anuncian su estado con `aria-expanded` y `aria-controls`.
 
+El panel abierto es una capa modal visual, no una prolongación de la página.
+Un velo oscuro semitransparente cubre el contenido que queda detrás tanto sobre
+el fondo claro de los documentos editoriales como sobre el mapa de la
+aplicación; pulsarlo cierra el panel. El panel se separa además del velo con una
+sombra de elevación real, no únicamente con un borde.
+
+En móvil la hoja entra desde el borde inferior con un desplazamiento breve, de
+entre 150 y 200 ms, mientras el velo aparece mediante opacidad. La apertura no
+debe producir saltos de posición. Con `prefers-reduced-motion: reduce` se elimina
+el desplazamiento del panel, pero se conserva el velo porque su función es
+separar y dar contraste, no decorar la transición. En escritorio se mantiene el
+popover anclado a «Hoy» y el velo conserva la misma función de separación.
+
+RNF-20 sigue rigiendo el comportamiento de teclado: al abrir, el foco entra en
+el panel; Escape lo cierra y devuelve el foco a «Hoy». La implementación actual
+mantiene esta gestión en el controlador compartido del panel; el velo, la
+transición y la elevación son exclusivamente presentacionales.
+
 ### La lista es el contenido
 
 No hay pie de página. La lista de estaciones que ya se ve —en el rail en

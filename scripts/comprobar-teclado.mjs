@@ -53,8 +53,9 @@ async function comprobar(nombre, url, ancho, selector, panel) {
   await evaluar(context, `(()=>document.querySelector(${JSON.stringify(selector)}).focus())()`);
   await pulsar(context, '\uE007');
   const abierto = await evaluar(context, `(()=>{const p=document.querySelector(${JSON.stringify(panel)});return !p.hidden})()`);
+  const focoDentro = await evaluar(context, `(()=>{const p=document.querySelector(${JSON.stringify(panel)});return p.contains(document.activeElement)})()`);
   await pulsar(context, '\uE00C');
-  const resultado = await evaluar(context, `(()=>{const b=document.querySelector(${JSON.stringify(selector)});const p=document.querySelector(${JSON.stringify(panel)});return JSON.stringify({tabulacion:${JSON.stringify(tabulacion)},abierto:${abierto},cerrado:p.hidden,focoDevuelto:document.activeElement===b})})()`);
+  const resultado = await evaluar(context, `(()=>{const b=document.querySelector(${JSON.stringify(selector)});const p=document.querySelector(${JSON.stringify(panel)});return JSON.stringify({tabulacion:${JSON.stringify(tabulacion)},abierto:${abierto},focoDentro:${focoDentro},cerrado:p.hidden,focoDevuelto:document.activeElement===b})})()`);
   console.log(`${nombre}: ${resultado}`);
   await comando('browsingContext.close', { context });
 }

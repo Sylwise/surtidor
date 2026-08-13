@@ -16,11 +16,20 @@ export const CATALOGO_HOY: readonly EntradaHoy[] = [
   { slug: 'canarias-ceuta-melilla', nombre: 'Canarias, Ceuta y Melilla', descripcion: 'Precios separados por su fiscalidad' },
 ] as const;
 
+export const EDITORIALES_HOY = CATALOGO_HOY.filter(({ slug }) => slug !== 'evolucion');
+
+export const HERRAMIENTAS_HOY: readonly EntradaHoy[] = [
+  CATALOGO_HOY.find(({ slug }) => slug === 'evolucion')!,
+  { slug: 'como-calculamos-los-datos', nombre: 'Cómo calculamos los datos', descripcion: 'Fuente, proceso y reglas' },
+] as const;
+
 export function hrefEntradaHoy(entrada: EntradaHoy, provinciaId?: string | null): string {
   if (entrada.slug === 'evolucion' && provinciaId) return `/hoy/evolucion/${provinciaId}/`;
+  if (entrada.slug === 'como-calculamos-los-datos') return '/como-calculamos-los-datos/';
   return `/hoy/${entrada.slug}/`;
 }
 
 export function entradaHoyActiva(pathname: string, entrada: EntradaHoy): boolean {
+  if (entrada.slug === 'como-calculamos-los-datos') return pathname === '/como-calculamos-los-datos/';
   return pathname.startsWith(`/hoy/${entrada.slug}/`);
 }
