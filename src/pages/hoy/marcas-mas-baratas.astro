@@ -6,7 +6,7 @@ import { leerAgregadosEditoriales, type AgregadoRotulo } from '../../../scripts/
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { rotulosQueVenden, seleccionarMercadosFiscales, seleccionarRotulos, UMBRAL_ESTACIONES_ROTULO } from '../../../scripts/lib/rotulos.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import { formatearFechaHora, formatearNumero, formatearPrecio } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/marcas-mas-baratas/';
@@ -30,7 +30,6 @@ const rankingsGenerales = Object.fromEntries(
 const lideres = Object.fromEntries(
   ORDEN_COMBUSTIBLES.map((combustible) => [combustible, rankingsGenerales[combustible][0]?.elemento ?? null]),
 ) as Record<ClavePrecio, AgregadoRotulo | null>;
-const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
 ---
 
 <DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta} imagenCompartir="/og/hoy/marcas-mas-baratas.png">
@@ -48,7 +47,7 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
           {lider && resumen && <div>
             <span>Marca</span>
             <b class="editorial-destacado__entidad">{lider.rotulo}</b>
-            <small>{numero(resumen.n)} estaciones con precio</small>
+            <small>{formatearNumero(resumen.n)} estaciones con precio</small>
           </div>}
         </article>;
       })}
@@ -65,23 +64,26 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
     {ORDEN_COMBUSTIBLES.map((combustible, indiceCombustible) => {
       const filas = rankingsGenerales[combustible];
       const resumenFiscal = mercadosFiscales.map((mercado) => {
-        const clasificados = ranking(mercado.seleccion.incluidos, combustible);
-        const referencia = clasificados[0] ?? ranking(mercado.rotulos, combustible)[0] ?? null;
+        // Solo rótulos que llegan al umbral de la página (UMBRAL_ESTACIONES_ROTULO):
+        // sin este límite, el "líder" de un territorio pequeño podía acabar
+        // siendo una estación independiente suelta con un rótulo propio de una
+        // sola gasolinera, que no es lo que promete una página de medias por
+        // rótulo.
+        const referencia = ranking(mercado.seleccion.incluidos, combustible)[0] ?? null;
         return {
           mercado,
-          clasificados,
           referencia,
-          resumen: referencia?.elemento.combustibles[combustible],
+          resumen: referencia?.elemento.combustibles[combustible] ?? null,
         };
       });
       return <section id={`panel-${combustible}`} class="editorial-panel-ranking" data-panel-combustible={combustible} hidden={indiceCombustible > 0} aria-labelledby={`titulo-marcas-${combustible}`}>
         <aside class="editorial-claves">
           <p class="micro">Cobertura del ranking</p>
-          <h2 id={`titulo-marcas-${combustible}`}>{filas.length} rótulos</h2>
+          <h2 id={`titulo-marcas-${combustible}`}>{formatearNumero(filas.length)} rótulos</h2>
           <p>Los nombres se agrupan por coincidencia literal tras recortar espacios exteriores.</p>
           <dl>
-            <div><dt>Estaciones analizadas</dt><dd>{numero(seleccion.estacionesTotales)}</dd></div>
-            <div><dt>Fuera por muestra</dt><dd>{numero(seleccion.estacionesFuera)}</dd></div>
+            <div><dt>Estaciones analizadas</dt><dd>{formatearNumero(seleccion.estacionesTotales)}</dd></div>
+            <div><dt>Fuera por muestra</dt><dd>{formatearNumero(seleccion.estacionesFuera)}</dd></div>
           </dl>
         </aside>
 
@@ -89,18 +91,22 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
           <div class="editorial-ranking__cabecera"><span class="micro">Ranking de rótulos · Top 6</span><span>{ETIQUETA[combustible]}</span></div>
           {filas.length === 0 ? <section class="editorial-estado" role="status"><h3>Sin rótulos con muestra suficiente</h3><p>Ningún rótulo que supera el umbral publica {ETIQUETA[combustible].toLowerCase()} hoy.</p></section> : <>
             <TablaRotulosEditorial filas={filas.slice(0, 8)} combustible={combustible} principal />
-            {filas.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver los {filas.length} rótulos</summary><TablaRotulosEditorial filas={filas.slice(6)} combustible={combustible} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
+            {filas.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver los {formatearNumero(filas.length)} rótulos</summary><TablaRotulosEditorial filas={filas.slice(6)} combustible={combustible} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
           </>}
         </div>
 
         <aside class="editorial-fiscal editorial-fiscal--compacta editorial-fiscal--tarjetas">
           <div><h3>Canarias, Ceuta y Melilla</h3></div>
           <ul class="editorial-fiscal__datos">
-            {resumenFiscal.map(({ mercado, clasificados, referencia, resumen }) => (
+            {resumenFiscal.map(({ mercado, referencia, resumen }) => (
               <li>
                 <span>
                   <strong>{mercado.nombre}</strong>
-                  <small>{referencia ? referencia.elemento.rotulo : 'Sin datos'} · {mercado.conRanking ? `${clasificados.length} en ranking` : 'sin ranking'}</small>
+                  <small>
+                    {referencia && resumen
+                      ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</>
+                      : `Ningún rótulo llega a las ${UMBRAL_ESTACIONES_ROTULO} estaciones aquí`}
+                  </small>
                 </span>
                 <b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>
@@ -110,11 +116,15 @@ const numero = (cantidad: number) => cantidad.toLocaleString('es-ES');
         <details class="editorial-fiscal-movil editorial-fiscal-movil--rotulos">
           <summary>Canarias, Ceuta y Melilla</summary>
           <ul class="editorial-fiscal__datos">
-            {resumenFiscal.map(({ mercado, clasificados, referencia, resumen }) => (
+            {resumenFiscal.map(({ mercado, referencia, resumen }) => (
               <li>
                 <span>
                   <strong>{mercado.nombre}</strong>
-                  <small>{referencia ? referencia.elemento.rotulo : 'Sin datos'} · {mercado.conRanking ? `${clasificados.length} en ranking` : 'sin ranking'}</small>
+                  <small>
+                    {referencia && resumen
+                      ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</>
+                      : `Ningún rótulo llega a las ${UMBRAL_ESTACIONES_ROTULO} estaciones aquí`}
+                  </small>
                 </span>
                 <b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>

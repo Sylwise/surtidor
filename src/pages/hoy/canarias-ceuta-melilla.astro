@@ -4,7 +4,7 @@ import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
-import { formatearFechaHora, formatearPrecio } from '../../logica/formato.ts';
+import { formatearFechaHora, formatearNumero, formatearPrecio } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
 const ruta = '/hoy/canarias-ceuta-melilla/';
@@ -51,11 +51,11 @@ const lideres = Object.fromEntries(
   </header>
 
   <section class="editorial-resumen" aria-label="Provincia con menor media por combustible">
-    {ORDEN_COMBUSTIBLES.map((combustible, indice) => {
+    {ORDEN_COMBUSTIBLES.map((combustible) => {
       const lider = lideres[combustible];
       const resumen = lider?.combustibles[combustible] ?? null;
       return (
-        <article class:list={['editorial-tarjeta', { 'editorial-tarjeta--secundaria': indice > 1 }]}>
+        <article class="editorial-tarjeta editorial-tarjeta--secundaria">
           <span class="editorial-tarjeta__combustible">{ETIQUETA[combustible]}</span>
           <strong class="editorial-tarjeta__precio">
             {resumen?.media === null || resumen === null ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}
@@ -63,7 +63,7 @@ const lideres = Object.fromEntries(
           {lider && <a class="editorial-tarjeta__zona" href={`/${lider.id}/`}>{lider.nombre}</a>}
           {resumen && (
             <span class="editorial-tarjeta__muestra">
-              Media calculada sobre {resumen.n} {resumen.n === 1 ? 'estación' : 'estaciones'}
+              Media calculada sobre {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}
             </span>
           )}
         </article>
