@@ -1,11 +1,18 @@
 ---
 import { EDITORIALES_HOY, HERRAMIENTAS_HOY, entradaHoyActiva, hrefEntradaHoy } from '../datos/navegacion.ts';
+import { formatearFechaHora } from '../logica/formato.ts';
+import { formatearResumenHoy, leerResumenesPanelHoy, type SlugResumenHoy } from '../../scripts/lib/resumenes-hoy.ts';
 
 interface Props { prefijo?: string; provinciaId?: string | null; autonomo?: boolean; variante?: 'clara' | 'petroleo'; }
 const { prefijo = '', provinciaId = null, autonomo = false, variante = 'clara' } = Astro.props;
 const id = (base: string) => prefijo ? `${base}-${prefijo}` : base;
 const pathname = Astro.url.pathname;
 const hoyActivo = pathname.startsWith('/hoy/');
+const resumenes = await leerResumenesPanelHoy(provinciaId);
+const descripcionDe = (slug: string, descripcion: string): string =>
+  slug === 'como-calculamos-los-datos'
+    ? descripcion
+    : formatearResumenHoy(resumenes.items[slug as SlugResumenHoy]);
 ---
 <div class:list={['navegacion-hoy', `navegacion-hoy--${variante}`]} data-menu-hoy-autonomo={autonomo ? '' : undefined}>
   <button id={id('boton-hoy')} type="button" class:list={['boton-hoy', { 'boton-hoy--activo': hoyActivo }]} aria-expanded="false" aria-controls={id('panel-hoy')} aria-haspopup="true">
@@ -14,17 +21,19 @@ const hoyActivo = pathname.startsWith('/hoy/');
     <span class="boton-hoy__flecha" aria-hidden="true"></span>
   </button>
   <div id={id('fondo-panel-hoy')} class="panel-hoy__fondo" hidden></div>
-  <nav id={id('panel-hoy')} class="panel-hoy" aria-label="Análisis de precios de hoy" hidden>
-    <span class="panel-hoy__asa" aria-hidden="true"></span>
-    <div class="panel-hoy__cabecera">
-      <span><span class="micro">ANÁLISIS DE HOY</span><strong class="panel-hoy__titulo">Descubre los datos</strong></span>
-      <button id={id('cerrar-panel-hoy')} type="button" class="boton-cerrar" aria-label="Cerrar análisis de hoy">✕</button>
+  <nav id={id('panel-hoy')} class="panel-hoy" aria-label="Análisis de precios de hoy" data-panel-hoy hidden>
+    <div class="panel-hoy__superior">
+      <span class="panel-hoy__asa" aria-hidden="true"></span>
+      <div class="panel-hoy__cabecera">
+        <span><span class="micro">ANÁLISIS DE HOY</span><strong class="panel-hoy__titulo">Hoy, en cifras</strong></span>
+        <button id={id('cerrar-panel-hoy')} type="button" class="boton-cerrar" aria-label="Cerrar análisis de hoy">✕</button>
+      </div>
     </div>
     <p class="panel-hoy__grupo">EDITORIALES DE HOY</p>
     <ul class="panel-hoy__lista">
       {EDITORIALES_HOY.map((entrada) => (
         <li><a href={hrefEntradaHoy(entrada, provinciaId)} data-enlace-evolucion-zona={entrada.slug === 'evolucion' ? '' : undefined} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
-          <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{entrada.descripcion}</small></span><span aria-hidden="true">›</span>
+          <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{descripcionDe(entrada.slug, entrada.descripcion)}</small></span>
         </a></li>
       ))}
     </ul>
@@ -32,12 +41,21 @@ const hoyActivo = pathname.startsWith('/hoy/');
     <ul class="panel-hoy__lista">
       {HERRAMIENTAS_HOY.map((entrada) => (
         <li><a href={hrefEntradaHoy(entrada, provinciaId)} data-enlace-evolucion-zona={entrada.slug === 'evolucion' ? '' : undefined} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
-          <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{entrada.descripcion}</small></span><span aria-hidden="true">›</span>
+          <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{descripcionDe(entrada.slug, entrada.descripcion)}</small></span>
         </a></li>
       ))}
     </ul>
+    <footer class="panel-hoy__pie">
+      <p>Datos oficiales del Ministerio para la Transición Ecológica y el Reto Demográfico.</p>
+      <p class="panel-hoy__actualizado">Datos actualizados · <time datetime={resumenes.actualizado}>{formatearFechaHora(resumenes.actualizado)}</time></p>
+      <p>Sin anuncios · Sin registro · Sin rastreo</p>
+    </footer>
   </nav>
 </div>
+<noscript><style>
+  .navegacion-hoy > .boton-hoy, .navegacion-hoy > .panel-hoy__fondo { display:none !important; }
+  .navegacion-hoy > .panel-hoy[hidden] { position:static; display:block !important; width:min(482px,100%); max-height:none; margin:8px; }
+</style></noscript>
 
 {autonomo && <script>
   for (const raiz of document.querySelectorAll<HTMLElement>('[data-menu-hoy-autonomo]')) {

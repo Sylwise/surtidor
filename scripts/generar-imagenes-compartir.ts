@@ -30,10 +30,10 @@ import { fusionarProvincias, type EstacionZona } from '../src/logica/zona.ts';
 import { estacionesVisibles } from '../src/logica/visibilidad.ts';
 import { ETIQUETA } from '../src/logica/combustibles.ts';
 import { formatearEuros, formatearFechaHora, formatearPrecio, nombreVisible } from '../src/logica/formato.ts';
-import { calcularAgregadosEditoriales, type AgregadoZona, type MediaConN } from './lib/agregados.ts';
+import { calcularAgregadosEditoriales } from './lib/agregados.ts';
 import { calcularAgregadosCapitales } from './lib/capitales.ts';
-import { calcularCostePorNoComparar } from './lib/cuanto-te-juegas.ts';
 import { calcularAgregadosMinimos } from './lib/minimos.ts';
+import { mayorCoste, menorMedia } from './lib/resumenes-hoy.ts';
 import { rotulosQueVenden, seleccionarRotulos } from './lib/rotulos.ts';
 import { generarSlug } from './lib/slug.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type DatosProvincia, type Indice, type IndiceMunicipios } from './lib/tipos.ts';
@@ -493,37 +493,6 @@ function escribir(tarjeta: Tarjeta): number {
   mkdirSync(dirname(tarjeta.rutaSalida), { recursive: true });
   writeFileSync(tarjeta.rutaSalida, png);
   return png.length;
-}
-
-function menorMedia<T extends { combustibles: Record<string, MediaConN> }>(
-  elementos: readonly T[],
-  combustible: 'gasolina95e5' | 'gasoleoA',
-  nombre: (elemento: T) => string,
-): { valor: number | null; origen: string } {
-  const ordenados = elementos
-    .filter((elemento) => elemento.combustibles[combustible].media !== null)
-    .sort(
-      (a, b) =>
-        (a.combustibles[combustible].media as number) - (b.combustibles[combustible].media as number) ||
-        nombre(a).localeCompare(nombre(b), 'es'),
-    );
-  const primero = ordenados[0];
-  return primero
-    ? { valor: primero.combustibles[combustible].media, origen: nombre(primero) }
-    : { valor: null, origen: 'Sin origen disponible' };
-}
-
-function mayorCoste(
-  zonas: readonly AgregadoZona[],
-  combustible: 'gasolina95e5' | 'gasoleoA',
-): { valor: number | null; origen: string } {
-  const ordenadas = zonas
-    .map((zona) => ({ zona, coste: calcularCostePorNoComparar(zona.combustibles[combustible]) }))
-    .filter((fila): fila is { zona: AgregadoZona; coste: number } => fila.coste !== null)
-    .sort((a, b) => b.coste - a.coste || a.zona.nombre.localeCompare(b.zona.nombre, 'es'));
-  return ordenadas[0]
-    ? { valor: ordenadas[0].coste, origen: nombreVisible(ordenadas[0].zona.nombre, 'provincia') }
-    : { valor: null, origen: 'Sin origen disponible' };
 }
 
 const cifraPrecio = (valor: number | null) => (valor === null ? 'sin datos' : `${formatearPrecio(valor)} €/L`);

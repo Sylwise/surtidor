@@ -9,6 +9,7 @@
     "preview": "astro preview",
     "check": "astro check && tsc -p scripts/tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types scripts/**/*.test.ts src/**/*.test.ts",
+    "comprobar:menu-hoy": "node --experimental-strip-types scripts/comprobar-menu-hoy-build.ts",
     "data:fetch": "node --experimental-strip-types scripts/descargar-datos.ts",
     "materializar:historico": "node --experimental-strip-types scripts/materializar-historico.ts",
     "preparar:historico": "node --experimental-strip-types scripts/preparar-historico.ts",

@@ -20,7 +20,7 @@ export const EDITORIALES_HOY = CATALOGO_HOY.filter(({ slug }) => slug !== 'evolu
 
 export const HERRAMIENTAS_HOY: readonly EntradaHoy[] = [
   CATALOGO_HOY.find(({ slug }) => slug === 'evolucion')!,
-  { slug: 'como-calculamos-los-datos', nombre: 'Cómo calculamos los datos', descripcion: 'Fuente, proceso y reglas' },
+  { slug: 'como-calculamos-los-datos', nombre: 'Cómo calculamos los datos', descripcion: 'Fuente, muestra y reglas' },
 ] as const;
 
 export function hrefEntradaHoy(entrada: EntradaHoy, provinciaId?: string | null): string {
