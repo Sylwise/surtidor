@@ -96,7 +96,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
 
             <section class="evolucion-grafico-card">
               <header><div><h2 data-titulo-grafico>Precio diario: media y mínimo provincial</h2><p data-rango-fechas></p></div><p class="evolucion-grafico-resumen-movil" data-resumen-grafico-movil></p><div class="evolucion-tramo"><span>Tramo más intenso</span><strong data-tramo></strong></div></header>
-              <div class="evolucion-grafico-wrap"><svg class="evolucion-grafico" viewBox="0 0 900 360" role="img"></svg><output class="evolucion-tooltip" data-tooltip hidden></output></div>
+              <div class="evolucion-grafico-wrap"><svg class="evolucion-grafico" viewBox="0 0 900 360" role="img" aria-describedby="detalle-grafico-diario"></svg><output id="detalle-grafico-diario" class="evolucion-tooltip" data-tooltip hidden></output><p class="evolucion-grafico-instruccion">Desliza sobre la línea para cambiar de día</p></div>
               <div class="evolucion-leyenda"><span><i class="estacion"></i><b data-leyenda-principal>Media provincial</b></span><span><i class="provincia"></i><b data-leyenda-secundaria>Precio mínimo</b></span></div>
             </section>
 

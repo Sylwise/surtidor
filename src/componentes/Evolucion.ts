@@ -1,11 +1,12 @@
 import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import { cajaDeTitulo, nombreVisible } from '../logica/formato.ts';
+import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { cambioEnPeriodo, cambiosDeEstaciones, serieDeEstacion, serieMedia, validarHistoricoPublico, type CambioEstacion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
 import { bandaPrecio, crearEscala } from '../logica/escala.ts';
+import { clasificarGestoGrafico } from '../logica/gestoGrafico.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function eur(milesimas: number | null): string {
@@ -13,7 +14,7 @@ function eur(milesimas: number | null): string {
 }
 
 function eurTooltip(milesimas: number | null): string {
-  return milesimas === null ? 'sin dato' : `${(milesimas / 1000).toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €`;
+  return milesimas === null ? 'Sin dato' : `${formatearPrecio(milesimas / 1000)} €`;
 }
 
 function fecha(iso: string): string {
@@ -41,7 +42,8 @@ function dibujarGrafico(svg: SVGSVGElement, principal: PuntoEvolucion[], secunda
   svg.replaceChildren();
   const valores = [...principal, ...secundaria].flatMap((p) => p.milesimas === null ? [] : [p.milesimas]);
   if (valores.length < 2) return;
-  const ancho = window.matchMedia('(max-width: 760px)').matches ? 560 : 900;
+  const esMovil = window.matchMedia('(max-width: 760px)').matches;
+  const ancho = esMovil ? 560 : 900;
   const alto = 360, izquierda = 58, derecha = 20, arriba = 24, abajo = 42;
   svg.setAttribute('viewBox', `0 0 ${ancho} ${alto}`);
   const minimo = Math.floor((Math.min(...valores) - 20) / 50) * 50;
@@ -63,8 +65,10 @@ function dibujarGrafico(svg: SVGSVGElement, principal: PuntoEvolucion[], secunda
   [[secundaria, 'evolucion-grafico__provincia'], [principal, 'evolucion-grafico__estacion']].forEach(([serie, clase]) => tramos(serie as PuntoEvolucion[], x, y).forEach((d) => { const path = document.createElementNS(SVG_NS, 'path'); path.setAttribute('d', d); path.setAttribute('class', String(clase)); svg.append(path); }));
   const ejeX = document.createElementNS(SVG_NS, 'line'); ejeX.setAttribute('x1', String(izquierda)); ejeX.setAttribute('x2', String(ancho - derecha)); ejeX.setAttribute('y1', String(alto - abajo)); ejeX.setAttribute('y2', String(alto - abajo)); ejeX.setAttribute('class', 'evolucion-grafico__eje-x'); svg.append(ejeX);
   [0, principal.length - 1].forEach((indice) => { const texto = document.createElementNS(SVG_NS, 'text'); texto.setAttribute('x', String(x(indice))); texto.setAttribute('y', String(alto - 10)); texto.setAttribute('text-anchor', indice === 0 ? 'start' : 'end'); texto.setAttribute('class', 'evolucion-grafico__fecha'); texto.textContent = fecha(principal[indice]!.fecha); svg.append(texto); });
-  let fijado = false;
+  let fijado = esMovil;
   let indiceActivo = principal.length - 1;
+  let gestoTactil: { pointerId: number; inicioX: number; inicioY: number; recorriendo: boolean } | null = null;
+  let ultimoPunteroTactil = -Infinity;
   const guia = document.createElementNS(SVG_NS, 'line'); guia.setAttribute('y1', String(arriba)); guia.setAttribute('y2', String(alto - abajo)); guia.setAttribute('class', 'evolucion-grafico__guia');
   const marcador = document.createElementNS(SVG_NS, 'circle'); marcador.setAttribute('r', '6'); marcador.setAttribute('class', 'evolucion-grafico__marcador-eje'); svg.append(guia, marcador);
   const mostrarGuia = (visible: boolean): void => { guia.setAttribute('visibility', visible ? 'visible' : 'hidden'); marcador.setAttribute('visibility', visible ? 'visible' : 'hidden'); };
@@ -73,27 +77,36 @@ function dibujarGrafico(svg: SVGSVGElement, principal: PuntoEvolucion[], secunda
     indiceActivo = Math.max(0, Math.min(principal.length - 1, indice));
     const punto = principal[indiceActivo]!; const comparador = secundaria[indiceActivo]?.milesimas ?? null;
     const tituloTooltip = document.createElement('strong'); tituloTooltip.className = 'evolucion-tooltip__fecha'; tituloTooltip.textContent = fechaTooltip(punto.fecha);
-    const crearFila = (etiqueta: string, valor: string, secundariaFila = false): HTMLSpanElement => {
+    const crearFila = (etiqueta: string, milesimas: number | null, secundariaFila = false): HTMLSpanElement => {
       const fila = document.createElement('span'); fila.className = secundariaFila ? 'evolucion-tooltip__fila evolucion-tooltip__fila--secundaria' : 'evolucion-tooltip__fila';
-      const nombre = document.createElement('span'); nombre.textContent = etiqueta;
-      const cifra = document.createElement('b'); cifra.textContent = valor;
-      fila.append(nombre, cifra); return fila;
+      const muestra = document.createElement('i'); muestra.className = 'evolucion-tooltip__muestra'; muestra.ariaHidden = 'true';
+      const nombre = document.createElement('span'); nombre.textContent = esMovil && etiqueta === 'Media' ? 'Media provincial' : etiqueta;
+      const cifra = document.createElement('b'); cifra.textContent = eurTooltip(milesimas);
+      if (milesimas !== null) { const unidad = document.createElement('span'); unidad.className = 'evolucion-tooltip__unidad'; unidad.textContent = '/L'; cifra.append(unidad); }
+      fila.append(muestra, nombre, cifra); return fila;
     };
-    const filaPrincipal = crearFila(etiquetas[0], eurTooltip(punto.milesimas));
-    const filaSecundaria = crearFila(etiquetas[1], eurTooltip(comparador), true);
-    tooltip.replaceChildren(tituloTooltip, filaPrincipal, filaSecundaria);
+    const filaPrincipal = crearFila(etiquetas[0], punto.milesimas);
+    const filaSecundaria = crearFila(etiquetas[1], comparador, true);
     const anterior = principal[indiceActivo - 1]?.milesimas ?? null;
-    if (punto.milesimas !== null && anterior !== null) { const variacion = document.createElement('small'); variacion.className = 'evolucion-tooltip__cambio'; const diferencia = punto.milesimas - anterior; variacion.textContent = `${diferencia > 0 ? '+' : diferencia < 0 ? '−' : ''}${centimos(diferencia)} cts desde ayer`; tooltip.append(variacion); }
+    const variacion = document.createElement('small'); variacion.className = 'evolucion-tooltip__cambio';
+    if (punto.milesimas !== null && anterior !== null) { const diferencia = punto.milesimas - anterior; variacion.textContent = `${diferencia > 0 ? '+' : diferencia < 0 ? '−' : ''}${centimos(diferencia)} cts desde ayer`; }
+    else { variacion.classList.add('evolucion-tooltip__cambio--sin-dato'); variacion.textContent = 'Sin comparación con ayer'; }
+    tooltip.replaceChildren(tituloTooltip, variacion, filaPrincipal, filaSecundaria);
     tooltip.hidden = false;
-    const caja = svg.getBoundingClientRect();
-    const matriz = svg.getScreenCTM();
-    const posicionPunto = matriz ? new DOMPoint(x(indiceActivo), punto.milesimas === null ? alto / 2 : y(punto.milesimas)).matrixTransform(matriz) : null;
-    const pxCss = posicionX ?? (posicionPunto ? posicionPunto.x - caja.left : x(indiceActivo) / ancho * caja.width);
-    const pyCss = posicionY ?? (posicionPunto ? posicionPunto.y - caja.top : (punto.milesimas === null ? alto / 2 : y(punto.milesimas)) / alto * caja.height);
-    const anchoTooltip = tooltip.offsetWidth;
-    const altoTooltip = tooltip.offsetHeight;
-    tooltip.style.left = `${Math.max(8, Math.min(caja.width - anchoTooltip - 8, pxCss - (pxCss > caja.width * .65 ? anchoTooltip + 10 : 0)))}px`;
-    tooltip.style.top = `${Math.max(8, Math.min(caja.height - altoTooltip - 8, pyCss - altoTooltip - 10))}px`;
+    if (esMovil) {
+      tooltip.style.removeProperty('left');
+      tooltip.style.removeProperty('top');
+    } else {
+      const caja = svg.getBoundingClientRect();
+      const matriz = svg.getScreenCTM();
+      const posicionPunto = matriz ? new DOMPoint(x(indiceActivo), punto.milesimas === null ? alto / 2 : y(punto.milesimas)).matrixTransform(matriz) : null;
+      const pxCss = posicionX ?? (posicionPunto ? posicionPunto.x - caja.left : x(indiceActivo) / ancho * caja.width);
+      const pyCss = posicionY ?? (posicionPunto ? posicionPunto.y - caja.top : (punto.milesimas === null ? alto / 2 : y(punto.milesimas)) / alto * caja.height);
+      const anchoTooltip = tooltip.offsetWidth;
+      const altoTooltip = tooltip.offsetHeight;
+      tooltip.style.left = `${Math.max(8, Math.min(caja.width - anchoTooltip - 8, pxCss - (pxCss > caja.width * .65 ? anchoTooltip + 10 : 0)))}px`;
+      tooltip.style.top = `${Math.max(8, Math.min(caja.height - altoTooltip - 8, pyCss - altoTooltip - 10))}px`;
+    }
     guia.setAttribute('x1', String(x(indiceActivo))); guia.setAttribute('x2', String(x(indiceActivo)));
     marcador.setAttribute('cx', String(x(indiceActivo))); marcador.setAttribute('cy', String(punto.milesimas === null ? alto - abajo : y(punto.milesimas))); mostrarGuia(true);
   };
@@ -107,14 +120,49 @@ function dibujarGrafico(svg: SVGSVGElement, principal: PuntoEvolucion[], secunda
     mostrarIndice(indice);
   };
   svg.tabIndex = 0;
-  svg.onpointermove = mostrar;
-  svg.onpointerleave = () => { if (!fijado) { tooltip.hidden = true; mostrarGuia(false); } };
+  svg.onpointerdown = (evento) => {
+    if (evento.pointerType === 'mouse') return;
+    ultimoPunteroTactil = Date.now();
+    gestoTactil = { pointerId: evento.pointerId, inicioX: evento.clientX, inicioY: evento.clientY, recorriendo: false };
+  };
+  svg.onpointermove = (evento) => {
+    if (evento.pointerType === 'mouse') { mostrar(evento); return; }
+    if (!gestoTactil || gestoTactil.pointerId !== evento.pointerId) return;
+    const intencion = clasificarGestoGrafico(evento.clientX - gestoTactil.inicioX, evento.clientY - gestoTactil.inicioY);
+    if (intencion === 'pendiente') return;
+    if (intencion === 'desplazar') { gestoTactil = null; return; }
+    if (!gestoTactil.recorriendo) {
+      gestoTactil.recorriendo = true;
+      svg.setPointerCapture(evento.pointerId);
+    }
+    evento.preventDefault();
+    fijado = true;
+    mostrar(evento);
+  };
+  svg.onpointerup = (evento) => {
+    if (evento.pointerType === 'mouse' || !gestoTactil || gestoTactil.pointerId !== evento.pointerId) return;
+    ultimoPunteroTactil = Date.now();
+    const intencion = clasificarGestoGrafico(evento.clientX - gestoTactil.inicioX, evento.clientY - gestoTactil.inicioY);
+    const debeSeleccionar = gestoTactil.recorriendo || intencion === 'pendiente';
+    if (svg.hasPointerCapture(evento.pointerId)) svg.releasePointerCapture(evento.pointerId);
+    gestoTactil = null;
+    if (!debeSeleccionar) return;
+    fijado = true;
+    mostrar(evento);
+  };
+  svg.onpointercancel = (evento) => {
+    if (gestoTactil?.pointerId === evento.pointerId) gestoTactil = null;
+  };
+  svg.onpointerleave = (evento) => { if (evento.pointerType === 'mouse' && !fijado) { tooltip.hidden = true; mostrarGuia(false); } };
   svg.onclick = (evento) => {
+    const tipoPuntero = (evento as PointerEvent).pointerType;
+    if ((tipoPuntero && tipoPuntero !== 'mouse') || Date.now() - ultimoPunteroTactil < 700) return;
     const matriz = svg.getScreenCTM(); if (!matriz) return; const py = new DOMPoint((evento as PointerEvent).clientX, (evento as PointerEvent).clientY).matrixTransform(matriz.inverse()).y;
     if (py < arriba || py > alto - abajo) { fijado = false; tooltip.hidden = true; mostrarGuia(false); return; }
     fijado = !fijado; mostrar(evento as PointerEvent);
   };
   svg.onkeydown = (evento) => { if (evento.key === 'Escape') { fijado = false; tooltip.hidden = true; mostrarGuia(false); return; } if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return; evento.preventDefault(); if (evento.key === 'Home') indiceActivo = 0; else if (evento.key === 'End') indiceActivo = principal.length - 1; else indiceActivo += evento.key === 'ArrowLeft' ? -1 : 1; mostrarIndice(indiceActivo); };
+  if (esMovil) mostrarIndice(indiceActivo);
 }
 
 interface GrupoCambio { representante: CambioEstacion; estaciones: Estacion[]; }
