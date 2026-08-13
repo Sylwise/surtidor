@@ -579,9 +579,10 @@ la regla de la sección "Voz". Y la pestaña del premium es `Diésel +` y no
 `Premium`: "Premium" a secas es ambiguo, porque la 98 también es una gasolina
 premium, y el usuario no puede saber a cuál se refiere.
 
-**Esta regla no afecta a los nombres de territorio.** RF-76 obliga a mostrar
-provincias y comunidades tal como las nombra el catálogo del ministerio, sin
-traducir ni acortar. Los combustibles son producto, no territorio.
+**Esta regla no afecta a las claves territoriales.** RF-76 conserva verbatim
+la cadena del catálogo para emparejamientos, identificadores y slugs, sin
+traducir ni elegir entre denominaciones. Solo el nombre visible se deriva de
+la tabla fija de comunidades y la regla común de artículo final.
 
 ### Mayúsculas
 
@@ -592,7 +593,9 @@ El ministerio devuelve rótulos y direcciones en mayúsculas.
 - **La dirección y el municipio se pasan a caja de título**: `Avenida de los
   Huetos, 64, Vitoria-Gasteiz`. Es prosa, no un rótulo, y en mayúsculas se lee
   peor. Las partículas —de, la, del, y— quedan en minúscula.
-- **La provincia, verbatim** (RF-76): `ARABA/ALAVA`.
+- **Provincia y municipio usan el nombre visible de RF-76**: `ARABA/ÁLAVA`
+  se pinta `Araba/Álava` sin eliminar ninguna denominación, y `CORUÑA (A)` se
+  pinta `A Coruña`.
 
 Esta regla sustituyó la mezcla anterior de dirección en mayúsculas y municipio
 en caja de título. Código nuevo y revisiones deben conservarla.
