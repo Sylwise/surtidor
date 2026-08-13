@@ -49,9 +49,12 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   botonCerrar.textContent = '✕';
   botonCerrar.addEventListener('click', () => actualizarEstado({ estacionId: null }));
 
+  const puesto = document.createElement('p');
+  puesto.className = 'totem__puesto';
+
   const cabeceraFicha = document.createElement('div');
   cabeceraFicha.className = 'totem__cabecera';
-  cabeceraFicha.append(rotulo, botonCerrar);
+  cabeceraFicha.append(rotulo, puesto, botonCerrar);
 
   const direccion = document.createElement('p');
   direccion.className = 'totem__direccion';
@@ -127,9 +130,6 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     filasCombustible.set(clave, { fila, boton, valor });
   }
 
-  const puesto = document.createElement('p');
-  puesto.className = 'totem__puesto';
-
   const enlaceEvolucion = document.createElement('a');
   enlaceEvolucion.className = 'totem__evolucion';
   const evolucionCambio = document.createElement('strong');
@@ -171,7 +171,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const ahorroResumen = document.createElement('p');
   ahorroResumen.className = 'totem__ahorro-resumen';
 
-  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, puesto, evolucionCambio, ahorro, llegar, enlaceEvolucion);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, evolucionCambio, ahorro, llegar, enlaceEvolucion);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {

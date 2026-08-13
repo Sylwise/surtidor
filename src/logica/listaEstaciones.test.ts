@@ -84,6 +84,18 @@ test('la más barata lleva banda "barata"', () => {
   assert.equal(barata?.banda, 'barata');
 });
 
+test('la lista comparte los extremos de la escala visual: barata y p5', () => {
+  const filas = calcularListaCombustible(
+    Array.from({ length: 8 }, (_, indice) => estacion({
+      id: String(indice),
+      precios: { gasolina95e5: 1.3 + indice * .05, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+    })),
+    'gasolina95e5',
+  );
+  assert.equal(filas.at(0)?.banda, 'barata');
+  assert.equal(filas.at(-1)?.banda, 'p5');
+});
+
 test('calcularListasPorCombustible devuelve las cuatro claves (RF-89)', () => {
   const listas = calcularListasPorCombustible([estacion({ id: 'a' })]);
   assert.deepEqual(Object.keys(listas).sort(), [...ORDEN_COMBUSTIBLES].sort());

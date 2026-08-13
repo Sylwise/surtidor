@@ -5,6 +5,7 @@ import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
+import { bandaPrecio, crearEscala } from '../logica/escala.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function eur(milesimas: number | null): string {
@@ -134,6 +135,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     if (actual.provincia?.id !== provinciaId || !Array.isArray(actual.estaciones)) throw new Error('Los datos actuales no son válidos.');
     const historico = validarHistoricoPublico(historicoCrudo, provinciaId);
     const estaciones = actual.estaciones.filter((e) => historico.estaciones.some((s) => s[0] === e.id));
+    const estacionesPublicas = actual.estaciones.filter((estacion) => estacion.tipoVenta === 'P');
     if (!estaciones.length) throw new Error('No hay estaciones con histórico en esta provincia.');
     let combustible: ClavePrecio = 'gasolina95e5'; let periodo: 7 | 30 | 90 = 30;
     let filtroSheet: 'baratas' | 'cercanas' | 'abiertas' = 'baratas';
@@ -243,14 +245,18 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const etiquetaMinimo = contenedor.querySelector<HTMLElement>('[data-etiqueta-minimo]')!;
       const etiquetaMuestra = contenedor.querySelector<HTMLElement>('[data-etiqueta-muestra]')!;
       const resumenGraficoMovil = contenedor.querySelector<HTMLElement>('[data-resumen-grafico-movil]')!;
+      const tituloGrafico = contenedor.querySelector<HTMLElement>('[data-titulo-grafico]')!;
       if (estacionActiva) {
-        const comparables = estaciones.filter((e) => e.precios[combustible] !== null).sort((a, b) => (a.precios[combustible] ?? Infinity) - (b.precios[combustible] ?? Infinity));
+        const comparables = estacionesPublicas.filter((e) => e.precios[combustible] !== null).sort((a, b) => (a.precios[combustible] ?? Infinity) - (b.precios[combustible] ?? Infinity));
         const puesto = comparables.findIndex((e) => e.id === estacionActiva!.id) + 1;
         etiquetaMedia.textContent = 'Estación · último cierre'; etiquetaMinimo.textContent = 'Media provincial'; etiquetaMuestra.textContent = 'Posición actual';
         contenedor.querySelector<HTMLElement>('[data-media]')!.textContent = eur(seriePrincipal.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(mediaProvincia.at(-1)?.milesimas ?? null);
         contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = puesto > 0 ? `${puesto}ª de ${comparables.length}` : 'No comparable';
-        resumenGraficoMovil.textContent = `Media ${eur(mediaProvincia.at(-1)?.milesimas ?? null).replace(' €/L', '')} · ${puesto > 0 ? `${puesto}ª de ${comparables.length}` : 'No comparable'}`;
+        resumenGraficoMovil.textContent = puesto > 0
+          ? `Media provincial: ${eur(mediaProvincia.at(-1)?.milesimas ?? null).replace(' €/L', '')} · Puesto de esta estación en la provincia: ${puesto} de ${comparables.length}`
+          : `Media provincial ${eur(mediaProvincia.at(-1)?.milesimas ?? null).replace(' €/L', '')} · Esta estación no es comparable`;
+        tituloGrafico.textContent = 'Precio diario: estación y media provincial';
       } else {
         etiquetaMedia.textContent = 'Media';
         etiquetaMinimo.textContent = 'Mínimo';
@@ -259,6 +265,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-minimo]')!.textContent = eur(ultimoAgregado[2]);
         contenedor.querySelector<HTMLElement>('[data-muestra]')!.textContent = String(ultimoAgregado[1]);
         resumenGraficoMovil.textContent = `Mín. ${eur(ultimoAgregado[2]).replace(' €/L', '')} · ${ultimoAgregado[1]} est.`;
+        tituloGrafico.textContent = 'Precio diario: media y mínimo provincial';
       }
       const comparacionEstacion = contenedor.querySelector<HTMLElement>('[data-comparacion-estacion]')!;
       const estadoVacio = contenedor.querySelector<HTMLElement>('[data-evolucion-vacio]')!;
@@ -288,7 +295,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       contenedor.querySelector<HTMLElement>('.evolucion-hitos')!.hidden = estacionActiva !== null;
       comparacionEstacion.hidden = estacionActiva === null || sinCombustible || sinHistorico;
       if (estacionActiva) {
-        const preciosActuales = estaciones.flatMap((estacion) => estacion.precios[combustible] === null ? [] : [Math.round(estacion.precios[combustible]! * 1000)]);
+        const preciosActuales = estacionesPublicas.flatMap((estacion) => estacion.precios[combustible] === null ? [] : [Math.round(estacion.precios[combustible]! * 1000)]);
         const precioEstacion = estacionActiva.precios[combustible] === null ? null : Math.round(estacionActiva.precios[combustible]! * 1000);
         const mediaActual = preciosActuales.length ? Math.round(preciosActuales.reduce((suma, valor) => suma + valor, 0) / preciosActuales.length) : null;
         const maximoActual = preciosActuales.length ? Math.max(...preciosActuales) : null;
@@ -301,8 +308,12 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         comparacionDiferencia.textContent = diferencia === null ? 'No comparable' : `${diferencia > 0 ? '+' : '−'}${centimos(diferencia)} cts/L`;
         comparacionDiferencia.dataset.sentido = diferencia === null ? 'neutro' : diferencia > 0 ? 'caro' : 'barato';
         contenedor.querySelector<HTMLElement>('[data-comparacion-deposito]')!.textContent = diferencia === null ? '' : `${(Math.abs(diferencia) / 1000 * 50).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € ${diferencia <= 0 ? 'menos' : 'más'} por 50 L`;
+        const preciosPublicos = estacionesPublicas.flatMap((estacion) => estacion.precios[combustible] === null ? [] : [estacion.precios[combustible]!]);
+        const escalaProvincia = crearEscala(preciosPublicos);
+        const barraEstacion = contenedor.querySelector<HTMLElement>('[data-barra-estacion]')!;
+        barraEstacion.dataset.banda = precioActualEstacion === null ? '' : bandaPrecio(precioActualEstacion, escalaProvincia);
         const anchoBarra = (valor: number | null): string => valor === null || minimoActual === null || maximoActual === null || maximoActual === minimoActual ? '50%' : `${45 + (valor - minimoActual) / (maximoActual - minimoActual) * 50}%`;
-        contenedor.querySelector<HTMLElement>('[data-barra-estacion]')!.style.width = anchoBarra(precioEstacion);
+        barraEstacion.style.width = anchoBarra(precioEstacion);
         contenedor.querySelector<HTMLElement>('[data-barra-media]')!.style.width = anchoBarra(mediaActual);
         contenedor.querySelector<HTMLElement>('[data-barra-maximo]')!.style.width = anchoBarra(maximoActual);
         contenedor.querySelector<HTMLElement>('[data-valor-estacion]')!.textContent = eur(precioEstacion);

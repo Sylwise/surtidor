@@ -33,6 +33,8 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 500));
   if (accion === 'fiscal') {
     await comando('script.evaluate', { target: { context }, expression: "document.querySelector('[data-abrir-desglose]').click()", awaitPromise: true });
+  } else if (accion === 'hoy') {
+    await comando('script.evaluate', { target: { context }, expression: "document.querySelector('.boton-hoy').click()", awaitPromise: true });
   } else if (accion.startsWith('combustible:')) {
     const combustible = JSON.stringify(accion.slice('combustible:'.length));
     await comando('script.evaluate', { target: { context }, expression: `document.querySelector('[data-selector-editorial] [data-combustible=' + ${combustible} + ']').click()`, awaitPromise: true });

@@ -5,9 +5,9 @@
 // vías no diverjan. Mismo patrón que src/logica/municipios.ts.
 
 import { estacionesVisibles } from './visibilidad.ts';
-import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from './escala.ts';
+import { bandaPrecio, crearEscala, ordenarPorPrecio, preciosDeCombustible } from './escala.ts';
 import { ORDEN_COMBUSTIBLES } from './combustibles.ts';
-import type { Banda } from './escala.ts';
+import type { BandaPrecio } from './escala.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona } from './zona.ts';
 
@@ -16,7 +16,7 @@ export interface FilaLista {
   /** Puesto dentro del combustible, 1 = más barata. */
   puesto: number;
   precio: number;
-  banda: Banda | 'barata';
+  banda: BandaPrecio;
 }
 
 /** Estaciones visibles (RF-48) ordenadas por `combustible`, de más barata a
@@ -32,7 +32,7 @@ export function calcularListaCombustible(estaciones: EstacionZona[], combustible
       estacion,
       puesto: indice + 1,
       precio,
-      banda: escala.esMasBarata(precio) ? 'barata' : escala.banda(precio),
+      banda: bandaPrecio(precio, escala),
     };
   });
 }

@@ -454,6 +454,24 @@ Solo un panel de navegación puede estar abierto a la vez. Abrir «Hoy» cierra 
 selector territorial y viceversa. Los controles conservan un área de pulsación
 de 44 px y anuncian su estado con `aria-expanded` y `aria-controls`.
 
+El panel abierto es una capa modal visual, no una prolongación de la página.
+Un velo oscuro semitransparente cubre el contenido que queda detrás tanto sobre
+el fondo claro de los documentos editoriales como sobre el mapa de la
+aplicación; pulsarlo cierra el panel. El panel se separa además del velo con una
+sombra de elevación real, no únicamente con un borde.
+
+En móvil la hoja entra desde el borde inferior con un desplazamiento breve, de
+entre 150 y 200 ms, mientras el velo aparece mediante opacidad. La apertura no
+debe producir saltos de posición. Con `prefers-reduced-motion: reduce` se elimina
+el desplazamiento del panel, pero se conserva el velo porque su función es
+separar y dar contraste, no decorar la transición. En escritorio se mantiene el
+popover anclado a «Hoy» y el velo conserva la misma función de separación.
+
+RNF-20 sigue rigiendo el comportamiento de teclado: al abrir, el foco entra en
+el panel; Escape lo cierra y devuelve el foco a «Hoy». La implementación actual
+mantiene esta gestión en el controlador compartido del panel; el velo, la
+transición y la elevación son exclusivamente presentacionales.
+
 ### La lista es el contenido
 
 No hay pie de página. La lista de estaciones que ya se ve —en el rail en
@@ -730,3 +748,37 @@ Las líneas, áreas y comparaciones usan color con moderación. Rojo y verde no
 codifican por sí solos subida y bajada; siempre hay signo, cifra o texto. Toda
 animación explica una transición, respeta `prefers-reduced-motion` y puede
 eliminarse sin perder información. Ver [08 · Evolución](08-evolucion.md).
+
+#### Comparación de una estación en móvil
+
+La ficha de comparación se apila en una sola columna hasta 760 px. El bloque
+«Diferencia respecto a la media provincial» queda debajo de la identidad y el
+precio de la estación: no se reserva una segunda columna estrecha que obligue a
+partir el rótulo y el ahorro en varias líneas. En esta vista los rótulos largos
+se escriben en caja normal, sin espaciado de mayúsculas; las micro-etiquetas solo
+se conservan cuando de verdad señalan estructura y disponen de ancho.
+
+Las tres barras no forman tres categorías cromáticas equivalentes:
+
+- **Esta estación** toma exactamente la clasificación relativa de la lista y
+  del marcador para la zona y el combustible activos (`barata` o `p1`–`p5`).
+  La escala se calcula con todas las estaciones públicas actuales de la zona,
+  no solo con las que ya tienen histórico.
+- **Media provincial** y **Más cara** usan el mismo neutro apagado. Su etiqueta
+  ya explica qué representan y no deben adquirir una banda de precio propia.
+- `--signal` no aparece en estas barras. Es chrome, no un color de precio.
+
+Auditoría de contraste de los rellenos sobre `--petrol`: `p1` da 2,52:1 y `p5`
+2,05:1, por debajo del 3:1 AA para elementos gráficos; `p2`, `p3` y `p4` dan
+respectivamente 3,49:1, 3,49:1 y 3,44:1. La escala no se altera aquí. Las barras
+se presentan dentro de una pista `--paper`, que es su superficie adyacente
+efectiva y sobre la que todas las bandas pasan 3:1 (`p1` 4,90:1; `p2` 3,54:1;
+`p3` 3,54:1; `p4` 3,59:1; `p5` 6,02:1). No deben moverse a una pista oscura sin
+resolver antes `p1` y `p5` mediante una decisión de sistema.
+
+El resumen compacto no abrevia la posición como «2.ª de 67» sin sujeto: dice
+**«Puesto de esta estación en la provincia: 2 de 67»**. El título del
+gráfico nombra las dos series visibles (estación y media provincial, o media y
+mínimo provincial cuando no hay estación elegida). En «Movimientos destacados»,
+la acción se llama «Ver todas las estaciones» porque abre precisamente esa
+lista.
