@@ -30,6 +30,7 @@ import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
+import { calcularRellenoMapa, type RellenoMapa } from '../logica/rellenoMapa.ts';
 import { estacionesQueVenden, estacionesVisibles } from '../logica/visibilidad.ts';
 import {
   cargarResumenNacional,
@@ -92,10 +93,6 @@ const CAPAS_OCULTAS_EN_VISTA_NACIONAL = [
 // valores solo tienen que ser parecidos al tamaño real en pantalla.
 const CAJA_NORMAL = { ancho: 56, alto: 24 };
 const CAJA_DESTACADA = { ancho: 72, alto: 30 }; // más barata y racimos: un punto más grandes
-
-// Alto garantizado de la pestaña minimizada (mismo número que
-// --hoja-minimizada en interfaz.css y el caso 'minimizada' en Hoja.ts).
-const ALTURA_MINIMA_HOJA_PX = 44;
 
 interface EntradaMarcador {
   marker: Marker;
@@ -184,7 +181,10 @@ class ControlUbicacion implements IControl {
   private pendiente = false;
   private marcadorUbicacion: Marker | null = null;
 
-  constructor(private alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void) {}
+  constructor(
+    private alEncontrarUbicacion?: (posicion: { lat: number; lon: number }) => void,
+    private obtenerRelleno: () => RellenoMapa = () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+  ) {}
 
   onAdd(mapa: MapaLibre): HTMLElement {
     this.mapa = mapa;
@@ -267,9 +267,9 @@ class ControlUbicacion implements IControl {
         }
         const zoom = Math.max(this.mapa.getZoom(), 13);
         if (prefiereMovimientoReducido()) {
-          this.mapa.jumpTo({ center: centro, zoom });
+          this.mapa.jumpTo({ center: centro, zoom, padding: this.obtenerRelleno() });
         } else {
-          this.mapa.flyTo({ center: centro, zoom, duration: 650 });
+          this.mapa.flyTo({ center: centro, zoom, padding: this.obtenerRelleno(), duration: 650 });
         }
         this.alEncontrarUbicacion?.({ lat: posicion.coords.latitude, lon: posicion.coords.longitude });
       },
@@ -298,6 +298,8 @@ export function montarMapa(
   let vigilante: ReturnType<typeof setTimeout> | null = null;
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
+  const hoja = contenedor.closest('.app')?.querySelector<HTMLElement>('.hoja') ?? null;
+  let ultimoRelleno: RellenoMapa | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
   const racimoMarkers = new Map<string, EntradaRacimo>();
   const provinciaMarkers = new Map<string, EntradaProvincia>();
@@ -342,30 +344,43 @@ export function montarMapa(
 
   function saltarOVolar(centro: [number, number], zoom: number): void {
     if (!mapa) return;
+    const padding = obtenerRelleno();
     if (prefiereMovimientoReducido()) {
-      mapa.jumpTo({ center: centro, zoom });
+      mapa.jumpTo({ center: centro, zoom, padding });
     } else {
       // 650 ms, ver la sección "Movimiento" de docs/05-diseno.md.
-      mapa.flyTo({ center: centro, zoom, duration: 650 });
+      mapa.flyTo({ center: centro, zoom, padding, duration: 650 });
     }
   }
 
-  /** Margen del encuadre inicial (RF-19): 8% del tamaño visible del mapa. En
-   *  móvil se suma el alto mínimo garantizado de la hoja inferior (su
-   *  estado "asomada": asa + controles rápidos), no su alto por defecto —
-   *  contar con el estado "media" (55% de la pantalla) por defecto dejaría
-   *  solo una franja diminuta para encuadrar y forzaría un zoom absurdo en
-   *  zonas grandes. La hoja es arrastrable: el usuario que la quiera fuera
-   *  del medio la baja, y la lista sigue siendo la vía principal para
-   *  llegar a lo que quede tapado. */
-  function calcularRelleno(): { top: number; right: number; bottom: number; left: number } {
-    const rect = contenedor.getBoundingClientRect();
-    const margen = Math.round(Math.min(rect.width, rect.height) * 0.08);
-    const relleno = { top: margen, right: margen, bottom: margen, left: margen };
-    if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches) {
-      relleno.bottom += ALTURA_MINIMA_HOJA_PX;
-    }
+  /** RF-37: el mapa trata como tapada la parte ocupada por la hoja real. */
+  function calcularRelleno(): RellenoMapa {
+    return calcularRellenoMapa(
+      contenedor.getBoundingClientRect(),
+      hoja?.getBoundingClientRect() ?? null,
+      typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches,
+    );
+  }
+
+  function obtenerRelleno(): RellenoMapa {
+    const relleno = calcularRelleno();
+    ultimoRelleno = relleno;
     return relleno;
+  }
+
+  function mismoRelleno(a: RellenoMapa | null, b: RellenoMapa): boolean {
+    return a !== null && a.top === b.top && a.right === b.right && a.bottom === b.bottom && a.left === b.left;
+  }
+
+  function sincronizarTamanoYRelleno(): void {
+    mapa?.resize();
+    if (!mapa || !cargado) return;
+    const relleno = calcularRelleno();
+    if (mismoRelleno(ultimoRelleno, relleno)) return;
+    ultimoRelleno = relleno;
+    // ResizeObserver acompaña cada fotograma de la transición de 220 ms de
+    // la hoja. setPadding sigue esa geometría y evita un salto al cerrarla.
+    mapa.setPadding(relleno);
   }
 
   /** Encuadre inicial de una zona: todas las estaciones visibles a la vez.
@@ -395,7 +410,7 @@ export function montarMapa(
         [minLon, minLat],
         [maxLon, maxLat],
       ],
-      { padding: calcularRelleno(), maxZoom: 13, duration: prefiereMovimientoReducido() ? 0 : 650 }
+      { padding: obtenerRelleno(), maxZoom: 13, duration: prefiereMovimientoReducido() ? 0 : 650 }
     );
   }
 
@@ -424,7 +439,7 @@ export function montarMapa(
         [minLon, minLat],
         [maxLon, maxLat],
       ],
-      { padding: 64, maxZoom: 16, duration: prefiereMovimientoReducido() ? 0 : 650 }
+      { padding: obtenerRelleno(), maxZoom: 16, duration: prefiereMovimientoReducido() ? 0 : 650 }
     );
   }
 
@@ -864,17 +879,18 @@ export function montarMapa(
     contenedor.setAttribute('style', 'padding:0;display:block');
     contenedor.append(lienzo);
 
+    const rellenoInicial = obtenerRelleno();
     mapa = new MapaLibre({
       container: lienzo,
       style: ESTILO_TILES,
       bounds: BOUNDS_ESPANA,
-      fitBoundsOptions: { padding: 24 },
+      fitBoundsOptions: { padding: rellenoInicial },
       attributionControl: {},
     });
 
     // RF-17: sobre el mapa, junto al resto de controles de MapLibre — no en
     // la cabecera (presupuesto de interfaz, docs/05-diseno.md).
-    mapa.addControl(new ControlUbicacion(alEncontrarUbicacion), 'top-right');
+    mapa.addControl(new ControlUbicacion(alEncontrarUbicacion, obtenerRelleno), 'top-right');
 
     // Endurecimiento: el contenedor vive dentro de un layout flex (RNF-24,
     // rail que hace scroll interno) cuyo tamaño final puede no estar fijado
@@ -887,8 +903,9 @@ export function montarMapa(
     // único resize() tras el primer frame no basta si el contenedor cambia
     // más adelante, así que se vigila con un ResizeObserver mientras el mapa
     // esté vivo, no solo una vez.
-    observador = new ResizeObserver(() => mapa?.resize());
+    observador = new ResizeObserver(sincronizarTamanoYRelleno);
     observador.observe(lienzo);
+    if (hoja) observador.observe(hoja);
 
     vigilante = setTimeout(() => {
       if (!cargado) fallar('está tardando demasiado en responder');
