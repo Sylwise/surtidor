@@ -102,6 +102,45 @@ export function fechasSinPrecios(estado: EstadoHistorico): string[] {
   );
 }
 
+export function reemplazarInstantaneaHistorica(
+  estado: EstadoHistorico,
+  instantanea: InstantaneaHistorica,
+): EstadoHistorico {
+  validarEstadoHistorico(estado);
+  const indiceReemplazo = estado.fechas.indexOf(instantanea.fecha);
+  if (indiceReemplazo < 0) {
+    throw new Error(`La fecha ${instantanea.fecha} no pertenece a la ventana histórica.`);
+  }
+
+  const instantaneas: InstantaneaHistorica[] = estado.fechas.map((fecha) => ({
+    version: 1,
+    fecha,
+    estaciones: [],
+  }));
+  for (const serie of estado.estaciones) {
+    const territorios = expandirTerritorios(serie[1], estado.fechas.length);
+    for (let indiceDia = 0; indiceDia < estado.fechas.length; indiceDia++) {
+      const territorio = territorios[indiceDia];
+      if (!territorio) continue;
+      instantaneas[indiceDia]!.estaciones.push([
+        serie[0],
+        territorio[0],
+        territorio[1],
+        serie[2][indiceDia] ?? null,
+        serie[3][indiceDia] ?? null,
+        serie[4][indiceDia] ?? null,
+        serie[5][indiceDia] ?? null,
+      ]);
+    }
+  }
+  instantaneas[indiceReemplazo] = instantanea;
+
+  const reemplazado = construirEstadoHistorico(instantaneas);
+  if (estado.mock) reemplazado.mock = true;
+  validarEstadoHistorico(reemplazado);
+  return reemplazado;
+}
+
 function comprobarFechasConsecutivas(fechas: string[]): void {
   for (let indice = 1; indice < fechas.length; indice++) {
     const esperada = desplazarFecha(fechas[indice - 1]!, 1);

@@ -9,6 +9,7 @@ import {
   fechasSinPrecios,
   parsearEstadoHistorico,
   partirEstadoPorProvincia,
+  reemplazarInstantaneaHistorica,
   validarEstadoHistorico,
 } from './estado-historico.ts';
 import { desplazarFecha, DIAS_HISTORICO, type EstacionHistorica, type InstantaneaHistorica } from './historico.ts';
@@ -75,6 +76,24 @@ test('detecta los días nacionales sin ningún precio publicado', () => {
   ]);
 
   assert.deepEqual(fechasSinPrecios(estado), ['2026-08-02']);
+});
+
+test('repara una fecha vacía sin volver a descargar el resto de la ventana', () => {
+  const estado = construirEstadoHistorico([
+    dia('2026-08-01', [fila('1', '01', '01059', 1400)]),
+    dia('2026-08-02', []),
+    dia('2026-08-03', [fila('1', '01', '01059', 1380)]),
+  ]);
+
+  const reparado = reemplazarInstantaneaHistorica(
+    estado,
+    dia('2026-08-02', [fila('1', '01', '01059', 1390), fila('2', '28', '28079', 1500)]),
+  );
+
+  assert.deepEqual(reparado.fechas, estado.fechas);
+  assert.deepEqual(reparado.estaciones.find(([id]) => id === '1')?.[2], [1400, 1390, 1380]);
+  assert.deepEqual(reparado.estaciones.find(([id]) => id === '2')?.[2], [null, 1500, null]);
+  assert.deepEqual(fechasSinPrecios(reparado), []);
 });
 
 test('rechaza huecos, fechas repetidas y longitudes inconsistentes', () => {
