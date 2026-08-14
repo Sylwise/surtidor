@@ -2172,7 +2172,7 @@ input {
 .totem__lleno .totem__evolucion {
   grid-area: evolucion;
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -2184,16 +2184,7 @@ input {
   font-weight: 650;
   text-decoration: none;
 }
-.totem__lleno .totem__evolucion span { color: var(--signal); font-size: inherit; }
-.totem__lleno .totem__evolucion-cambio {
-  max-width: 100%;
-  color: var(--muted-light);
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-  text-align: center;
-}
+.totem__lleno .totem__evolucion span { color: inherit; font-size: inherit; }
 .totem__lleno .totem__llegar-boton,
 .totem__lleno .totem__evolucion {
   position: relative;
