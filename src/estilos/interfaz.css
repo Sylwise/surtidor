@@ -1486,7 +1486,7 @@ input {
   grid-template-areas:
     'cabecera cabecera'
     'direccion direccion'
-    'precio precio'
+    'precio cambio'
     'ahorro ahorro'
     'llegar evolucion';
   gap: 8px;
