@@ -4,6 +4,7 @@ import {
   avanzarEstadoHistorico,
   comprobarVentanaCompleta,
   construirEstadoHistorico,
+  fechasSinPrecios,
   type EstadoHistorico,
 } from './lib/estado-historico.ts';
 import { escribirJsonCompactoAtomico } from './lib/escritura.ts';
@@ -66,31 +67,40 @@ async function main(): Promise<void> {
     estado = await reconstruir(ayer);
   } else {
     estado = (await recuperarEstadoDesplegado(opciones.base)).estado;
-    if (estado.fechas.length !== 90) {
-      throw new Error(`El despliegue anterior contiene ${estado.fechas.length} días; se esperaban 90.`);
-    }
-    const ultima = estado.fechas.at(-1)!;
-    if (ultima > ayer) {
-      throw new Error(`El histórico desplegado termina en el futuro (${ultima}; ayer es ${ayer}).`);
-    }
-    const faltantes = fechasDeVentana(ayer).filter((fecha) => fecha > ultima);
-    if (faltantes.length > 2) {
-      throw new Error(
-        `El histórico termina en ${ultima} y faltan ${faltantes.length} días. Usa --reconstruir explícitamente.`,
+    const diasVacios = fechasSinPrecios(estado);
+    if (diasVacios.length > 0) {
+      console.warn(
+        `El histórico desplegado contiene días sin precios (${diasVacios.join(', ')}); ` +
+          'se reconstruye la ventana completa.',
       );
-    }
-    for (const fecha of faltantes) {
-      try {
-        console.log(`${fecha}: incorporando…`);
-        estado = avanzarEstadoHistorico(estado, await obtenerInstantaneaHistorica(fecha));
-      } catch (error) {
-        if (!(error instanceof ErrorPeticionMiteco || error instanceof ErrorResultadoMiteco)) {
-          throw error;
-        }
-        console.warn(
-          `${fecha}: todavía no se pudo incorporar; se conserva el estado hasta ${estado.fechas.at(-1)}.`,
+      estado = await reconstruir(ayer);
+    } else {
+      if (estado.fechas.length !== 90) {
+        throw new Error(`El despliegue anterior contiene ${estado.fechas.length} días; se esperaban 90.`);
+      }
+      const ultima = estado.fechas.at(-1)!;
+      if (ultima > ayer) {
+        throw new Error(`El histórico desplegado termina en el futuro (${ultima}; ayer es ${ayer}).`);
+      }
+      const faltantes = fechasDeVentana(ayer).filter((fecha) => fecha > ultima);
+      if (faltantes.length > 2) {
+        throw new Error(
+          `El histórico termina en ${ultima} y faltan ${faltantes.length} días. Usa --reconstruir explícitamente.`,
         );
-        break;
+      }
+      for (const fecha of faltantes) {
+        try {
+          console.log(`${fecha}: incorporando…`);
+          estado = avanzarEstadoHistorico(estado, await obtenerInstantaneaHistorica(fecha));
+        } catch (error) {
+          if (!(error instanceof ErrorPeticionMiteco || error instanceof ErrorResultadoMiteco)) {
+            throw error;
+          }
+          console.warn(
+            `${fecha}: todavía no se pudo incorporar; se conserva el estado hasta ${estado.fechas.at(-1)}.`,
+          );
+          break;
+        }
       }
     }
   }

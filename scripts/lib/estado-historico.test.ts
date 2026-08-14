@@ -6,6 +6,7 @@ import {
   comprobarVentanaCompleta,
   construirEstadoHistorico,
   expandirTerritorios,
+  fechasSinPrecios,
   parsearEstadoHistorico,
   partirEstadoPorProvincia,
   validarEstadoHistorico,
@@ -64,6 +65,16 @@ test('avanza la ventana, incorpora nuevas estaciones y conserva ausencias', () =
   assert.deepEqual(siguiente.fechas, ['2026-08-01', '2026-08-02', '2026-08-03']);
   assert.deepEqual(siguiente.estaciones.find(([id]) => id === '1')?.[2], [1400, 1390, null]);
   assert.deepEqual(siguiente.estaciones.find(([id]) => id === '2')?.[2], [null, null, 1500]);
+});
+
+test('detecta los días nacionales sin ningún precio publicado', () => {
+  const estado = construirEstadoHistorico([
+    dia('2026-08-01', [fila('1')]),
+    dia('2026-08-02', []),
+    dia('2026-08-03', [fila('1', '01', '01059', null), fila('2', '28', '28079', 1500)]),
+  ]);
+
+  assert.deepEqual(fechasSinPrecios(estado), ['2026-08-02']);
 });
 
 test('rechaza huecos, fechas repetidas y longitudes inconsistentes', () => {

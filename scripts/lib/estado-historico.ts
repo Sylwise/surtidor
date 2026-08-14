@@ -94,6 +94,14 @@ export function expandirTerritorios(cambios: CambioTerritorio[], dias: number): 
   return resultado;
 }
 
+export function fechasSinPrecios(estado: EstadoHistorico): string[] {
+  return estado.fechas.filter((_, indiceDia) =>
+    !estado.estaciones.some((serie) =>
+      ([2, 3, 4, 5] as const).some((indicePrecio) => serie[indicePrecio][indiceDia] !== null),
+    ),
+  );
+}
+
 function comprobarFechasConsecutivas(fechas: string[]): void {
   for (let indice = 1; indice < fechas.length; indice++) {
     const esperada = desplazarFecha(fechas[indice - 1]!, 1);

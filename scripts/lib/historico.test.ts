@@ -100,6 +100,21 @@ test('excluye venta no pública y rechaza códigos desconocidos', () => {
   );
 });
 
+test('rechaza un día que la API marca OK pero no contiene venta pública', () => {
+  assert.throws(
+    () => normalizarRespuestaHistorica(respuesta([]), '2026-08-09'),
+    /no devolvió estaciones de venta pública/,
+  );
+  assert.throws(
+    () =>
+      normalizarRespuestaHistorica(
+        respuesta([fila({ 'Tipo Venta': 'A' }), fila({ IDEESS: '2', 'Tipo Venta': 'R' })]),
+        '2026-08-09',
+      ),
+    /no devolvió estaciones de venta pública/,
+  );
+});
+
 test('rechaza fecha distinta, IDEESS duplicado y precio mal formado', () => {
   assert.throws(
     () => normalizarRespuestaHistorica(respuesta(), '2026-08-08'),

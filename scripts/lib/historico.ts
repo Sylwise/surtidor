@@ -191,6 +191,17 @@ export function normalizarRespuestaHistorica(
     ]);
   }
 
+  // La API puede responder OK y devolver la fecha solicitada antes de que el
+  // volcado diario esté realmente disponible. Aceptar ese falso positivo
+  // convertiría todas las estaciones del último día en ausentes y dejaría
+  // sin comparación a toda la aplicación. En España una instantánea nacional
+  // sin ninguna estación de venta pública nunca es un resultado válido.
+  if (estaciones.length === 0) {
+    throw new ErrorResultadoMiteco(
+      `La API histórica no devolvió estaciones de venta pública para ${fechaEsperada}.`,
+    );
+  }
+
   estaciones.sort((a, b) => a[0].localeCompare(b[0], 'es'));
   return { version: 1, fecha, estaciones };
 }

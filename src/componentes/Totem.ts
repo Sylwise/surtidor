@@ -136,7 +136,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   evolucionCambio.className = 'totem__evolucion-cambio';
   const evolucionAccion = document.createElement('span');
   evolucionAccion.textContent = 'Evolución';
-  enlaceEvolucion.append(evolucionAccion);
+  enlaceEvolucion.append(evolucionAccion, evolucionCambio);
   let peticionEvolucion = 0;
   let claveEvolucion = '';
 
@@ -171,7 +171,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const ahorroResumen = document.createElement('p');
   ahorroResumen.className = 'totem__ahorro-resumen';
 
-  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, evolucionCambio, ahorro, llegar, enlaceEvolucion);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, ahorro, llegar, enlaceEvolucion);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
