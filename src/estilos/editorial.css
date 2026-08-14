@@ -411,11 +411,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
   .editorial-fiscal-movil .editorial-tabla th { display:none; }
   .editorial-fiscal-movil .editorial-tabla__estaciones { display:none; }
   .editorial-fiscal-movil--rotulos .editorial-fiscal__datos { display:flex; grid-column:auto; grid-row:auto; flex-direction:column; gap:8px; }
-  .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li { display:grid; min-height:58px; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; }
+  .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li { display:grid; min-height:58px; grid-template-columns:minmax(0,1fr) minmax(76px,auto); align-items:center; gap:12px 20px; }
   .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li span { display:flex; min-width:0; flex-direction:column; gap:4px; }
   .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li strong { font-family:var(--sans); font-size:11px; }
   .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li small { color:var(--muted); font-size:9px; }
-  .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li b { font-family:var(--mono); font-size:12px; white-space:nowrap; }
+  .editorial-fiscal-movil--rotulos .editorial-fiscal__datos li b { font-family:var(--mono); font-size:12px; text-align:right; white-space:nowrap; }
   .editorial-metodologia-final { margin-top:12px; }
   .editorial-intro--metodo { padding-bottom:28px; }
   .metodologia-resumen { margin:0 0 36px; padding:18px 0; }

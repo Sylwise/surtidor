@@ -65,11 +65,9 @@ const lideres = Object.fromEntries(
       const filas = rankingsGenerales[combustible];
       const filasPrincipales = filas.slice(0, 8);
       const resumenFiscal = mercadosFiscales.map((mercado) => {
-        // Solo rótulos que llegan al umbral de la página (UMBRAL_ESTACIONES_ROTULO):
-        // sin este límite, el "líder" de un territorio pequeño podía acabar
-        // siendo una estación independiente suelta con un rótulo propio de una
-        // sola gasolinera, que no es lo que promete una página de medias por
-        // rótulo.
+        // Cada mercado fiscal usa un umbral proporcional a su tamaño. Conserva
+        // una muestra mínima sin exigir a Ceuta, Melilla o Canarias el volumen
+        // absoluto del mercado peninsular.
         const referencia = ranking(mercado.seleccion.incluidos, combustible)[0] ?? null;
         return {
           mercado,
@@ -97,7 +95,7 @@ const lideres = Object.fromEntries(
         </div>
 
         <aside class="editorial-fiscal editorial-fiscal--compacta editorial-fiscal--tarjetas">
-          <div><h3>Canarias, Ceuta y Melilla</h3></div>
+          <div><h3>Canarias, Ceuta y Melilla</h3><p>Referencias locales con un umbral adaptado al tamaño de cada mercado.</p></div>
           <ul class="editorial-fiscal__datos">
             {resumenFiscal.map(({ mercado, referencia, resumen }) => (
               <li>
@@ -105,17 +103,18 @@ const lideres = Object.fromEntries(
                   <strong>{mercado.nombre}</strong>
                   <small>
                     {referencia && resumen
-                      ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</>
-                      : `Ningún rótulo llega a las ${UMBRAL_ESTACIONES_ROTULO} estaciones aquí`}
+                      ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'} con precio</>
+                      : `Ningún rótulo con la muestra local publica este combustible hoy`}
                   </small>
+                  <small class="editorial-fiscal__umbral">Mínimo local: {formatearNumero(mercado.umbral)} estaciones</small>
                 </span>
-                <b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b>
+                <b>{resumen?.media === null || !resumen ? 'muestra insuficiente' : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>
             ))}
           </ul>
         </aside>
         <details class="editorial-fiscal-movil editorial-fiscal-movil--rotulos">
-          <summary>Canarias, Ceuta y Melilla</summary>
+          <summary data-abrir-desglose>Canarias, Ceuta y Melilla · referencias locales</summary>
           <ul class="editorial-fiscal__datos">
             {resumenFiscal.map(({ mercado, referencia, resumen }) => (
               <li>
@@ -123,11 +122,12 @@ const lideres = Object.fromEntries(
                   <strong>{mercado.nombre}</strong>
                   <small>
                     {referencia && resumen
-                      ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</>
-                      : `Ningún rótulo llega a las ${UMBRAL_ESTACIONES_ROTULO} estaciones aquí`}
+                      ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'} con precio</>
+                      : `Ningún rótulo con la muestra local publica este combustible hoy`}
                   </small>
+                  <small class="editorial-fiscal__umbral">Mínimo local: {formatearNumero(mercado.umbral)} estaciones</small>
                 </span>
-                <b>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</b>
+                <b>{resumen?.media === null || !resumen ? 'muestra insuficiente' : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>
             ))}
           </ul>

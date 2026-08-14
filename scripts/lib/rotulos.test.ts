@@ -49,40 +49,38 @@ describe('seleccionarRotulos', () => {
     );
   });
 
-  it('aplica el umbral dentro de cada mercado fiscal y etiqueta los que no tienen ranking', () => {
+  it('adapta el umbral al 5 % de cada mercado fiscal, con un mínimo de 2 estaciones', () => {
     const mercados = seleccionarMercadosFiscales([
-      { id: 'canarias', nombre: 'Canarias', rotulos: [rotulo('A', 100), rotulo('B', 40)] },
-      { id: 'ceuta', nombre: 'Ceuta', rotulos: [rotulo('C', 99)] },
-      { id: 'melilla', nombre: 'Melilla', rotulos: [] },
+      { id: 'canarias', nombre: 'Canarias', rotulos: [rotulo('A', 25), rotulo('B', 474)] },
+      { id: 'ceuta', nombre: 'Ceuta', rotulos: [rotulo('C', 2), rotulo('D', 8)] },
+      { id: 'melilla', nombre: 'Melilla', rotulos: [rotulo('E', 1)] },
     ]);
 
+    assert.deepEqual(mercados.map(({ id, umbral }) => [id, umbral]), [
+      ['canarias', 25],
+      ['ceuta', 2],
+      ['melilla', 2],
+    ]);
     assert.deepEqual(mercados.map(({ id, conRanking }) => [id, conRanking]), [
       ['canarias', true],
-      ['ceuta', false],
+      ['ceuta', true],
       ['melilla', false],
     ]);
-    assert.deepEqual(mercados[0]?.seleccion.incluidos.map(({ rotulo }) => rotulo), ['A']);
+    assert.deepEqual(mercados[0]?.seleccion.incluidos.map(({ rotulo }) => rotulo), ['A', 'B']);
+    assert.deepEqual(mercados[1]?.seleccion.incluidos.map(({ rotulo }) => rotulo), ['C', 'D']);
   });
 
-  // Con los datos reales de hoy, ningún rótulo de Canarias, Ceuta ni Melilla
-  // llega a las 100 estaciones (el mayor es REPSOL en Canarias, con 59), así
-  // que src/pages/hoy/marcas-mas-baratas.astro siempre renderiza "Ningún
-  // rótulo llega a las 100 estaciones aquí" y nunca el nombre de un rótulo.
-  // Esta prueba fuerza con datos sintéticos la rama contraria: un rótulo que
-  // sí llega al umbral y además vende el combustible, que es justo la
-  // combinación que la página necesita para mostrar `referencia.elemento.rotulo`
-  // en vez del mensaje de "ningún rótulo".
-  it('un rótulo que llega al umbral y vende el combustible queda disponible para el bloque fiscal de marcas-mas-baratas', () => {
+  it('un rótulo que llega al umbral local y vende el combustible queda disponible para el bloque fiscal', () => {
     const mercados = seleccionarMercadosFiscales([
       {
         id: 'canarias',
         nombre: 'Canarias',
-        rotulos: [conGasolina95('DISA', 150, 1.55), conGasolina95('REPSOL', 40, 1.6)],
+        rotulos: [conGasolina95('DISA', 10, 1.55), rotulo('REPSOL', 190)],
       },
     ]);
 
     const incluidos = mercados[0]!.seleccion.incluidos;
-    assert.deepEqual(incluidos.map(({ rotulo }) => rotulo), ['DISA']);
+    assert.deepEqual(incluidos.map(({ rotulo }) => rotulo), ['DISA', 'REPSOL']);
 
     // Mismo filtro que usa la página (rotulosQueVenden) antes de tomar el
     // primero como "referencia": si DISA no vendiera el combustible, esta
