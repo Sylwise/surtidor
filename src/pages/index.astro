@@ -7,6 +7,7 @@ import CabeceraGlobal from '../componentes/CabeceraGlobal.astro';
 
 const titulo = 'Surtidor · Precios de carburantes de España';
 const descripcion = 'Precios de gasolina y diésel por zona, sin anuncios ni registro.';
+const canonical = new URL('/', Astro.site);
 
 // La portada no tiene zona fija en el build (RF-49: se resuelve en el
 // cliente) y, sobre todo, un precio de una gasolinera a 500 km sería
@@ -26,6 +27,7 @@ const imagenCompartir = new URL('/og/predeterminada.png', Astro.site);
     <meta name="color-scheme" content="only light" />
     <title>{titulo}</title>
     <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />

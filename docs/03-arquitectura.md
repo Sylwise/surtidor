@@ -288,6 +288,33 @@ salida limpia, la respuesta que queda es la más simple: 404.
 
 ## Despliegue
 
+### Dominio canónico
+
+El único dominio canónico de producción es **`https://surtidor.app`**, sin
+`www`. `astro.config.mjs` fija ese origen en `Astro.site`; todas las páginas
+indexables construyen desde él su `<link rel="canonical">`, y `sitemap.xml`,
+`robots.txt` y el enlazado interno solo publican URLs de ese host.
+
+`https://www.surtidor.app` no sirve contenido. En Cloudflare existe una
+Redirect Rule de tipo Single Redirect llamada **«Redirect from WWW to
+root»**. Aplica el patrón de petición `https://www.*` y envía al destino
+dinámico `https://${1}` con código **301** y `Preserve query string` activado;
+así conserva tanto la ruta como los parámetros de la petición original.
+
+La regla requiere que el registro DNS de `www` esté proxied a través de
+Cloudflare. Ese registro ya existía: Cloudflare Pages lo creó al dar de alta
+`www.surtidor.app` como dominio personalizado. El 14/8/2026 se verificó con
+`curl` que `https://www.surtidor.app/` devuelve 301 a
+`https://surtidor.app/`, y que
+`https://www.surtidor.app/madrid/villalbilla/` devuelve 301 a
+`https://surtidor.app/madrid/villalbilla/`, conservando la ruta completa.
+
+Esta configuración **no está en el repositorio**: vive únicamente en el panel
+de Cloudflare. Si se pierde la cuenta o se rehace la zona, hay que recrear a
+mano tanto la Single Redirect como el registro DNS proxied de `www`. No se
+debe trasladar la regla a `public/_redirects`, porque las reglas de Pages solo
+aceptan una ruta como origen y no pueden distinguir el host.
+
 Un único workflow, `datos.yml`, con dos disparadores: `schedule` cada dos horas
 y `push` a `main`. Pasos:
 
