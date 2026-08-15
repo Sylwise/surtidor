@@ -16,6 +16,7 @@
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { nombreVisible } from '../logica/formato.ts';
+import { estacionesDeZona } from '../logica/zona.ts';
 import { montarSelectorZona } from './SelectorZona.ts';
 import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
 
@@ -40,7 +41,7 @@ export function montarControles(
   contenedorIdentidad: HTMLElement,
   contenedorRapidos: HTMLElement,
   zonas: Zona[],
-  _catalogoProvincias: ResumenProvincia[],
+  catalogoProvincias: ResumenProvincia[],
 ): { abrirSelector: () => void } {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
@@ -58,6 +59,9 @@ export function montarControles(
   const panelHoy = exigir<HTMLElement>('#panel-hoy');
   const fondoPanelHoy = exigir<HTMLElement>('#fondo-panel-hoy');
   const cerrarHoy = exigir<HTMLButtonElement>('#cerrar-panel-hoy');
+  const enlaceZonaActual = contenedorIdentidad.querySelector<HTMLAnchorElement>('[data-zona-actual]');
+  const nombreZonaActual = contenedorIdentidad.querySelector<HTMLElement>('[data-zona-actual-nombre]');
+  const recuentoZonaActual = contenedorIdentidad.querySelector<HTMLElement>('[data-zona-actual-recuento]');
   const enlaceEvolucionZona = document.querySelector<HTMLAnchorElement>('[data-enlace-evolucion-zona]');
   const enlacesZona = Array.from(contenedorIdentidad.querySelectorAll<HTMLAnchorElement>('[data-zona-id]'));
   document.addEventListener('click', (evento) => {
@@ -161,6 +165,20 @@ export function montarControles(
       ? 'Cargando…'
       : (nombreZonaVisible ?? estado.zonaId ?? 'Elige tu zona');
     botonZona.setAttribute('aria-label', nombreZonaVisible ? `Cambiar zona. Zona actual: ${nombreZonaVisible}` : 'Elegir zona');
+
+    // La tarjeta superior del panel viene servida con la zona de la URL
+    // inicial. En las páginas de zona el cambio ocurre en sitio (RF-88), así
+    // que hay que mover también esta tarjeta; si no, URL, mapa y cabecera
+    // avanzan mientras "Zona actual" se queda congelada en la primera zona.
+    if (zonaActual && enlaceZonaActual && nombreZonaActual && recuentoZonaActual) {
+      enlaceZonaActual.href = `/${zonaActual.id}/`;
+      nombreZonaActual.textContent = nombreZonaVisible;
+      const estaciones = estacionesDeZona(zonaActual, catalogoProvincias);
+      recuentoZonaActual.replaceChildren(
+        document.createTextNode(String(estaciones)),
+        Object.assign(document.createElement('span'), { textContent: ' estaciones' }),
+      );
+    }
 
     for (const enlace of enlacesZona) {
       const activo = enlace.dataset.zonaId === estado.zonaId;

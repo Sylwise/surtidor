@@ -40,7 +40,10 @@ export function montarSelectorZona(
 
   function filtrar(consulta: string): void {
     const buscado = normalizarBusquedaZona(consulta.trim());
-    for (const { fila, texto } of filas) fila.hidden = buscado !== '' && !texto.includes(buscado);
+    for (const { fila, texto } of filas) {
+      const esZonaActual = fila.querySelector('[data-zona-id]')?.getAttribute('aria-current') === 'page';
+      fila.hidden = esZonaActual || (buscado !== '' && !texto.includes(buscado));
+    }
     for (const grupo of grupos) {
       grupo.hidden = !Array.from(grupo.querySelectorAll('li')).some((fila) => !(fila as HTMLLIElement).hidden);
     }

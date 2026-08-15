@@ -70,25 +70,33 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
           <a
             href={`/${zonaActual.id}/`}
             class="panel-zona__actual"
+            data-zona-actual
             aria-current="page"
           >
             <span class="panel-zona__actual-textos">
               <span class="panel-zona__actual-etiqueta">Zona actual</span>
-              <strong>{nombreVisible(zonaActual.nombre, zonaActual.tipo)}</strong>
+              <strong data-zona-actual-nombre>{nombreVisible(zonaActual.nombre, zonaActual.tipo)}</strong>
             </span>
-            <span class="panel-zona__actual-recuento">
+            <span class="panel-zona__actual-recuento" data-zona-actual-recuento>
               {estacionesZonaActual}<span> estaciones</span>
             </span>
           </a>
         )}
         {tipos.map(({ tipo, etiqueta }) => {
-          const opciones = zonas.filter((zona) => zona.tipo === tipo && zona.id !== zonaId);
+          // Se sirven todas las zonas, incluida la inicial. El cliente oculta
+          // la activa; así, tras cambiar en sitio, puede mostrar la anterior
+          // de nuevo sin tener que reconstruir el selector.
+          const opciones = zonas.filter((zona) => zona.tipo === tipo);
           return (
             <section class="enlaces-bloque" data-grupo-zona>
               <h3 class="enlaces-bloque__titulo micro">{etiqueta}</h3>
               <ul class="enlaces-bloque__filas">
                 {opciones.map((zona) => (
-                  <li data-opcion-zona data-busqueda={`${zona.nombre} ${nombreVisible(zona.nombre, zona.tipo)}`}>
+                  <li
+                    data-opcion-zona
+                    data-busqueda={`${zona.nombre} ${nombreVisible(zona.nombre, zona.tipo)}`}
+                    hidden={zona.id === zonaId}
+                  >
                     <a
                       href={`/${zona.id}/`}
                       class="enlaces-bloque__fila enlaces-bloque__fila--zona"
