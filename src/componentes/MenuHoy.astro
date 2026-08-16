@@ -1,5 +1,5 @@
 ---
-import { EDITORIALES_HOY, HERRAMIENTAS_HOY, entradaHoyActiva, hrefEntradaHoy } from '../datos/navegacion.ts';
+import { EDITORIALES_HOY, HERRAMIENTAS_HOY, entradaHoyActiva, hrefEntradaHoy, seccionHoyActiva } from '../datos/navegacion.ts';
 import { formatearFechaHora } from '../logica/formato.ts';
 import { formatearResumenHoy, leerResumenesPanelHoy, type SlugResumenHoy } from '../../scripts/lib/resumenes-hoy.ts';
 
@@ -7,7 +7,7 @@ interface Props { prefijo?: string; provinciaId?: string | null; autonomo?: bool
 const { prefijo = '', provinciaId = null, autonomo = false, variante = 'clara' } = Astro.props;
 const id = (base: string) => prefijo ? `${base}-${prefijo}` : base;
 const pathname = Astro.url.pathname;
-const hoyActivo = pathname.startsWith('/hoy/');
+const hoyActivo = seccionHoyActiva(pathname);
 const resumenes = await leerResumenesPanelHoy(provinciaId);
 const descripcionDe = (slug: string, descripcion: string): string =>
   slug === 'como-calculamos-los-datos'

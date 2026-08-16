@@ -33,3 +33,7 @@ export function entradaHoyActiva(pathname: string, entrada: EntradaHoy): boolean
   if (entrada.slug === 'como-calculamos-los-datos') return pathname === '/como-calculamos-los-datos/';
   return pathname.startsWith(`/hoy/${entrada.slug}/`);
 }
+
+export function seccionHoyActiva(pathname: string): boolean {
+  return pathname.startsWith('/hoy/') || pathname === '/como-calculamos-los-datos/';
+}

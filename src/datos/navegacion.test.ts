@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { EDITORIALES_HOY, HERRAMIENTAS_HOY, hrefEntradaHoy } from './navegacion.ts';
+import { EDITORIALES_HOY, HERRAMIENTAS_HOY, hrefEntradaHoy, seccionHoyActiva } from './navegacion.ts';
 
 test('Hoy conserva ocho destinos HTML reales y correctos', () => {
   const entradas = [...EDITORIALES_HOY, ...HERRAMIENTAS_HOY];
@@ -15,4 +15,11 @@ test('Hoy conserva ocho destinos HTML reales y correctos', () => {
     '/hoy/evolucion/01/',
     '/como-calculamos-los-datos/',
   ]);
+});
+
+test('la metodología pertenece a la sección Hoy y no a Precios', () => {
+  assert.equal(seccionHoyActiva('/como-calculamos-los-datos/'), true);
+  assert.equal(seccionHoyActiva('/hoy/provincias-mas-baratas/'), true);
+  assert.equal(seccionHoyActiva('/'), false);
+  assert.equal(seccionHoyActiva('/madrid/'), false);
 });

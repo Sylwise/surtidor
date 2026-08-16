@@ -1,6 +1,7 @@
 ---
 import Marca from './Marca.astro';
 import MenuHoy from './MenuHoy.astro';
+import { seccionHoyActiva } from '../datos/navegacion.ts';
 
 interface Props {
   modo: 'principal' | 'evolucion' | 'editorial';
@@ -12,7 +13,7 @@ interface Props {
 }
 const { modo, variante = 'clara', provinciaId = null, zonaHref = null, zonaNombre = null, contexto = null } = Astro.props;
 const pathname = Astro.url.pathname;
-const preciosActivo = !pathname.startsWith('/hoy/');
+const preciosActivo = !seccionHoyActiva(pathname);
 ---
 <header class:list={['cabecera-global', `cabecera-global--${variante}`, `cabecera-global--${modo}`, { cabecera: modo === 'principal' }]}>
   <Marca variante={variante} />
