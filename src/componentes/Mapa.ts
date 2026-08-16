@@ -30,7 +30,11 @@ import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
-import { calcularRellenoMapa, type RellenoMapa } from '../logica/rellenoMapa.ts';
+import {
+  calcularRellenoMapa,
+  desplazamientoParaRelleno,
+  type RellenoMapa,
+} from '../logica/rellenoMapa.ts';
 import { estacionesQueVenden, estacionesVisibles } from '../logica/visibilidad.ts';
 import {
   cargarResumenNacional,
@@ -272,9 +276,19 @@ class ControlUbicacion implements IControl {
         }
         const zoom = Math.max(this.mapa.getZoom(), 13);
         if (prefiereMovimientoReducido()) {
-          this.mapa.jumpTo({ center: centro, zoom, padding: this.obtenerRelleno() });
+          this.mapa.easeTo({
+            center: centro,
+            zoom,
+            offset: desplazamientoParaRelleno(this.obtenerRelleno()),
+            duration: 0,
+          });
         } else {
-          this.mapa.flyTo({ center: centro, zoom, padding: this.obtenerRelleno(), duration: 650 });
+          this.mapa.flyTo({
+            center: centro,
+            zoom,
+            offset: desplazamientoParaRelleno(this.obtenerRelleno()),
+            duration: 650,
+          });
         }
         this.alEncontrarUbicacion?.({ lat: posicion.coords.latitude, lon: posicion.coords.longitude });
       },
@@ -308,7 +322,6 @@ export function montarMapa(
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
   const hoja = contenedor.closest('.app')?.querySelector<HTMLElement>('.hoja') ?? null;
-  let ultimoRelleno: RellenoMapa | null = null;
   const marcadores = new Map<string, EntradaMarcador>();
   const racimoMarkers = new Map<string, EntradaRacimo>();
   const provinciaMarkers = new Map<string, EntradaProvincia>();
@@ -407,43 +420,46 @@ export function montarMapa(
 
   function saltarOVolar(centro: [number, number], zoom: number): void {
     if (!mapa) return;
-    const padding = obtenerRelleno();
+    const offset = desplazamientoParaRelleno(obtenerRelleno());
     if (prefiereMovimientoReducido()) {
-      mapa.jumpTo({ center: centro, zoom, padding });
+      mapa.easeTo({ center: centro, zoom, offset, duration: 0 });
     } else {
       // 650 ms, ver la sección "Movimiento" de docs/05-diseno.md.
-      mapa.flyTo({ center: centro, zoom, padding, duration: 650 });
+      mapa.flyTo({ center: centro, zoom, offset, duration: 650 });
     }
   }
 
   /** RF-37: el mapa trata como tapada la parte ocupada por la hoja real. */
   function calcularRelleno(): RellenoMapa {
+    const esMovil = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches;
+    const rectanguloHoja = hoja?.getBoundingClientRect() ?? null;
+    // Hoja.ts publica la altura final al cambiar de estado. Las acciones
+    // explícitas de cámara pueden así encuadrar para el destino desde el
+    // primer instante, sin seguir la geometría intermedia de la animación.
+    const altoObjetivo = Number(hoja?.dataset.alturaObjetivo);
+    const hojaParaRelleno = esMovil && Number.isFinite(altoObjetivo) && altoObjetivo > 0 && rectanguloHoja
+      ? {
+          top: rectanguloHoja.bottom - altoObjetivo,
+          bottom: rectanguloHoja.bottom,
+          left: rectanguloHoja.left,
+          right: rectanguloHoja.right,
+          width: rectanguloHoja.width,
+          height: altoObjetivo,
+        }
+      : rectanguloHoja;
     return calcularRellenoMapa(
       contenedor.getBoundingClientRect(),
-      hoja?.getBoundingClientRect() ?? null,
-      typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches,
+      hojaParaRelleno,
+      esMovil,
     );
   }
 
   function obtenerRelleno(): RellenoMapa {
-    const relleno = calcularRelleno();
-    ultimoRelleno = relleno;
-    return relleno;
+    return calcularRelleno();
   }
 
-  function mismoRelleno(a: RellenoMapa | null, b: RellenoMapa): boolean {
-    return a !== null && a.top === b.top && a.right === b.right && a.bottom === b.bottom && a.left === b.left;
-  }
-
-  function sincronizarTamanoYRelleno(): void {
+  function sincronizarTamanoMapa(): void {
     mapa?.resize();
-    if (!mapa || !cargado) return;
-    const relleno = calcularRelleno();
-    if (mismoRelleno(ultimoRelleno, relleno)) return;
-    ultimoRelleno = relleno;
-    // ResizeObserver acompaña cada fotograma de la transición de 220 ms de
-    // la hoja. setPadding sigue esa geometría y evita un salto al cerrarla.
-    mapa.setPadding(relleno);
   }
 
   /** Encuadre inicial de una zona: todas las estaciones visibles a la vez.
@@ -641,7 +657,12 @@ export function montarMapa(
     // Al pulsar un racimo, el mapa se acerca sobre sus estaciones (ADR-0006).
     boton.addEventListener('click', (evento) => {
       evento.stopPropagation();
-      volarARacimo(entrada.ids);
+      // Se conserva la composición exacta del racimo que recibió el click.
+      // Al minimizar la hoja puede arrancar un render, pero eso no debe
+      // modificar la acción de mapa que el usuario acaba de confirmar.
+      const ids = [...entrada.ids];
+      contenedor.dispatchEvent(new CustomEvent('surtidor:minimizar-hoja'));
+      volarARacimo(ids);
     });
 
     if (mapa) entrada.marker.addTo(mapa);
@@ -971,9 +992,8 @@ export function montarMapa(
     // único resize() tras el primer frame no basta si el contenedor cambia
     // más adelante, así que se vigila con un ResizeObserver mientras el mapa
     // esté vivo, no solo una vez.
-    observador = new ResizeObserver(sincronizarTamanoYRelleno);
+    observador = new ResizeObserver(sincronizarTamanoMapa);
     observador.observe(lienzo);
-    if (hoja) observador.observe(hoja);
 
     vigilante = setTimeout(() => {
       if (!cargado) fallar('está tardando demasiado en responder');

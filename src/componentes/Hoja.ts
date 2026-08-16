@@ -75,6 +75,10 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     hoja.style.removeProperty('height');
     hoja.style.transition = animar && !prefiereMovimientoReducido() ? '' : 'none';
     hoja.dataset.estado = nuevo;
+    // Mapa.ts usa la altura final únicamente cuando una acción explícita
+    // necesita encuadrar algo mientras la transición aún está empezando.
+    // Mover la hoja por sí solo nunca vuelve a centrar la cámara.
+    hoja.dataset.alturaObjetivo = String(alturaDeEstado(nuevo));
     asa.setAttribute('aria-expanded', String(nuevo !== 'minimizada'));
     asa.setAttribute(
       'aria-label',
@@ -222,16 +226,24 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     return !(objetivo instanceof Element) || !objetivo.closest(selectorExcluidoMapa);
   }
 
+  function minimizarPorNavegacionMapa(): void {
+    if (!window.matchMedia(CONSULTA_MOVIL).matches) return;
+    if (estado !== 'minimizada') aplicar('minimizada', true);
+  }
+
   // Se minimiza al INICIO del gesto. No se cancela ni consume: el mismo
   // pointerdown sigue llegando a MapLibre y mueve o amplía el mapa. Los
   // marcadores, controles, GPS y atribución quedan fuera explícitamente.
   function alIniciarInteraccionMapa(evento: PointerEvent | WheelEvent): void {
-    if (!window.matchMedia(CONSULTA_MOVIL).matches) return;
     if (!esFondoInteractivoMapa(evento.target)) return;
-    if (estado !== 'minimizada') aplicar('minimizada', true);
+    minimizarPorNavegacionMapa();
   }
   mapa.addEventListener('pointerdown', alIniciarInteraccionMapa, { passive: true });
   mapa.addEventListener('wheel', alIniciarInteraccionMapa, { passive: true });
+  // Los racimos confirman primero el click y solicitan entonces minimizar la
+  // hoja. Hacerlo en pointerdown movería el mapa y el marcador antes del
+  // pointerup, pudiendo cancelar o deformar el click que debe hacer zoom.
+  mapa.addEventListener('surtidor:minimizar-hoja', minimizarPorNavegacionMapa);
 
   const contadorMinimizado = asa.querySelector<HTMLElement>('[data-contador-hoja]');
   function sincronizarContador(): void {
@@ -259,5 +271,6 @@ export function montarHoja(hoja: HTMLElement, asa: HTMLButtonElement, mapa: HTML
     asa.removeEventListener('pointercancel', alSoltar);
     mapa.removeEventListener('pointerdown', alIniciarInteraccionMapa);
     mapa.removeEventListener('wheel', alIniciarInteraccionMapa);
+    mapa.removeEventListener('surtidor:minimizar-hoja', minimizarPorNavegacionMapa);
   };
 }

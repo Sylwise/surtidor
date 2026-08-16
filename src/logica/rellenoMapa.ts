@@ -15,6 +15,18 @@ export interface RellenoMapa {
 }
 
 /**
+ * Convierte el área tapada en un desplazamiento puntual de cámara. A
+ * diferencia del padding persistente de MapLibre, este offset solo afecta a
+ * la navegación que lo solicita y no mueve el mapa si después cambia la UI.
+ */
+export function desplazamientoParaRelleno(relleno: RellenoMapa): [number, number] {
+  return [
+    (relleno.left - relleno.right) / 2,
+    (relleno.top - relleno.bottom) / 2,
+  ];
+}
+
+/**
  * Calcula el área útil de cámara a partir de la geometría que ya existe en
  * pantalla. En móvil, la hoja tapa el mapa por abajo; no se replica aquí
  * ninguna de sus tres alturas ni se presupone en qué estado está.
