@@ -180,6 +180,7 @@ button, input { font: inherit; }
 .evolucion-comparacion__tarjeta [data-sentido='caro'] { color:var(--p4); }
 .evolucion-comparacion__tarjeta [data-sentido='neutro'] { color:var(--muted-light); }
 .evolucion-comparacion__tarjeta small { margin-top: 7px; color: var(--muted-light); }
+.evolucion-comparacion__aviso-escala { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
 .evolucion-comparacion__barras { display: grid; margin: 14px 0 0; gap: 10px; }
 .evolucion-comparacion__barras > div { display: grid; height: 24px; align-items: center; grid-template-columns: 100px minmax(0,1fr) 82px; gap: 10px; }
 .evolucion-comparacion__barras dt { font-size: 10px; font-weight: 700; }

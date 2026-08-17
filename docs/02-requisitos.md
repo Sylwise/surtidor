@@ -258,7 +258,7 @@ descarta; los ya descartados conservan su identificador y el motivo.
 | RF-116 | Toda visualización tiene periodo, unidad y ámbito visibles, no depende solo del color, respeta `prefers-reduced-motion` y ofrece un equivalente textual o tabular accesible. Las URLs de análisis son estables y compartibles y enlazan de vuelta a la estación o territorio operativo. |
 | RF-117 | Evolución conserva y publica únicamente una ventana móvil de 90 días cerrados, más el precio actual del flujo ordinario. Cada actualización diaria añade ayer y retira el día 91. No acumula un archivo anual propio ni ofrece periodos mayores. |
 
-### Escala relativa (v2, pendiente)
+### Escala relativa (v2, completado)
 
 | ID | Requisito |
 |---|---|

@@ -854,6 +854,13 @@ input {
   color: var(--muted);
 }
 
+.lista__aviso--escala {
+  margin: 0;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.4;
+}
+
 .lista__quitar-filtro {
   display: inline-flex;
   align-items: center;

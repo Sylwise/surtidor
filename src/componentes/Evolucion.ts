@@ -5,7 +5,7 @@ import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
-import { bandaPrecio, crearEscala } from '../logica/escala.ts';
+import { bandaPrecio, crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { clasificarGestoGrafico } from '../logica/gestoGrafico.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -358,6 +358,10 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLElement>('[data-comparacion-deposito]')!.textContent = diferencia === null ? '' : `${(Math.abs(diferencia) / 1000 * 50).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € ${diferencia <= 0 ? 'menos' : 'más'} por 50 L`;
         const preciosPublicos = estacionesPublicas.flatMap((estacion) => estacion.precios[combustible] === null ? [] : [estacion.precios[combustible]!]);
         const escalaProvincia = crearEscala(preciosPublicos);
+        const avisoEscala = contenedor.querySelector<HTMLElement>('[data-aviso-escala]')!;
+        const explicacionEscala = explicacionEscalaSuprimida(escalaProvincia);
+        avisoEscala.hidden = explicacionEscala === null;
+        avisoEscala.textContent = explicacionEscala ?? '';
         const barraEstacion = contenedor.querySelector<HTMLElement>('[data-barra-estacion]')!;
         barraEstacion.dataset.banda = precioActualEstacion === null ? '' : bandaPrecio(precioActualEstacion, escalaProvincia);
         const anchoBarra = (valor: number | null): string => valor === null || minimoActual === null || maximoActual === null || maximoActual === minimoActual ? '50%' : `${45 + (valor - minimoActual) / (maximoActual - minimoActual) * 50}%`;

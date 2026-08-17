@@ -9,6 +9,7 @@
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { calcularListaCombustible } from '../logica/listaEstaciones.ts';
+import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from '../logica/municipios.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { ETIQUETA } from '../logica/combustibles.ts';
@@ -228,6 +229,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
     // RF-89: mismo cálculo (puesto, precio, banda) que el HTML servido en el
     // build para los cuatro combustibles a la vez.
     const ordenadas = calcularListaCombustible(estado.estaciones, estado.combustible);
+    const escala = crearEscala(ordenadas.map(({ precio }) => precio));
 
     // RF-42: ninguna estación de la zona vende el combustible elegido.
     if (ordenadas.length === 0) {
@@ -264,6 +266,13 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
       const enlaces = crearEnlacesCierre(estado, enlacesEstaticos);
       if (enlaces) contenedor.append(enlaces);
       return;
+    }
+
+    const explicacionEscala = explicacionEscalaSuprimida(escala);
+    if (explicacionEscala) {
+      const avisoEscala = crearAviso(explicacionEscala);
+      avisoEscala.classList.add('lista__aviso--escala');
+      contenedor.append(avisoEscala);
     }
 
     const filas = document.createElement('ol');
