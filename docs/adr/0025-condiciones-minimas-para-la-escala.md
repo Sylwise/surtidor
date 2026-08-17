@@ -1,50 +1,57 @@
 # ADR-0025 · La escala de color exige muestra y dispersión suficientes
 
-**Fecha:** 2026-08-17 · **Estado:** propuesto · **Acota:** ADR-0003
+**Fecha:** 2026-08-17 · **Estado:** aceptado · **Acota:** ADR-0003
 
 ## Contexto
 
 ADR-0003 fija que el color sale del percentil del precio dentro del conjunto
-mostrado, con cinco bandas. La escala ordena correctamente los precios, pero su
-fuerza visual puede afirmar más de lo que la diferencia económica justifica.
+de cálculo, con cinco bandas. La escala ordena correctamente los precios, pero
+su fuerza visual puede afirmar más de lo que la diferencia económica justifica.
 
 El problema aparece por dos vías distintas:
 
-- con pocas estaciones, las cinco bandas fuerzan diferencias cromáticas entre
-  un conjunto que apenas permite graduarlas;
-- con muchas estaciones y muy poca dispersión, los extremos siguen recibiendo
-  colores opuestos aunque sus precios estén prácticamente juntos.
+- con menos de dos precios comparables no existe una relación que ordenar;
+- con dos o más precios y muy poca dispersión, los extremos siguen recibiendo
+  colores opuestos aunque estén prácticamente juntos.
 
 Los combustibles minoritarios harán más frecuente el primer caso, pero no lo
-crean: ya puede aparecer en territorios pequeños y afecta a cualquier
-combustible. Por tanto, la regla no puede depender del nombre del producto ni
-aplicarse solo a una futura ampliación del catálogo.
+crean: ya aparece en territorios pequeños y afecta a cualquier combustible. Por
+tanto, la regla no puede depender del nombre del producto ni aplicarse solo a
+una futura ampliación del catálogo.
 
-No hay todavía en el repositorio una medición reproducible que permita fijar
-los umbrales. Antes de aceptar este ADR hay que conservar la fecha y fuente del
-conjunto analizado y contrastar las distribuciones reales por combustible y
-territorio.
+La medición del 17 de agosto de 2026, sobre 11.439 estaciones descargadas del
+MITECO, descarta usar 12 estaciones como mínimo general: neutralizaría 926 de
+las 1.078 páginas municipales con gasolina 95, el 85,90 %. Los tres casos
+medidos que motivan la corrección —Alcalá de los Gazules, Coria y Valencia de
+Alcántara— tienen tres precios comparables de gasolina 95 y amplitudes de 16 o
+17 milésimas por litro. Alcalá de los Gazules y Valencia de Alcántara tienen
+tres estaciones en la página; Coria tiene cuatro, pero solo tres venden ese
+combustible. Un mínimo de muestra de 3 no evitaría en ninguno el contraste
+completo entre la más barata y `--p5`.
 
-## Decisión propuesta
+## Decisión
 
-La escala de cinco bandas solo se aplica cuando el conjunto mostrado cumple a
-la vez dos condiciones declaradas como constantes únicas:
+La escala de cinco bandas se rige por dos constantes únicas y declaradas:
 
-1. un número mínimo de estaciones que vendan el combustible seleccionado;
-2. una amplitud mínima entre el precio menor y el mayor.
+- `MINIMO_MUESTRA_ESCALA = 2` precios comparables;
+- `AMPLITUD_MINIMA_ESCALA_MILESIMAS = 20` milésimas por litro.
 
-Los valores de ambas constantes se fijarán después de medir los datos reales.
-No forman parte de esta propuesta mientras esa medición no sea trazable.
+Con menos de dos precios comparables no hay nada que ordenar y no se aplica la
+escala. Con dos o más, la condición que manda es la dispersión: si la diferencia
+entre el precio mayor y el menor es inferior a 20 milésimas por litro, tampoco
+se aplica. Una amplitud de exactamente 20 milésimas sí permite aplicar las
+bandas.
 
-Cuando falle cualquiera de las dos condiciones, todos los elementos usan la
-banda neutra `--p3`. El precio sigue escrito siempre: la supresión afecta a la
-comparación cromática, nunca al dato.
+Cuando no se aplique la escala, todos los elementos usan la banda neutra `--p3`
+y, si hay al menos dos precios comparables, la estación más barata conserva el
+tratamiento `--mejor`. El precio sigue escrito siempre: la supresión afecta a
+la comparación cromática, nunca al dato.
 
 La regla se aplica a todos los consumidores de la escala compartida, incluidos
 mapa, lista y comparaciones. Un mismo precio no puede aparecer neutral en un
 componente y en una banda extrema en otro dentro del mismo contexto.
 
-Los conjuntos pequeños se resuelven así:
+Los conjuntos pequeños y los empates se resuelven así:
 
 - sin estaciones, se muestra el estado vacío correspondiente;
 - con una estación, se usa la banda neutra y no se presenta como «la más
@@ -56,16 +63,26 @@ Cuando la escala esté suprimida, la interfaz explica brevemente que el conjunto
 no ofrece muestra o variación suficiente para comparar mediante colores. El
 lugar y el texto exactos se deciden con el diseño delante.
 
+En la medición, la dispersión inferior a 20 milésimas afecta a 53 páginas
+municipales con gasolina 95, el 4,92 %. Otras 10 quedan neutralizadas por el
+mínimo de muestra porque solo tienen un precio comparable. La suma de ambas
+reglas afecta a 63 páginas, el 5,84 %. A nivel territorial hay seis casos
+zona-combustible repartidos entre cuatro páginas: Ceuta y Melilla con gasolina
+95, y Melilla con diésel, cada territorio con su página de provincia y la de
+comunidad.
+
 ## Motivos
 
 El precio de pantalla es el precio del cartel. El color añade una interpretación:
 «esto es barato o caro comparado con lo que tienes cerca». La posición relativa
-es cierta incluso en una muestra pequeña, pero cinco grados visuales pueden
-exagerar tanto una muestra escasa como una diferencia de precio irrelevante.
+es cierta con dos precios, pero cinco grados visuales pueden exagerar una
+diferencia de precio irrelevante.
 
-Usar muestra y dispersión evita confundir cantidad de observaciones con fuerza
-de la señal. Mantener el precio escrito y los empates en el mínimo preserva los
-hechos verificables sin atribuir precisión a la escala.
+El mínimo de muestra cubre únicamente el caso degenerado. La dispersión es la
+regla que resuelve el problema real: conserva el contraste cuando dos
+estaciones difieren de forma sustancial y lo suprime cuando incluso un conjunto
+mayor apenas varía. Mantener el precio escrito y los empates en el mínimo
+preserva los hechos verificables sin atribuir precisión a la escala.
 
 ## Consecuencias
 
@@ -77,13 +94,21 @@ Malas: hacen falta dos umbrales y un mensaje de interfaz. Los umbrales son una
 decisión de producto basada en datos, no una propiedad estadística universal, y
 cualquier cambio deberá conservar la medición que lo justifica.
 
-Mientras el ADR siga propuesto, ADR-0003 continúa vigente sin cambios y RF-118
-permanece pendiente.
+La supresión no queda limitada a un caso raro de municipio pequeño. Melilla
+entera tiene una amplitud de un céntimo en gasolina 95, así que cualquiera que
+abra esa zona verá el mapa neutro. La explicación en pantalla es obligatoria y
+su forma se decide con el diseño delante.
 
 ## Alternativas descartadas
 
+- **Usar 12 estaciones como mínimo.** Neutralizaría el 85,90 % de las páginas
+  municipales con gasolina 95 y ocultaría comparaciones útiles con pocos
+  precios pero una diferencia grande.
+- **Usar 3 estaciones como mínimo.** No resuelve los tres casos reales medidos:
+  todos tienen exactamente tres precios comparables de gasolina 95 y una
+  amplitud de 16 o 17 milésimas.
 - **Usar solo un mínimo de muestra.** No cubre un conjunto grande cuyos precios
-  apenas difieren.
+  apenas difieren y neutraliza conjuntos pequeños con diferencias relevantes.
 - **Dejar la escala tal cual.** Mantiene casos en los que una diferencia mínima
   recibe el contraste completo entre extremos.
 - **Reducir el número de bandas.** Añade comportamientos intermedios que también

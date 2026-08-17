@@ -262,7 +262,7 @@ descarta; los ya descartados conservan su identificador y el motivo.
 
 | ID | Requisito |
 |---|---|
-| RF-118 | Cuando el conjunto mostrado no alcance el mínimo de estaciones o la amplitud de precios declarados, la escala relativa no se aplica en ninguno de sus consumidores: todos los elementos usan la banda neutra y el precio continúa escrito. Con una estación no se destaca una más barata; con dos o más, todas las empatadas en el precio mínimo conservan el tratamiento destacado. La interfaz explica que no existe muestra o variación suficiente para comparar mediante colores. Los umbrales quedan pendientes de la medición trazable exigida para aceptar [ADR-0025](adr/0025-condiciones-minimas-para-la-escala.md). |
+| RF-118 | La escala relativa requiere al menos 2 precios comparables. A partir de 2, la condición principal es la dispersión: si la diferencia entre el precio mayor y el menor es inferior a 20 milésimas por litro, las bandas no se aplican en ninguno de sus consumidores. Todos los elementos usan la banda neutra, el precio continúa escrito y todas las estaciones empatadas en el precio mínimo conservan el tratamiento destacado. Con menos de 2 precios no se destaca una más barata. La interfaz explica que no existe muestra o variación suficiente para comparar mediante colores. Los dos umbrales son constantes únicas y declaradas. Ver [ADR-0025](adr/0025-condiciones-minimas-para-la-escala.md). |
 
 ### Detalle verificable de V2-18
 
