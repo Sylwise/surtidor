@@ -236,7 +236,7 @@ descarta; los ya descartados conservan su identificador y el motivo.
 | V2-09 | ~~Favoritos fijados arriba, en `localStorage`.~~ **Descartado:** se perciben como un dato duradero, pero no cruzan navegadores o dispositivos y pueden desaparecer. Darles continuidad exigiría cuentas y sincronización. Ver [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
 | V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |
 | V2-11 | Publicar los JSON normalizados como datos abiertos, con su documentación. |
-| V2-12 | Combustibles adicionales, empezando por gasóleo B. |
+| V2-12 | Combustibles adicionales, empezando por gasóleo B. Antes de publicarlos se resuelve RF-118. |
 | V2-13 | **Completado.** Ordenar por distancia geográfica con geolocalización concedida y mostrar la posición aproximada del usuario en el mapa. La posición y el modo de orden son efímeros: no se persisten ni salen del dispositivo. |
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
@@ -257,6 +257,12 @@ descarta; los ya descartados conservan su identificador y el motivo.
 | RF-115 | «Sin cambios detectados desde hace N días» describe únicamente observaciones. Ningún texto afirma que una estación congela precios, intenta parecer barata o permite predecir el precio futuro. Los patrones semanales quedan fuera de la primera entrega. |
 | RF-116 | Toda visualización tiene periodo, unidad y ámbito visibles, no depende solo del color, respeta `prefers-reduced-motion` y ofrece un equivalente textual o tabular accesible. Las URLs de análisis son estables y compartibles y enlazan de vuelta a la estación o territorio operativo. |
 | RF-117 | Evolución conserva y publica únicamente una ventana móvil de 90 días cerrados, más el precio actual del flujo ordinario. Cada actualización diaria añade ayer y retira el día 91. No acumula un archivo anual propio ni ofrece periodos mayores. |
+
+### Escala relativa (v2, pendiente)
+
+| ID | Requisito |
+|---|---|
+| RF-118 | Cuando el conjunto mostrado no alcance el mínimo de estaciones o la amplitud de precios declarados, la escala relativa no se aplica en ninguno de sus consumidores: todos los elementos usan la banda neutra y el precio continúa escrito. Con una estación no se destaca una más barata; con dos o más, todas las empatadas en el precio mínimo conservan el tratamiento destacado. La interfaz explica que no existe muestra o variación suficiente para comparar mediante colores. Los umbrales quedan pendientes de la medición trazable exigida para aceptar [ADR-0025](adr/0025-condiciones-minimas-para-la-escala.md). |
 
 ### Detalle verificable de V2-18
 
