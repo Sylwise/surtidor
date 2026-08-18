@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cambioEnPeriodo, cambiosDeEstaciones, serieDeEstacion, serieMedia } from './evolucion.ts';
+import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, serieDeEstacion, serieMedia, serieMinimo } from './evolucion.ts';
 import type { HistoricoProvincia } from '../../scripts/lib/artefactos-historicos.ts';
 
 const fechas = Array.from({ length: 90 }, (_, i) => `2026-05-${String(i + 1).padStart(2, '0')}`);
@@ -13,6 +13,11 @@ test('calcula la variación con extremos exactos', () => {
   assert.equal(cambio?.diferenciaMilesimas, 30);
 });
 
+test('calcula también el cambio de un día con extremos exactos', () => {
+  const cambio = cambioEnPeriodo(serieDeEstacion(historico, '1', 'gasolina95e5')!, 1);
+  assert.equal(cambio?.diferenciaMilesimas, 1);
+});
+
 test('un hueco en un extremo no se sustituye por otro día', () => {
   const serie = serieDeEstacion(historico, '1', 'gasolina95e5')!;
   serie[59]!.milesimas = null;
@@ -21,6 +26,18 @@ test('un hueco en un extremo no se sustituye por otro día', () => {
 
 test('la media conserva suma y tamaño de muestra hasta el último paso', () => {
   assert.equal(serieMedia(agregado, fechas, 'gasolina95e5')[10]?.milesimas, 1410);
+  assert.equal(serieMinimo(agregado, fechas, 'gasolina95e5')[10]?.milesimas, 1410);
+});
+
+test('expresa la estabilidad desde la primera observación del precio actual', () => {
+  const serie = [1400, 1410, null, 1410, 1410].map((milesimas, indice) => ({ fecha: `2026-08-${indice + 1}`, milesimas }));
+  assert.deepEqual(estabilidadObservada(serie), { dias: 3, limitadaPorVentana: false });
+});
+
+test('acota la estabilidad a la ventana cuando no observa un precio distinto', () => {
+  const serie = [null, 1410, null, 1410].map((milesimas, indice) => ({ fecha: `2026-08-${indice + 1}`, milesimas }));
+  assert.deepEqual(estabilidadObservada(serie), { dias: 2, limitadaPorVentana: true });
+  assert.equal(estabilidadObservada([{ fecha: '2026-08-01', milesimas: 1410 }]), null);
 });
 
 test('ordena los cambios y permite limitarlos al municipio actual', () => {

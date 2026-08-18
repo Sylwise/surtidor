@@ -22,6 +22,7 @@
 //   con fetch, el navegador y el CDN reaprovechan el mismo
 //   /data/provincias/NN.json entre todas.
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
+import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
 import { ORDEN_COMBUSTIBLES, ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
@@ -58,6 +59,8 @@ interface Props {
    *  calculados de `estaciones` más abajo (y, en cliente, de
    *  `estado.estaciones`, ver Lista.ts). */
   enlacesMunicipio?: EnlacesEstaticos | null;
+  /** Contexto territorial que debe conservar el acceso a Evolución. */
+  municipioEvolucion?: string | null;
 }
 
 const {
@@ -69,6 +72,7 @@ const {
   actualizado = null,
   esPaginaDeZona,
   enlacesMunicipio = null,
+  municipioEvolucion = null,
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
@@ -116,9 +120,9 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
 ) as Record<ClavePrecio, FilaMunicipio[]>;
 ---
 
-<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
+<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)} data-municipio-evolucion={municipioEvolucion ?? undefined}>
   <CabeceraGlobal modo="principal" variante="petroleo">
-    <NavegacionApp zonaId={zonaId} zonaNombre={zonaNombre} />
+    <NavegacionApp zonaId={zonaId} zonaNombre={zonaNombre} municipioEvolucion={municipioEvolucion} />
     <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
   </CabeceraGlobal>
 
@@ -146,6 +150,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
         <section id="lista" class="lista" aria-label="Lista de estaciones">
           {ORDEN_COMBUSTIBLES.map((clave) => {
             const filas = listasPorCombustible[clave];
+            const explicacionEscala = explicacionEscalaSuprimida(crearEscala(filas.map(({ precio }) => precio)));
             return (
               <div class="lista__grupo" data-combustible={clave} hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
                 {filas.length === 0 ? (
@@ -153,20 +158,23 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
                     Ninguna estación de {zonaNombre || 'esta zona'} vende {ETIQUETA[clave].toLowerCase()}.
                   </p>
                 ) : (
-                  <ol class="lista__filas">
-                    {filas.map(({ estacion, puesto, precio, banda }) => (
-                      <li>
-                        <div class="fila">
-                          <span class="fila__orden">{puesto}</span>
-                          <span class="fila__info">
-                            <span class="fila__rotulo">{estacion.rotulo}</span>
-                            <span class="fila__direccion">{cajaDeTitulo(estacion.direccion)}</span>
-                          </span>
-                          <span class={`fila__precio precio precio--${banda}`}>{formatearPrecio(precio)}</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
+                  <>
+                    {explicacionEscala && <p class="lista__aviso lista__aviso--escala">{explicacionEscala}</p>}
+                    <ol class="lista__filas">
+                      {filas.map(({ estacion, puesto, precio, banda }) => (
+                        <li>
+                          <div class="fila">
+                            <span class="fila__orden">{puesto}</span>
+                            <span class="fila__info">
+                              <span class="fila__rotulo">{estacion.rotulo}</span>
+                              <span class="fila__direccion">{cajaDeTitulo(estacion.direccion)}</span>
+                            </span>
+                            <span class={`fila__precio precio precio--${banda}`}>{formatearPrecio(precio)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </>
                 )}
               </div>
             );
@@ -432,7 +440,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       indice = await cargarIndice();
     }
     if (!controlesMontados) {
-      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias);
+      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias, contenedorApp.dataset.municipioEvolucion ?? null);
       controlesMontados = true;
       actualizarAlturaCabecera();
     }

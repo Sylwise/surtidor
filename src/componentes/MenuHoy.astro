@@ -3,8 +3,8 @@ import { EDITORIALES_HOY, HERRAMIENTAS_HOY, entradaHoyActiva, hrefEntradaHoy, se
 import { formatearFechaHora } from '../logica/formato.ts';
 import { formatearResumenHoy, leerResumenesPanelHoy, type SlugResumenHoy } from '../../scripts/lib/resumenes-hoy.ts';
 
-interface Props { prefijo?: string; provinciaId?: string | null; autonomo?: boolean; variante?: 'clara' | 'petroleo'; }
-const { prefijo = '', provinciaId = null, autonomo = false, variante = 'clara' } = Astro.props;
+interface Props { prefijo?: string; provinciaId?: string | null; municipio?: string | null; autonomo?: boolean; variante?: 'clara' | 'petroleo'; }
+const { prefijo = '', provinciaId = null, municipio = null, autonomo = false, variante = 'clara' } = Astro.props;
 const id = (base: string) => prefijo ? `${base}-${prefijo}` : base;
 const pathname = Astro.url.pathname;
 const hoyActivo = seccionHoyActiva(pathname);
@@ -32,7 +32,7 @@ const descripcionDe = (slug: string, descripcion: string): string =>
     <p class="panel-hoy__grupo">EDITORIALES DE HOY</p>
     <ul class="panel-hoy__lista">
       {EDITORIALES_HOY.map((entrada) => (
-        <li><a href={hrefEntradaHoy(entrada, provinciaId)} data-enlace-evolucion-zona={entrada.slug === 'evolucion' ? '' : undefined} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
+        <li><a href={hrefEntradaHoy(entrada, provinciaId, municipio)} data-enlace-evolucion-zona={entrada.slug === 'evolucion' ? '' : undefined} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
           <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{descripcionDe(entrada.slug, entrada.descripcion)}</small></span>
         </a></li>
       ))}
@@ -40,7 +40,7 @@ const descripcionDe = (slug: string, descripcion: string): string =>
     <p class="panel-hoy__grupo">HERRAMIENTA Y METODOLOGÍA</p>
     <ul class="panel-hoy__lista">
       {HERRAMIENTAS_HOY.map((entrada) => (
-        <li><a href={hrefEntradaHoy(entrada, provinciaId)} data-enlace-evolucion-zona={entrada.slug === 'evolucion' ? '' : undefined} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
+        <li><a href={hrefEntradaHoy(entrada, provinciaId, municipio)} data-enlace-evolucion-zona={entrada.slug === 'evolucion' ? '' : undefined} class:list={{ 'panel-hoy__enlace--activo': entradaHoyActiva(pathname, entrada) }} aria-current={entradaHoyActiva(pathname, entrada) ? 'page' : undefined}>
           <span class="panel-hoy__texto"><strong>{entrada.nombre}</strong><small>{descripcionDe(entrada.slug, entrada.descripcion)}</small></span>
         </a></li>
       ))}

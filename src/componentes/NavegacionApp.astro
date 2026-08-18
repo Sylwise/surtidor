@@ -12,6 +12,7 @@ interface Props {
   mostrarMenuHoy?: boolean;
   tituloSelector?: string;
   ayudaSelector?: string;
+  municipioEvolucion?: string | null;
 }
 
 const {
@@ -20,6 +21,7 @@ const {
   mostrarMenuHoy = true,
   tituloSelector = 'Cambiar zona',
   ayudaSelector = 'Elige una provincia o comunidad autónoma',
+  municipioEvolucion = null,
 } = Astro.props;
 const indice = JSON.parse(
   readFileSync(join(process.cwd(), 'public', 'data', 'indice.json'), 'utf-8'),
@@ -125,4 +127,4 @@ const provinciaEvolucion = zonaActual?.tipo === 'provincia' ? zonaActual.provinc
   </div>
 </div>
 
-{mostrarMenuHoy && <MenuHoy provinciaId={provinciaEvolucion} />}
+{mostrarMenuHoy && <MenuHoy provinciaId={provinciaEvolucion} municipio={municipioEvolucion} />}

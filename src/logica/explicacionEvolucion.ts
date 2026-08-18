@@ -1,4 +1,4 @@
-import { cambioEnPeriodo, cambiosDeEstaciones, serieMedia, type CambioEvolucion } from './evolucion.ts';
+import { cambioEnPeriodo, cambiosDeEstaciones, serieMedia, type CambioEvolucion, type PeriodoEvolucion } from './evolucion.ts';
 import type { HistoricoProvincia } from '../../scripts/lib/artefactos-historicos.ts';
 import type { ClavePrecio, Estacion } from '../../scripts/lib/tipos.ts';
 
@@ -48,7 +48,7 @@ function mediana(valores: number[]): number {
 function encontrarTramoIntenso(
   serie: ReturnType<typeof serieMedia>,
   cambio: CambioEvolucion | null,
-  dias: 7 | 30 | 90,
+  dias: PeriodoEvolucion,
 ): TramoIntenso | null {
   const inicio = dias === 90 ? 0 : serie.length - 1 - dias;
   const tramo = serie.slice(Math.max(0, inicio));
@@ -75,11 +75,13 @@ export function explicarEvolucion(
   historico: HistoricoProvincia,
   estacionesActuales: Estacion[],
   combustible: ClavePrecio,
-  dias: 7 | 30 | 90,
+  dias: PeriodoEvolucion,
+  municipioId: string | null = null,
 ): ExplicacionEvolucion {
-  const media = serieMedia(historico.provincia, historico.fechas, combustible);
+  const agregado = municipioId ? historico.municipios[municipioId] : historico.provincia;
+  const media = serieMedia(agregado ?? historico.provincia, historico.fechas, combustible);
   const cambio = cambioEnPeriodo(media, dias);
-  const cambios = cambiosDeEstaciones(historico, combustible, dias);
+  const cambios = cambiosDeEstaciones(historico, combustible, dias, municipioId);
   const idsActuales = new Set(estacionesActuales.map((estacion) => estacion.id));
   const comparables = cambios.filter((entrada) => idsActuales.has(entrada.estacionId));
   const subieron = comparables.filter((entrada) => entrada.diferenciaMilesimas > 0).length;

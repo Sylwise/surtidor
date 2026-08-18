@@ -16,7 +16,7 @@ import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
 import { estacionesVisibles } from '../logica/visibilidad.ts';
 import { multiProvinciaDe } from '../logica/municipios.ts';
 import { cargarHistoricoProvincia } from '../logica/datosEvolucion.ts';
-import { cambioEnPeriodo, serieDeEstacion } from '../logica/evolucion.ts';
+import { cambioEnPeriodo, estabilidadObservada, serieDeEstacion } from '../logica/evolucion.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
@@ -152,7 +152,12 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       const serie = serieDeEstacion(historico, estacionId, combustible);
       const cambio = serie ? cambioEnPeriodo(serie, 7) : null;
       if (!cambio) evolucionCambio.textContent = 'Sin comparación completa a 7 días';
-      else if (cambio.diferenciaMilesimas === 0) evolucionCambio.textContent = 'Sin cambios en 7 días';
+      else if (cambio.diferenciaMilesimas === 0) {
+        const estabilidad = estabilidadObservada(serie!);
+        evolucionCambio.textContent = estabilidad && estabilidad.dias > 0
+          ? `Sin cambios detectados desde hace ${estabilidad.limitadaPorVentana ? 'al menos ' : ''}${estabilidad.dias} ${estabilidad.dias === 1 ? 'día' : 'días'}`
+          : 'Sin cambios en 7 días';
+      }
       else evolucionCambio.textContent = `${cambio.diferenciaMilesimas < 0 ? '↓' : '↑'} ${(Math.abs(cambio.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts en 7 días`;
     } catch {
       if (peticion === peticionEvolucion) {
@@ -195,7 +200,8 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     // la dirección pasa a caja de título y los territorios usan el único
     // nombre visible de RF-76.
     rotulo.textContent = estacion.rotulo;
-    enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?estacion=${encodeURIComponent(estacion.id)}`;
+    const parametrosEvolucion = new URLSearchParams({ estacion: estacion.id, combustible: estado.combustible });
+    enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?${parametrosEvolucion}`;
     void actualizarEvolucion(estacion.id, estacion.provinciaId, estado.combustible);
 
     const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${nombreVisible(estacion.municipio, 'municipio')}`;

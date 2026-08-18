@@ -23,8 +23,11 @@ export const HERRAMIENTAS_HOY: readonly EntradaHoy[] = [
   { slug: 'como-calculamos-los-datos', nombre: 'Cómo calculamos los datos', descripcion: 'Fuente, muestra y reglas' },
 ] as const;
 
-export function hrefEntradaHoy(entrada: EntradaHoy, provinciaId?: string | null): string {
-  if (entrada.slug === 'evolucion' && provinciaId) return `/hoy/evolucion/${provinciaId}/`;
+export function hrefEntradaHoy(entrada: EntradaHoy, provinciaId?: string | null, municipio?: string | null): string {
+  if (entrada.slug === 'evolucion' && provinciaId) {
+    const base = `/hoy/evolucion/${provinciaId}/`;
+    return municipio ? `${base}?municipio=${encodeURIComponent(municipio)}` : base;
+  }
   if (entrada.slug === 'como-calculamos-los-datos') return '/como-calculamos-los-datos/';
   return `/hoy/${entrada.slug}/`;
 }

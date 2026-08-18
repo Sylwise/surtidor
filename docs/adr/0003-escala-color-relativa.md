@@ -9,9 +9,17 @@ umbrales absolutos: por debajo de 1,45 verde, por encima de 1,60 rojo.
 
 ## Decisión
 
-El color sale del **percentil del precio dentro del conjunto que se está
-mostrando** (zona y combustible), no de umbrales absolutos. Ver
-[ADR-0005](0005-provincia-unidad-y-zonas.md) para qué es una zona.
+El color sale del **percentil del precio entre todas las estaciones públicas de
+la zona que venden el combustible seleccionado**, no de umbrales absolutos. Ver
+[ADR-0005](0005-provincia-unidad-y-zonas.md) para qué es una zona y
+[ADR-0025](0025-condiciones-minimas-para-la-escala.md) para las condiciones
+mínimas que permiten aplicar las bandas.
+
+El conjunto de cálculo no cambia con los filtros de visualización. «Solo
+abiertas» puede ocultar estaciones, pero la escala sigue usando todas las
+estaciones públicas de la zona que venden el combustible. Recalcularla al
+activar el filtro haría bailar los colores sin que hubiera cambiado ningún
+precio y rompería la comparación estable dentro de la zona.
 
 Bandas: 0-15 % `--p1`, 15-40 % `--p2`, 40-70 % `--p3`, 70-90 % `--p4`, 90-100 %
 `--p5`. La más barata se pinta en `--mejor`, con contorno y cuerpo mayor.
