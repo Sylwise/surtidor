@@ -114,6 +114,7 @@ button, input { font: inherit; }
 .evolucion-combustibles button::before, .evolucion-periodos button::before { content:''; position:absolute; inset:-1px 0; }
 .evolucion-combustibles button[aria-pressed='true'] { border-color: var(--petrol); background: var(--petrol); color: var(--surface); }
 .evolucion-periodos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.evolucion-periodos button { font-size: var(--fs-4); }
 .evolucion-periodos button[aria-pressed='true'] { border-color: var(--hair); background: #e4eae9; color: var(--petrol); font-weight: 800; }
 .evolucion-explorar, .evolucion-ranking { padding: 20px; border-top: 1px solid var(--hair); }
 .evolucion-explorar > header { display:grid; min-width:0; gap:4px; }
