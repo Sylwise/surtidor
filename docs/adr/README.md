@@ -33,6 +33,7 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0022](0022-resumen-nacional-de-build.md) | La vista nacional usa un resumen generado en el build | aceptado |
 | [0023](0023-evolucion-contextual-sin-perfil.md) | Evolución usa el contexto actual, no un perfil de usuario | aceptado |
 | [0024](0024-ventana-historica-en-despliegue.md) | La ventana histórica se transporta en el despliegue estático | aceptado |
+| [0026](0026-pagina-municipio-no-se-pierde-por-ausencia.md) | Una página de municipio no se pierde por una ausencia | aceptado |
 
 ## Plantilla
 

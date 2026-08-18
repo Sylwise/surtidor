@@ -259,6 +259,11 @@ valora.
 `/hoy/`, generados con los datos de cada build, enlazados desde la aplicación y
 con imagen de compartición propia. Ver RF-97 a RF-107 y ADR-0019.
 
+**Retención de páginas de municipio.** Una página indexada no se pierde
+porque una estación falte un día en el fichero del ministerio. Umbral
+asimétrico: 3 estaciones para ganarla, una para conservarla. Se implementa
+tras cerrar Evolución. Ver el ADR correspondiente.
+
 ---
 
 # V3 · Ambicioso, todavía sin servidor

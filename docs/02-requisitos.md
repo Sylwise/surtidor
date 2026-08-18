@@ -127,6 +127,7 @@ número.
 | ID | Prioridad | Requisito |
 |---|---|---|
 | RF-60 | M | Página estática por municipio con un mínimo de estaciones. Por debajo de ese mínimo no se genera página propia: la URL da 404 (ver [ADR-0012](adr/0012-municipio-sin-pagina-404.md); esa URL no la enlaza ninguna otra página del sitio). |
+| RF-119 | M | Un municipio conserva su página mientras le quede al menos una estación visible, si alcanzó `MINIMO_ESTACIONES_MUNICIPIO` en algún momento de la ventana histórica. Con cero estaciones visibles, o sin haber alcanzado nunca el mínimo, la URL devuelve 404 real. El sitemap y los enlaces internos siguen el mismo criterio. |
 | RF-61 | M | Los precios están en el HTML servido, nunca inyectados solo por JavaScript. |
 | RF-62 | M | Título y descripción generados con el precio mínimo real y la hora de actualización. |
 | RF-63 | M | JSON-LD con `ItemList` de `GasStation` y su `Offer`. Todo lo declarado coincide con lo visible en la página. |
