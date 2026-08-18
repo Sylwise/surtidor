@@ -59,6 +59,8 @@ interface Props {
    *  calculados de `estaciones` más abajo (y, en cliente, de
    *  `estado.estaciones`, ver Lista.ts). */
   enlacesMunicipio?: EnlacesEstaticos | null;
+  /** Contexto territorial que debe conservar el acceso a Evolución. */
+  municipioEvolucion?: string | null;
 }
 
 const {
@@ -70,6 +72,7 @@ const {
   actualizado = null,
   esPaginaDeZona,
   enlacesMunicipio = null,
+  municipioEvolucion = null,
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
@@ -117,9 +120,9 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
 ) as Record<ClavePrecio, FilaMunicipio[]>;
 ---
 
-<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)}>
+<div class="app" id="app" data-zona-id={zonaId} data-zona-nombre={zonaNombre} data-es-pagina-de-zona={String(esPaginaDeZona)} data-municipio-evolucion={municipioEvolucion ?? undefined}>
   <CabeceraGlobal modo="principal" variante="petroleo">
-    <NavegacionApp zonaId={zonaId} zonaNombre={zonaNombre} />
+    <NavegacionApp zonaId={zonaId} zonaNombre={zonaNombre} municipioEvolucion={municipioEvolucion} />
     <span id="insignia-mock" class="insignia-mock" hidden>Datos de prueba</span>
   </CabeceraGlobal>
 
@@ -437,7 +440,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       indice = await cargarIndice();
     }
     if (!controlesMontados) {
-      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias);
+      montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias, contenedorApp.dataset.municipioEvolucion ?? null);
       controlesMontados = true;
       actualizarAlturaCabecera();
     }

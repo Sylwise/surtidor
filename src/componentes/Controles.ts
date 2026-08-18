@@ -42,6 +42,7 @@ export function montarControles(
   contenedorRapidos: HTMLElement,
   zonas: Zona[],
   catalogoProvincias: ResumenProvincia[],
+  municipioEvolucion: string | null = null,
 ): { abrirSelector: () => void } {
   const zonasOrdenadas = [...zonas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
@@ -152,9 +153,12 @@ export function montarControles(
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
     if (enlaceEvolucionZona && zonaActual) {
       const provinciaId = zonaActual.provincias.length === 1 ? zonaActual.provincias[0] : null;
-      enlaceEvolucionZona.href = provinciaId
-        ? '/hoy/evolucion/' + encodeURIComponent(provinciaId) + '/'
-        : '/hoy/evolucion/';
+      if (provinciaId) {
+        const parametros = new URLSearchParams();
+        if (municipioEvolucion) parametros.set('municipio', municipioEvolucion);
+        parametros.set('combustible', estado.combustible);
+        enlaceEvolucionZona.href = `/hoy/evolucion/${encodeURIComponent(provinciaId)}/?${parametros}`;
+      } else enlaceEvolucionZona.href = '/hoy/evolucion/';
     }
     // RF-88: mientras se cargan los datos de una zona —incluido un cambio de
     // zona sin recargar (ADR-0016)— el botón lo dice, para que la interfaz

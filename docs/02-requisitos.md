@@ -227,12 +227,12 @@ descarta; los ya descartados conservan su identificador y el motivo.
 
 | ID | Requisito |
 |---|---|
-| V2-01 | Histórico diario normalizado, generado desde `EstacionesTerrestresHist`, que conserva datos suficientes para analizar estación, municipio y provincia. Su almacenamiento, retención e identidad entre días se fijan en un ADR técnico después de medir la fuente real. |
-| V2-02 | **Evolución contextual dentro de Hoy.** Desde estación, municipio o zona muestra magnitud, periodo y comparación territorial; la ficha solo contiene un indicio compacto que enlaza al análisis. Ver RF-108 a RF-117 y [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
+| V2-01 | **Completado.** Histórico diario normalizado, generado desde `EstacionesTerrestresHist`, que conserva datos suficientes para analizar estación, municipio y provincia. Su almacenamiento, retención e identidad entre días se fijan en un ADR técnico después de medir la fuente real. |
+| V2-02 | **Completado. Evolución contextual dentro de Hoy.** Desde estación, municipio o zona muestra magnitud, periodo y comparación territorial; la ficha solo contiene un indicio compacto que enlaza al análisis. Ver RF-108 a RF-117 y [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
 | V2-04 | ~~Perfil de vehículo persistente en `localStorage`.~~ **Descartado:** añade configuración y su persistencia no cruza navegadores o dispositivos. |
 | V2-05 | ~~Coste del desvío basado en el perfil de vehículo.~~ **Descartado** junto con V2-04; una futura estimación sin perfil requeriría una propuesta independiente. |
 | V2-06 | ~~Comparar en euros por 100 km mediante el consumo guardado.~~ **Descartado** junto con V2-04. |
-| V2-08 | Días desde la última variación observada. Se comunica de forma neutral y nunca atribuye a la estación la intención de parecer barata. |
+| V2-08 | **Completado.** Días desde la última variación observada. Se comunica de forma neutral y nunca atribuye a la estación la intención de parecer barata. |
 | V2-09 | ~~Favoritos fijados arriba, en `localStorage`.~~ **Descartado:** se perciben como un dato duradero, pero no cruzan navegadores o dispositivos y pueden desaparecer. Darles continuidad exigiría cuentas y sincronización. Ver [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
 | V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |
 | V2-11 | Publicar los JSON normalizados como datos abiertos, con su documentación. |

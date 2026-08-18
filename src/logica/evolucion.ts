@@ -1,6 +1,8 @@
 import type { AgregadoHistorico, HistoricoProvincia, SerieHistoricaPublica } from '../../scripts/lib/artefactos-historicos.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 
+export type PeriodoEvolucion = 1 | 7 | 30 | 90;
+
 const INDICE_PRECIO: Record<ClavePrecio, 3 | 4 | 5 | 6> = {
   gasolina95e5: 3,
   gasoleoA: 4,
@@ -22,6 +24,12 @@ export interface CambioEvolucion {
 
 export interface CambioEstacion extends CambioEvolucion {
   estacionId: string;
+}
+
+export interface EstabilidadObservada {
+  dias: number;
+  /** `true` cuando no se ha visto ningún precio distinto dentro de la ventana. */
+  limitadaPorVentana: boolean;
 }
 
 export function serieDeEstacion(
@@ -53,9 +61,16 @@ export function serieMedia(agregado: AgregadoHistorico, fechas: string[], combus
   });
 }
 
+export function serieMinimo(agregado: AgregadoHistorico, fechas: string[], combustible: ClavePrecio): PuntoEvolucion[] {
+  return fechas.map((fecha, indice) => ({
+    fecha,
+    milesimas: agregado[combustible][indice]?.[2] ?? null,
+  }));
+}
+
 /** Compara extremos exactos. Para «90 días», una ventana de 90 cierres usa
  * su primera observación; nunca busca un punto cercano para ocultar huecos. */
-export function cambioEnPeriodo(serie: PuntoEvolucion[], dias: 7 | 30 | 90): CambioEvolucion | null {
+export function cambioEnPeriodo(serie: PuntoEvolucion[], dias: PeriodoEvolucion): CambioEvolucion | null {
   if (serie.length === 0) return null;
   const indiceFinal = serie.length - 1;
   const indiceInicial = dias === 90 ? 0 : indiceFinal - dias;
@@ -72,10 +87,33 @@ export function cambioEnPeriodo(serie: PuntoEvolucion[], dias: 7 | 30 | 90): Cam
   };
 }
 
+/** Describe solo observaciones: los huecos no se rellenan ni se interpretan
+ * como estabilidad. El inicio es la primera publicación del precio actual
+ * después de la última publicación distinta que puede verse en la ventana. */
+export function estabilidadObservada(serie: PuntoEvolucion[]): EstabilidadObservada | null {
+  const indiceFinal = serie.length - 1;
+  const precioActual = serie[indiceFinal]?.milesimas ?? null;
+  if (precioActual === null) return null;
+
+  const observados = serie
+    .map((punto, indice) => ({ indice, precio: punto.milesimas }))
+    .filter((punto): punto is { indice: number; precio: number } => punto.precio !== null);
+  if (observados.length < 2) return null;
+
+  let inicioActual = observados[0]!.indice;
+  for (let indice = observados.length - 2; indice >= 0; indice -= 1) {
+    if (observados[indice]!.precio !== precioActual) {
+      inicioActual = observados[indice + 1]!.indice;
+      return { dias: indiceFinal - inicioActual, limitadaPorVentana: false };
+    }
+  }
+  return { dias: indiceFinal - inicioActual, limitadaPorVentana: true };
+}
+
 export function cambiosDeEstaciones(
   historico: HistoricoProvincia,
   combustible: ClavePrecio,
-  dias: 7 | 30 | 90,
+  dias: PeriodoEvolucion,
   municipioId?: string | null,
 ): CambioEstacion[] {
   return historico.estaciones

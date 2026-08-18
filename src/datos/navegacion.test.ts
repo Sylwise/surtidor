@@ -17,6 +17,11 @@ test('Hoy conserva ocho destinos HTML reales y correctos', () => {
   ]);
 });
 
+test('Evolución conserva el municipio cuando la entrada parte de su página', () => {
+  const evolucion = HERRAMIENTAS_HOY.find(({ slug }) => slug === 'evolucion')!;
+  assert.equal(hrefEntradaHoy(evolucion, '01', 'Vitoria-Gasteiz'), '/hoy/evolucion/01/?municipio=Vitoria-Gasteiz');
+});
+
 test('la metodología pertenece a la sección Hoy y no a Precios', () => {
   assert.equal(seccionHoyActiva('/como-calculamos-los-datos/'), true);
   assert.equal(seccionHoyActiva('/hoy/provincias-mas-baratas/'), true);

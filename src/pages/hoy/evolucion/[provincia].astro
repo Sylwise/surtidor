@@ -48,10 +48,10 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
         <section class="evolucion-estado" data-estado role="status"><i aria-hidden="true"></i><span>Cargando histórico de {nombre}…</span></section>
         <div class="evolucion-workbench" data-contenido hidden>
           <aside class="evolucion-rail">
-            <div class="evolucion-rail__cabecera"><span>Evolución</span><strong>{nombre}</strong></div>
+            <div class="evolucion-rail__cabecera"><span>Evolución</span><strong data-territorio-activo>{nombre}</strong><button type="button" data-volver-provincia hidden>Ver toda {nombre} →</button></div>
             <section class="evolucion-controles evolucion-controles--rail">
               <label>Combustible</label><div class="evolucion-combustibles" data-combustibles aria-label="Combustible"></div>
-              <label>Periodo</label><div class="evolucion-periodos" aria-label="Periodo"><button data-periodo="7" aria-pressed="false">7 días</button><button data-periodo="30" aria-pressed="true">30 días</button><button data-periodo="90" aria-pressed="false">90 días</button></div>
+              <label>Periodo</label><div class="evolucion-periodos" aria-label="Periodo"><button data-periodo="1" aria-pressed="false">1 día</button><button data-periodo="7" aria-pressed="false">7 días</button><button data-periodo="30" aria-pressed="true">30 días</button><button data-periodo="90" aria-pressed="false">90 días</button></div>
             </section>
             <section class="evolucion-explorar">
               <header><h2>Explorar estaciones</h2><output data-busqueda-resumen hidden></output></header>
@@ -64,9 +64,9 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
 
           <article class="evolucion-canvas evolucion-panel">
             <section class="evolucion-controles evolucion-controles--movil">
-              <p class="evolucion-contexto-movil"><b>{nombre}</b><i aria-hidden="true">·</i><span>Evolución</span></p>
+              <p class="evolucion-contexto-movil"><b data-territorio-activo-movil>{nombre}</b><i aria-hidden="true">·</i><span>Evolución</span></p>
               <div class="evolucion-combustibles" data-combustibles role="group" aria-label="Combustible"></div>
-              <div class="evolucion-periodos" role="group" aria-label="Periodo"><button data-periodo="7" aria-label="7 días" aria-pressed="false">7 d</button><button data-periodo="30" aria-label="30 días" aria-pressed="true">30 d</button><button data-periodo="90" aria-label="90 días" aria-pressed="false">90 d</button></div>
+              <div class="evolucion-periodos" role="group" aria-label="Periodo"><button data-periodo="1" aria-label="1 día" aria-pressed="false">1 d</button><button data-periodo="7" aria-label="7 días" aria-pressed="false">7 d</button><button data-periodo="30" aria-label="30 días" aria-pressed="true">30 d</button><button data-periodo="90" aria-label="90 días" aria-pressed="false">90 d</button></div>
             </section>
 
             <header class="evolucion-resumen">
@@ -74,6 +74,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
               <div class="evolucion-panel__precio"><span data-etiqueta-precio>Último cierre</span><strong data-precio></strong></div>
               <p class="evolucion-conclusion"><b class="evolucion-cambio--desktop" data-cambio></b><b class="evolucion-cambio--movil" data-cambio-movil></b><span data-frase-desktop></span><span data-frase-movil></span></p>
               <p class="evolucion-contexto" data-contexto></p>
+              <p class="evolucion-estabilidad" data-estabilidad hidden></p>
               <ol data-claves hidden></ol>
             </header>
 
@@ -84,9 +85,9 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
             </dl>
 
             <section class="evolucion-comparacion" data-comparacion-estacion hidden>
-              <div class="evolucion-comparacion__tarjeta"><div><h2 data-comparacion-nombre></h2><p data-comparacion-lugar></p><strong data-comparacion-precio></strong></div><div><span>Diferencia respecto a la media provincial</span><strong data-comparacion-diferencia></strong><small data-comparacion-deposito></small></div></div>
+              <div class="evolucion-comparacion__tarjeta"><div><h2 data-comparacion-nombre></h2><p data-comparacion-lugar></p><strong data-comparacion-precio></strong></div><div><span>Diferencia respecto a la media municipal</span><strong data-comparacion-diferencia></strong><small data-comparacion-deposito></small></div></div>
               <p class="evolucion-comparacion__aviso-escala" data-aviso-escala hidden></p>
-              <dl class="evolucion-comparacion__barras"><div><dt>Esta estación</dt><dd><i data-barra-estacion></i></dd><b data-valor-estacion></b></div><div><dt>Media provincial</dt><dd><i data-barra-media></i></dd><b data-valor-media></b></div><div><dt>Más cara</dt><dd><i data-barra-maximo></i></dd><b data-valor-maximo></b></div></dl>
+              <dl class="evolucion-comparacion__barras"><div><dt>Esta estación</dt><dd><i data-barra-estacion></i></dd><b data-valor-estacion></b></div><div><dt>Media municipal</dt><dd><i data-barra-municipio></i></dd><b data-valor-municipio></b></div><div><dt>Media provincial</dt><dd><i data-barra-provincia></i></dd><b data-valor-provincia></b></div></dl>
             </section>
 
             <section class="evolucion-vacio" data-evolucion-vacio hidden>
@@ -98,8 +99,19 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
             <section class="evolucion-grafico-card">
               <header><div><h2 data-titulo-grafico>Precio diario: media y mínimo provincial</h2><p data-rango-fechas></p></div><p class="evolucion-grafico-resumen-movil" data-resumen-grafico-movil></p><div class="evolucion-tramo"><span>Tramo más intenso</span><strong data-tramo></strong></div></header>
               <div class="evolucion-grafico-wrap"><svg class="evolucion-grafico" viewBox="0 0 900 360" role="img" aria-describedby="detalle-grafico-diario"></svg><output id="detalle-grafico-diario" class="evolucion-tooltip" data-tooltip hidden></output><p class="evolucion-grafico-instruccion">Desliza sobre la línea para cambiar de día</p></div>
-              <div class="evolucion-leyenda"><span><i class="estacion"></i><b data-leyenda-principal>Media provincial</b></span><span><i class="provincia"></i><b data-leyenda-secundaria>Precio mínimo</b></span></div>
+              <div class="evolucion-leyenda"><span><i class="estacion"></i><b data-leyenda-principal>Media provincial</b></span><span><i class="provincia" data-muestra-leyenda-secundaria></i><b data-leyenda-secundaria>Precio mínimo</b></span><span data-leyenda-terciaria-contenedor hidden><i class="provincia"></i><b data-leyenda-terciaria>Media provincial</b></span></div>
             </section>
+
+            <details class="evolucion-datos">
+              <summary>Ver las 90 observaciones</summary>
+              <div class="evolucion-datos__tabla-wrap">
+                <table>
+                  <caption class="sr-only">Observaciones diarias usadas en esta evolución</caption>
+                  <thead><tr><th scope="col">Fecha</th><th scope="col" data-tabla-cabecera-principal>Serie principal</th><th scope="col" data-tabla-cabecera-secundaria>Comparación</th><th scope="col" data-tabla-cabecera-terciaria hidden>Provincia</th></tr></thead>
+                  <tbody data-tabla-observaciones></tbody>
+                </table>
+              </div>
+            </details>
 
             <section class="evolucion-movimientos-movil"><header><h2>Movimientos destacados</h2><button type="button" data-abrir-todas>Ver todas las estaciones <span aria-hidden="true">›</span></button></header><ol data-movimientos-movil></ol></section>
             <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos no se interpolan.</p>
@@ -118,8 +130,9 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
     <script type="application/json" id="evolucion-actual" is:inline set:html={actualJson} />
     <script type="application/json" id="evolucion-historico" is:inline set:html={historicoJson} />
     <script>
+      import { montarEvolucion } from '../../../componentes/Evolucion.ts';
       const raiz = document.querySelector<HTMLElement>('[data-evolucion]'); const provinciaId = raiz?.dataset.provinciaId;
-      if (raiz && provinciaId) { const actual = JSON.parse(document.getElementById('evolucion-actual')?.textContent ?? 'null'); const historico = JSON.parse(document.getElementById('evolucion-historico')?.textContent ?? 'null'); import('../../../componentes/Evolucion.ts').then(({ montarEvolucion }) => montarEvolucion(raiz, provinciaId, actual, historico)); }
+      if (raiz && provinciaId) { const actual = JSON.parse(document.getElementById('evolucion-actual')?.textContent ?? 'null'); const historico = JSON.parse(document.getElementById('evolucion-historico')?.textContent ?? 'null'); await montarEvolucion(raiz, provinciaId, actual, historico); }
     </script>
   </body>
 </html>

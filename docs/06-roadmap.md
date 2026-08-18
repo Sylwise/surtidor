@@ -214,17 +214,18 @@ aplicación sin mapa.
 Se intentó además que la vista del mapa decidiera la zona cargada, y se
 abandonó tras implementarlo. El porqué, en el mismo ADR.
 
-**Evolución e histórico — V2-01, V2-02 y V2-08, siguiente gran hito.** El
+**Evolución e histórico — V2-01, V2-02 y V2-08, completado.** El
 histórico deja de ser una flecha aislada y se convierte en una capacidad común
 dentro de Hoy. Desde una estación, municipio o zona explica cuánto ha cambiado
 el precio, durante qué periodo y si el movimiento también ocurre en su entorno.
 
-**En curso:** están terminados el contrato de 90 días, la recuperación entre
-despliegues, los artefactos provinciales, la comparación estación ↔ municipio ↔
-provincia, los rankings del municipio y la señal de siete días dentro de la
-ficha. Faltan ampliar las lecturas territoriales y la revisión visual final.
-La ficha ofrece un indicio compacto junto al precio; el análisis completo vive
-fuera de la aplicación de mapa.
+La entrega cubre el contrato de 90 días, la recuperación entre despliegues, los
+artefactos provinciales, las lecturas de provincia y municipio, la comparación
+estación ↔ municipio ↔ provincia, los rankings territoriales, los cuatro
+periodos, la estabilidad observada y la tabla accesible. La ficha ofrece un
+indicio compacto junto al precio; el análisis completo vive fuera de la
+aplicación de mapa. La revisión final queda registrada en
+[08 · Evolución](08-evolucion.md#registro-de-aceptación--2026-08-17).
 
 La primera entrega incluye cambios a 1, 7, 30 y 90 días, gráfica de 90 días por
 estación, comparación con municipio y provincia, evolución de media y mínimo y

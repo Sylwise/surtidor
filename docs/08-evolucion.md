@@ -192,6 +192,30 @@ Una tabla desplegable ofrece las 90 observaciones de estación, municipio y
 provincia. Teclado, lector de pantalla y `prefers-reduced-motion` deben obtener
 la misma conclusión que la representación visual.
 
+#### Registro de aceptación · 2026-08-17
+
+Revisión manual sobre el build de producción con datos reales, en 1440 × 1050 y
+360 × 800. Se comprobaron estos casos y estados:
+
+| Caso | Página y estado revisado |
+|---|---|
+| Provincia pequeña | Ceuta (`/hoy/evolucion/51/`), 10 estaciones |
+| Artefacto máximo | Barcelona (`/hoy/evolucion/08/`), 768 estaciones |
+| Municipio con muchas estaciones | Vitoria-Gasteiz (`?municipio=Vitoria-Gasteiz`), 39 estaciones comparables en gasolina 95 |
+| Estación sin ambos extremos | CEPSA de Elche/Elx, estación `11840`, periodo de 7 días |
+| Combustible no vendido | REPSOL de Elburgo/Burgelu, estación `100`, gasolina 98 |
+| Serie con huecos | ONAINDIA de Vitoria-Gasteiz, estación `12104`, periodo de 90 días |
+| Cambio igual a cero | REPSOL de Elburgo/Burgelu, estación `100`, periodo de 7 días |
+
+En 360 px se verificó que identidad, combustible, precio, cambio y periodo
+quedan visibles sin truncarse. Las líneas conservan estilos distintos sin
+depender del color; el gráfico expone una descripción textual equivalente y la
+tabla desplegable contiene las 90 fechas y sus series comparables. Los controles
+son elementos nativos operables por teclado, y la regla global de movimiento
+reducido elimina animaciones y transiciones cuando el sistema lo solicita. Los
+estados sin combustible o sin extremos comparables mantienen la navegación y
+explican la ausencia concreta.
+
 ## Navegación y URLs
 
 Cada análisis importante tiene una URL estable y compartible. La URL expresa
