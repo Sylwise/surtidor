@@ -3,7 +3,7 @@ import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
 import { calcularCostePorNoComparar } from '../../../scripts/lib/cuanto-te-juegas.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
 import { formatearEuros, formatearFechaHora, formatearNumero, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 
@@ -48,6 +48,8 @@ const etiquetaEditorial: Record<ClavePrecio, string> = {
   gasoleoA: 'Diésel',
   gasolina98e5: 'Gasolina 98',
   gasoleoPremium: 'Diésel +',
+  gasoleoB: 'Gasóleo B',
+  glp: 'GLP',
 };
 const mayorAhorro = ORDEN_COMBUSTIBLES
   .map((combustible) => {
@@ -144,6 +146,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
     <a href="#gasoleoA" data-selector-combustible>Diésel</a>
     <a href="#gasolina98e5" data-selector-combustible>Gasolina 98</a>
     <a href="#gasoleoPremium" data-selector-combustible>Diésel +</a>
+    <a href="#gasoleoB" data-selector-combustible>Gasóleo B</a>
     <a href="#territorios-fiscales">Canarias, Ceuta y Melilla</a>
   </nav>
 

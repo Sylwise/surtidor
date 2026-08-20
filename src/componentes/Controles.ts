@@ -1,6 +1,5 @@
-// Selector de zona (buscable, agrupado) vive en la cabecera superior
-// (RF-32): se toca una vez por sesión. Selector de combustible vive en la
-// cabecera de la hoja inferior (RF-30): es el control de más uso, y
+// Los selectores de zona (buscable, agrupado) y combustible comparten la
+// cabecera de la hoja inferior. El de combustible es el control de más uso, y
 // docs/05-diseno.md#Móvil lo pone siempre alcanzable en los tres estados de
 // la hoja, también en escritorio. El filtro "solo abiertas ahora" ya no vive
 // aquí: es una píldora en la cabecera de la lista (RF-82,
@@ -14,8 +13,9 @@
 // la ficha son las que cambian el combustible activo entonces (RF-81).
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
-import { nombreVisible } from '../logica/formato.ts';
+import { ETIQUETA, ETIQUETA_SELECTOR, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
+import { estacionesQueVenden } from '../logica/visibilidad.ts';
 import { estacionesDeZona } from '../logica/zona.ts';
 import { montarSelectorZona } from './SelectorZona.ts';
 import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipos.ts';
@@ -26,9 +26,8 @@ import type { ClavePrecio, ResumenProvincia, Zona } from '../../scripts/lib/tipo
  * cambia, para no cerrar el panel de zona ni perder el foco cada vez que
  * algo más se recalcula.
  *
- * `contenedorIdentidad` recibe el selector de zona.
- * `contenedorRapidos` recibe el selector de combustible; se oculta entero en
- * estado de ficha (RF-80).
+ * `contenedorIdentidad` trae de la navegación el selector de zona servido.
+ * Se mueve a `contenedorRapidos` para compartir fila con combustible.
  * `catalogoProvincias` es `Indice.provincias`: de ahí sale el recuento de
  * estaciones de cada fila del panel de zona (docs/05-diseno.md#Selector-de-
  * zona), sumado por `estacionesDeZona`. No es una petición nueva: el índice
@@ -129,25 +128,92 @@ export function montarControles(
     }
   });
 
-  // --- Selector de combustible: pestañas, un toque (RF-30) ---
-  const tabsCombustible = document.createElement('div');
-  tabsCombustible.className = 'controles__combustible';
-  tabsCombustible.setAttribute('role', 'group');
-  tabsCombustible.setAttribute('aria-label', 'Combustible');
+  // --- Selector de combustible desplegable (ADR-0027 / RF-120) ---
+  const selectorCombustible = document.createElement('div');
+  selectorCombustible.className = 'selector-combustible';
+
+  const botonCombustible = document.createElement('button');
+  botonCombustible.type = 'button';
+  botonCombustible.className = 'selector-combustible__boton';
+  botonCombustible.setAttribute('aria-expanded', 'false');
+  botonCombustible.setAttribute('aria-controls', 'panel-combustible');
+  const principalCombustible = document.createElement('strong');
+  principalCombustible.className = 'selector-combustible__principal';
+  const detalleCombustible = document.createElement('span');
+  detalleCombustible.className = 'selector-combustible__detalle';
+  const flechaCombustible = document.createElement('span');
+  flechaCombustible.className = 'selector-combustible__flecha';
+  flechaCombustible.setAttribute('aria-hidden', 'true');
+  botonCombustible.append(principalCombustible, detalleCombustible, flechaCombustible);
+
+  const panelCombustible = document.createElement('section');
+  panelCombustible.id = 'panel-combustible';
+  panelCombustible.className = 'panel-combustible';
+  panelCombustible.setAttribute('role', 'radiogroup');
+  panelCombustible.setAttribute('aria-label', 'Elegir combustible');
+  panelCombustible.hidden = true;
 
   const botonesCombustible = new Map<ClavePrecio, HTMLButtonElement>();
-  for (const clave of ORDEN_COMBUSTIBLES) {
-    const boton = document.createElement('button');
-    boton.type = 'button';
-    boton.className = 'controles__pestana';
-    boton.textContent = ETIQUETA_CORTA[clave];
-    boton.setAttribute('aria-label', ETIQUETA[clave]);
-    boton.addEventListener('click', () => actualizarEstado({ combustible: clave }));
-    tabsCombustible.append(boton);
-    botonesCombustible.set(clave, boton);
+  const preciosCombustible = new Map<ClavePrecio, HTMLElement>();
+  for (const [titulo, claves] of [
+    ['Habituales', ORDEN_COMBUSTIBLES.slice(0, 4)],
+    ['Alternativos', ORDEN_COMBUSTIBLES.slice(4)],
+  ] as const) {
+    const grupo = document.createElement('div');
+    grupo.className = 'panel-combustible__grupo';
+    const encabezado = document.createElement('p');
+    encabezado.className = 'panel-combustible__titulo';
+    encabezado.textContent = titulo;
+    grupo.append(encabezado);
+    for (const clave of claves) {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'panel-combustible__opcion';
+      boton.setAttribute('role', 'radio');
+      const nombre = document.createElement('span');
+      nombre.textContent = ETIQUETA[clave];
+      const precio = document.createElement('strong');
+      precio.className = 'panel-combustible__precio';
+      boton.append(nombre, precio);
+      boton.addEventListener('click', () => {
+        actualizarEstado({ combustible: clave });
+        panelCombustible.hidden = true;
+        botonCombustible.setAttribute('aria-expanded', 'false');
+        botonCombustible.focus();
+      });
+      grupo.append(boton);
+      botonesCombustible.set(clave, boton);
+      preciosCombustible.set(clave, precio);
+    }
+    if (titulo === 'Alternativos') {
+      const nota = document.createElement('p');
+      nota.className = 'panel-combustible__nota';
+      nota.textContent = 'El GLP consume más volumen: su precio por litro no es comparable con los demás.';
+      grupo.append(nota);
+    }
+    panelCombustible.append(grupo);
   }
 
-  contenedorRapidos.append(tabsCombustible);
+  selectorCombustible.append(botonCombustible, panelCombustible);
+  contenedorRapidos.append(contenedorIdentidad, selectorCombustible);
+
+  botonCombustible.addEventListener('click', () => {
+    const abrir = panelCombustible.hidden;
+    panelCombustible.hidden = !abrir;
+    botonCombustible.setAttribute('aria-expanded', String(abrir));
+    if (abrir) botonesCombustible.get(obtenerEstado().combustible)?.focus();
+  });
+  document.addEventListener('click', (evento) => {
+    if (panelCombustible.hidden || selectorCombustible.contains(evento.target as Node)) return;
+    panelCombustible.hidden = true;
+    botonCombustible.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('keydown', (evento) => {
+    if (evento.key !== 'Escape' || panelCombustible.hidden) return;
+    panelCombustible.hidden = true;
+    botonCombustible.setAttribute('aria-expanded', 'false');
+    botonCombustible.focus();
+  });
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
@@ -165,10 +231,15 @@ export function montarControles(
     // no se quede congelada sin señal mientras el resto (mapa, lista,
     // #tabla-zona) sigue mostrando la zona anterior a propósito.
     const nombreZonaVisible = zonaActual ? nombreVisible(zonaActual.nombre, zonaActual.tipo) : null;
+    const nombreAmbito = estado.municipioNombre
+      ? estado.ambitoAmpliado && estado.provinciaNombre
+        ? `${estado.municipioNombre} · mostrando ${estado.provinciaNombre}`
+        : estado.municipioNombre
+      : nombreZonaVisible;
     nombreZonaSpan.textContent = estado.cargando
       ? 'Cargando…'
-      : (nombreZonaVisible ?? estado.zonaId ?? 'Elige tu zona');
-    botonZona.setAttribute('aria-label', nombreZonaVisible ? `Cambiar zona. Zona actual: ${nombreZonaVisible}` : 'Elegir zona');
+      : (nombreAmbito ?? estado.zonaId ?? 'Elige tu zona');
+    botonZona.setAttribute('aria-label', nombreAmbito ? `Cambiar zona. Ámbito actual: ${nombreAmbito}` : 'Elegir zona');
 
     // La tarjeta superior del panel viene servida con la zona de la URL
     // inicial. En las páginas de zona el cambio ocurre en sitio (RF-88), así
@@ -192,9 +263,23 @@ export function montarControles(
 
     for (const [clave, boton] of botonesCombustible) {
       const activo = clave === estado.combustible;
-      boton.setAttribute('aria-pressed', String(activo));
-      boton.classList.toggle('controles__pestana--activa', activo);
+      boton.setAttribute('aria-checked', String(activo));
+      boton.classList.toggle('panel-combustible__opcion--activa', activo);
+      const municipales = estacionesQueVenden(estado.estacionesMunicipio, clave);
+      const candidatas = estado.municipioNombre
+        ? (municipales.length > 0 ? municipales : estacionesQueVenden(estado.estacionesProvincia, clave))
+        : estacionesQueVenden(estado.estaciones, clave);
+      const minimo = candidatas.reduce<number | null>((actual, estacion) => {
+        const precio = estacion.precios[clave];
+        return precio !== null && (actual === null || precio < actual) ? precio : actual;
+      }, null);
+      preciosCombustible.get(clave)!.textContent = minimo === null ? 'No disponible' : formatearPrecio(minimo);
     }
+
+    const etiquetaSelector = ETIQUETA_SELECTOR[estado.combustible];
+    principalCombustible.textContent = etiquetaSelector.principal;
+    detalleCombustible.textContent = etiquetaSelector.detalle;
+    botonCombustible.setAttribute('aria-label', `Cambiar combustible. Actual: ${ETIQUETA[estado.combustible]}`);
 
     // Rediseño Pencil 2026: la banda de combustible permanece fija también
     // con una estación seleccionada. Así se puede comparar otro combustible

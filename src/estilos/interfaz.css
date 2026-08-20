@@ -565,7 +565,7 @@ input {
   border: 1px solid var(--hair);
   border-radius: 12px;
   background: var(--paper);
-  box-shadow: 0 14px 36px color-mix(in srgb, var(--petrol) 24%, transparent);
+  box-shadow: 0 14px 36px var(--shadow-selector);
 }
 
 .panel-hoy[hidden] {
@@ -2258,4 +2258,218 @@ input {
     gap:8px;
   }
   .app--sin-zona .hoja__rapidos::before { display:none; }
+}
+
+/* V2-12 · Los dos selectores comparten el flujo del rail. Controles.ts mueve
+   aquí el selector territorial servido dentro de la navegación. */
+.hoja__rapidos {
+  min-height: 60px;
+  padding: 8px 14px;
+  gap: 8px;
+}
+
+.hoja__rapidos > .controles-identidad,
+.selector-combustible {
+  width: auto;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.hoja__rapidos > .controles-identidad {
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
+.hoja__rapidos .controles__zona {
+  width: 100%;
+  min-width: 0;
+}
+
+.hoja__rapidos .boton-zona {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  color: var(--petrol);
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.hoja__rapidos .boton-zona__nombre {
+  min-width: 0;
+  max-width: none;
+  flex: 1;
+}
+
+.app--sin-zona .hoja__rapidos::before {
+  flex: 0 0 100%;
+}
+
+.selector-combustible {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.selector-combustible__boton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  gap: 6px;
+  border: 1px solid var(--petrol);
+  border-radius: 999px;
+  background: var(--petrol);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.selector-combustible__principal {
+  font-size: var(--fs-5);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.selector-combustible__detalle {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted-light);
+  font-size: var(--fs-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-combustible__flecha {
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+.selector-combustible__boton[aria-expanded='true'] .selector-combustible__flecha {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.panel-combustible {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  width: calc(var(--hoja-ancho) - 28px);
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  background: var(--surface);
+  color: var(--petrol);
+  box-shadow: 0 14px 36px color-mix(in srgb, var(--petrol) 24%, transparent);
+}
+
+.panel-combustible[hidden] { display: none; }
+
+.panel-combustible__grupo + .panel-combustible__grupo {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.panel-combustible__titulo {
+  margin: 0 8px 4px;
+  color: var(--muted);
+  font-size: var(--fs-1);
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.panel-combustible__opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 9px;
+  gap: 12px;
+  border: 0;
+  border-radius: var(--radio);
+  background: none;
+  color: var(--petrol);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.panel-combustible__opcion:hover,
+.panel-combustible__opcion:focus-visible,
+.panel-combustible__opcion--activa {
+  background: var(--subtle);
+}
+
+.panel-combustible__opcion--activa { font-weight: 750; }
+
+.panel-combustible__precio {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: var(--fs-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.panel-combustible__nota,
+.lista__aviso--ambito {
+  color: var(--muted);
+  font-size: var(--fs-2);
+}
+
+.panel-combustible__nota { margin: 5px 9px 2px; line-height: 1.35; }
+.lista__aviso--ambito { margin: 0; padding: 6px 2px; }
+
+.mapa__aviso-sin-combustible {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(320px, calc(100% - 32px));
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--fs-3);
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+/* GLP: precio escrito, sin banda cromática ni tratamiento de “más barata”. */
+.precio--no-comparable,
+.marcador--no-comparable .marcador__cartel {
+  background: var(--surface);
+  color: var(--petrol);
+}
+
+@media (max-width: 760px) {
+  .hoja__rapidos .boton-zona {
+    width: 100%;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radio);
+    background: var(--surface);
+  }
+
+  .hoja__rapidos .boton-zona__nombre {
+    max-width: none;
+    font-size: var(--fs-1);
+  }
+
+  .hoja__rapidos,
+  .app--sin-zona .hoja__rapidos {
+    padding: 4px 8px;
+    gap: 8px;
+  }
+
+  .panel-combustible { width: calc(100vw - 16px); }
 }
