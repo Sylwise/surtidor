@@ -12,7 +12,7 @@
 
 import { estacionesVisibles } from './visibilidad.ts';
 import { crearEscala } from './escala.ts';
-import { combustibleEsComparable, ORDEN_COMBUSTIBLES } from './combustibles.ts';
+import { ORDEN_COMBUSTIBLES } from './combustibles.ts';
 import { generarSlug } from '../../scripts/lib/slug.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO } from '../../scripts/lib/tipos.ts';
 import type { Banda } from './escala.ts';
@@ -112,7 +112,7 @@ export function calcularEnlacesMunicipio(
       href: entrada.href,
       nombre: entrada.nombre,
       precio,
-      banda: precio === null || !combustibleEsComparable(combustible)
+      banda: precio === null
         ? null
         : escala.esMasBarata(precio)
           ? 'barata'

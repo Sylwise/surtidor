@@ -2452,13 +2452,6 @@ input {
   transform: translate(-50%, -50%);
 }
 
-/* GLP: precio escrito, sin banda cromática ni tratamiento de “más barata”. */
-.precio--no-comparable,
-.marcador--no-comparable .marcador__cartel {
-  background: var(--surface);
-  color: var(--petrol);
-}
-
 @media (max-width: 760px) {
   .hoja__rapidos .boton-zona {
     width: 100%;

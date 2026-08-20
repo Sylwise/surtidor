@@ -9,7 +9,7 @@
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
 import { calcularAhorro } from '../logica/ahorro.ts';
-import { combustibleDisponibleEnEvolucion, combustibleEsComparable, ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { combustibleDisponibleEnEvolucion, ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { mensajeHistoricoInsuficiente, mensajeNoVende } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearEuros, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
@@ -266,12 +266,6 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     ahorro.hidden = precioActivo === null;
     if (precioActivo === null) {
       puesto.textContent = '';
-      ahorro.replaceChildren();
-      return;
-    }
-
-    if (!combustibleEsComparable(estado.combustible)) {
-      puesto.textContent = 'GLP · el consumo por volumen es mayor; su precio por litro no se compara con los demás combustibles.';
       ahorro.replaceChildren();
       return;
     }

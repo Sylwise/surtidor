@@ -6,7 +6,7 @@
 
 import { estacionesVisibles } from './visibilidad.ts';
 import { bandaPrecio, crearEscala, ordenarPorPrecio, preciosDeCombustible } from './escala.ts';
-import { combustibleEsComparable, ORDEN_COMBUSTIBLES } from './combustibles.ts';
+import { ORDEN_COMBUSTIBLES } from './combustibles.ts';
 import type { BandaPrecio } from './escala.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona } from './zona.ts';
@@ -32,7 +32,7 @@ export function calcularListaCombustible(estaciones: EstacionZona[], combustible
       estacion,
       puesto: indice + 1,
       precio,
-      banda: combustibleEsComparable(combustible) ? bandaPrecio(precio, escala) : 'no-comparable',
+      banda: bandaPrecio(precio, escala),
     };
   });
 }

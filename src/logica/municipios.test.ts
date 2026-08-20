@@ -153,13 +153,13 @@ test('calcularEnlacesMunicipio calcula la banda de color solo con los precios de
   assert.equal(a?.banda, 'barata');
 });
 
-test('calcularEnlacesMunicipio no asigna banda cromática al GLP', () => {
+test('calcularEnlacesMunicipio compara precios GLP entre sí', () => {
   const filas = calcularEnlacesMunicipio(
     [
-      { href: '/a/', nombre: 'A', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.91 } },
-      { href: '/b/', nombre: 'B', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.99 } },
+      { href: '/a/', nombre: 'A', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 1.119 } },
+      { href: '/b/', nombre: 'B', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 1.155 } },
     ],
     'glp',
   );
-  assert.deepEqual(filas.map((fila) => fila.banda), [null, null]);
+  assert.deepEqual(filas.map((fila) => fila.banda), ['barata', 'p5']);
 });

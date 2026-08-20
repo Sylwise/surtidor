@@ -47,10 +47,6 @@ export function combustibleDisponibleEnEvolucion(clave: ClavePrecio): clave is C
   return COMBUSTIBLES_EVOLUCION.some((candidata) => candidata === clave);
 }
 
-export function combustibleEsComparable(clave: ClavePrecio): boolean {
-  return clave !== 'glp';
-}
-
 /** Nombre dentro de una frase: conserva GLP como sigla y baja el resto. */
 export function etiquetaCombustibleEnFrase(clave: ClavePrecio): string {
   return clave === 'glp' ? 'GLP' : ETIQUETA[clave].toLocaleLowerCase('es');

@@ -376,9 +376,11 @@ dominante y nombre pequeño en gasolina, nombre principal en los diéseles. Para
 gasóleo B y GLP, el nombre completo es principal y «Alternativo» el descriptor.
 No muestra precio y su flecha va sin círculo.
 
-El GLP no es comparable con los demás combustibles: su fila no lleva banda de
-color y muestra una nota que explica que su mayor consumo por volumen impide
-comparar directamente su precio por litro.
+El GLP no es comparable con los demás combustibles: como este panel coloca los
+seis precios uno debajo de otro, ninguna fila lleva banda y la nota explica que
+su mayor consumo por volumen impide comparar directamente su precio por litro.
+Fuera del panel, mapa y lista sí comparan estaciones de GLP entre sí con la
+escala territorial común.
 
 El filtro «Abiertas» sigue siendo una píldora redonda independiente porque es
 una activación binaria, no otra opción del grupo.

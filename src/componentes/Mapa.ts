@@ -27,7 +27,7 @@ import {
   type Racimo,
 } from '../logica/colisiones.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
-import { combustibleEsComparable, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
+import { etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
 import { mensajeAquiNoHay, mensajeNoVende } from '../logica/mensajesAusencia.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
@@ -46,7 +46,7 @@ import {
   type ModoMapa,
 } from '../logica/vistaNacional.ts';
 import type { EstacionZona } from '../logica/zona.ts';
-import type { ClavePrecio, ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
+import type { ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
 
 const ESTILO_TILES = 'https://tiles.openfreemap.org/styles/positron';
 // Encuadre antes de que lleguen las estaciones, o mientras no hay zona
@@ -583,9 +583,8 @@ export function montarMapa(
       texto = '—';
       etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: ${mensajeNoVende()}`;
     } else {
-      const comparable = combustibleEsComparable(estado.combustible);
-      const barata = comparable && escala.esMasBarata(precio);
-      clases.push(comparable ? (barata ? 'marcador--barata' : `marcador--${escala.banda(precio)}`) : 'marcador--no-comparable');
+      const barata = escala.esMasBarata(precio);
+      clases.push(barata ? 'marcador--barata' : `marcador--${escala.banda(precio)}`);
       texto = formatearPrecio(precio);
       etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: ${texto} euros${barata ? ', la más barata de la zona' : ''}`;
       prioridad = barata ? 3 : 2;
@@ -616,7 +615,6 @@ export function montarMapa(
       'marcador--p3',
       'marcador--p4',
       'marcador--p5',
-      'marcador--no-comparable',
       'marcador--cerrada',
       'marcador--activa',
     );
@@ -626,9 +624,8 @@ export function montarMapa(
     entrada.cartel.textContent = texto;
   }
 
-  function claseBanda(precio: number | null, escala: Escala, combustible: ClavePrecio): string {
+  function claseBanda(precio: number | null, escala: Escala): string {
     if (precio === null) return 'marcador--sin-dato';
-    if (!combustibleEsComparable(combustible)) return 'marcador--no-comparable';
     return escala.esMasBarata(precio) ? 'marcador--barata' : `marcador--${escala.banda(precio)}`;
   }
 
@@ -871,9 +868,8 @@ export function montarMapa(
         'marcador--p3',
         'marcador--p4',
         'marcador--p5',
-        'marcador--no-comparable',
       );
-      entrada.boton.classList.add(claseBanda(racimo.precioMinimo, ultimaEscala, ultimoEstado.combustible));
+      entrada.boton.classList.add(claseBanda(racimo.precioMinimo, ultimaEscala));
 
       const textoPrecio = racimo.precioMinimo === null ? '—' : formatearPrecio(racimo.precioMinimo);
       entrada.precioSpan.textContent = textoPrecio;

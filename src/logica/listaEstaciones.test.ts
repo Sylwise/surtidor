@@ -98,7 +98,7 @@ test('la lista comparte los extremos de la escala visual: barata y p5', () => {
   assert.equal(filas.at(-1)?.banda, 'p5');
 });
 
-test('el GLP no recibe banda de comparación aunque tenga varios precios', () => {
+test('el GLP compara estaciones entre sí con la escala territorial', () => {
   const filas = calcularListaCombustible(
     [
       estacion({ id: 'a', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.93 } }),
@@ -106,7 +106,18 @@ test('el GLP no recibe banda de comparación aunque tenga varios precios', () =>
     ],
     'glp',
   );
-  assert.deepEqual(filas.map((fila) => fila.banda), ['no-comparable', 'no-comparable']);
+  assert.deepEqual(filas.map((fila) => fila.banda), ['barata', 'p5']);
+});
+
+test('el gasóleo B compara estaciones entre sí con la escala territorial', () => {
+  const filas = calcularListaCombustible(
+    [
+      estacion({ id: 'a', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: 1.2, glp: null } }),
+      estacion({ id: 'b', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: 1.25, glp: null } }),
+    ],
+    'gasoleoB',
+  );
+  assert.deepEqual(filas.map((fila) => fila.banda), ['barata', 'p5']);
 });
 
 test('calcularListasPorCombustible devuelve las seis claves (RF-89)', () => {
