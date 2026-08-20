@@ -7,13 +7,12 @@
 // de combustible/zona la hace src/logica/estado.ts al recibir cada
 // actualización; aquí solo se dispara el cambio de estado.
 //
-// RF-80: las pestañas solo se muestran en estado de lista. Con una estación
-// seleccionada (estado de ficha) desaparecen, porque la ficha ya lista los
-// cuatro precios y el mismo control quedaría duplicado; las cuatro filas de
-// la ficha son las que cambian el combustible activo entonces (RF-81).
+// RF-80/RF-81: el selector permanece accesible en lista y ficha; las seis
+// filas de la ficha también cambian el combustible activo.
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-import { ETIQUETA, ETIQUETA_SELECTOR, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { combustibleDisponibleEnEvolucion, ETIQUETA, ETIQUETA_SELECTOR, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { mensajeAquiNoHay } from '../logica/mensajesAusencia.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { estacionesQueVenden } from '../logica/visibilidad.ts';
 import { estacionesDeZona } from '../logica/zona.ts';
@@ -217,7 +216,10 @@ export function montarControles(
 
   function render(estado: EstadoApp): void {
     const zonaActual = zonasOrdenadas.find((z) => z.id === estado.zonaId);
-    if (enlaceEvolucionZona && zonaActual) {
+    if (enlaceEvolucionZona) {
+      enlaceEvolucionZona.hidden = !combustibleDisponibleEnEvolucion(estado.combustible);
+    }
+    if (enlaceEvolucionZona && zonaActual && combustibleDisponibleEnEvolucion(estado.combustible)) {
       const provinciaId = zonaActual.provincias.length === 1 ? zonaActual.provincias[0] : null;
       if (provinciaId) {
         const parametros = new URLSearchParams();
@@ -273,7 +275,7 @@ export function montarControles(
         const precio = estacion.precios[clave];
         return precio !== null && (actual === null || precio < actual) ? precio : actual;
       }, null);
-      preciosCombustible.get(clave)!.textContent = minimo === null ? 'No disponible' : formatearPrecio(minimo);
+      preciosCombustible.get(clave)!.textContent = minimo === null ? mensajeAquiNoHay(clave) : formatearPrecio(minimo);
     }
 
     const etiquetaSelector = ETIQUETA_SELECTOR[estado.combustible];

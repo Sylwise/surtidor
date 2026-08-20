@@ -29,7 +29,7 @@ import { estacionesVisibles } from '../../../logica/visibilidad.ts';
 import {
   ETIQUETA,
   ORDEN_COMBUSTIBLES,
-  ORDEN_COMBUSTIBLES_COMPARABLES,
+  COMBUSTIBLES_EDITORIALES,
 } from '../../../logica/combustibles.ts';
 import { cajaDeTitulo, formatearFechaHora, formatearPrecio, nombreVisible } from '../../../logica/formato.ts';
 import { generarSlug } from '../../../../scripts/lib/slug.ts';
@@ -182,7 +182,7 @@ const enlacesMunicipio: EnlacesEstaticos = {
 // municipio la vende (raro, pero RF-23 obliga a contemplarlo), se cae al
 // primer combustible comparable que sí tenga precio. El GLP queda fuera del
 // reclamo editorial y de compartición (RF-122), aunque se sirva en la lista.
-const claveTitulo = ORDEN_COMBUSTIBLES_COMPARABLES.find((clave) => precioMinimo(clave) !== null) ?? null;
+const claveTitulo = COMBUSTIBLES_EDITORIALES.find((clave) => precioMinimo(clave) !== null) ?? null;
 const precioTitulo = claveTitulo ? precioMinimo(claveTitulo) : null;
 
 const titulo =

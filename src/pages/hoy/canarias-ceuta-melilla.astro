@@ -4,9 +4,10 @@ import TablaFiscalEditorial from '../../componentes/TablaFiscalEditorial.astro';
 import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { COMBUSTIBLES_EDITORIALES as ORDEN_COMBUSTIBLES, ETIQUETA } from '../../logica/combustibles.ts';
 import { formatearFechaHora, formatearNumero, formatearPrecio, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+import { mensajeAquiNoHay } from '../../logica/mensajesAusencia.ts';
 
 const ruta = '/hoy/canarias-ceuta-melilla/';
 const titulo = 'Precio de la gasolina en Canarias, Ceuta y Melilla hoy · Surtidor';
@@ -54,7 +55,7 @@ const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
       {liderGasolina95 && resumenGasolina95 && (
         <article class="editorial-canarias__principal">
           <span>Gasolina 95 · Menor media</span>
-          <strong>{resumenGasolina95.media === null ? 'sin datos' : `${formatearPrecio(resumenGasolina95.media)} €/L`}</strong>
+          <strong>{resumenGasolina95.media === null ? mensajeAquiNoHay(gasolina95) : `${formatearPrecio(resumenGasolina95.media)} €/L`}</strong>
           <a href={`/${liderGasolina95.id}/`}>{nombreVisible(liderGasolina95.nombre, 'provincia')}</a>
           <small>Media simple · {formatearNumero(resumenGasolina95.n)} {resumenGasolina95.n === 1 ? 'estación' : 'estaciones'}</small>
           <time datetime={agregados.actualizado}>Datos actualizados · {formatearFechaHora(agregados.actualizado)}</time>
@@ -69,7 +70,7 @@ const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
         return (
           <article class="editorial-canarias__tarjeta">
             <span>{ETIQUETA[combustible]}</span>
-            <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
+            <strong>{resumen?.media === null || !resumen ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}</strong>
             {lider && resumen && <a href={`/${lider.id}/`}>{nombreVisible(lider.nombre, 'provincia')} · {formatearNumero(resumen.n)} est.</a>}
           </article>
         );
@@ -117,7 +118,7 @@ const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
           <aside class="editorial-canarias__lateral">
             <article class="editorial-canarias__lectura">
               <span>Lectura rápida</span>
-              <strong>{lider ? `${nombreVisible(lider.nombre, 'provincia')} tiene la menor media en ${ETIQUETA[combustible].toLocaleLowerCase('es')}.` : `No hay datos para ${ETIQUETA[combustible].toLocaleLowerCase('es')}.`}</strong>
+              <strong>{lider ? `${nombreVisible(lider.nombre, 'provincia')} tiene la menor media en ${ETIQUETA[combustible].toLocaleLowerCase('es')}.` : mensajeAquiNoHay(combustible)}</strong>
             </article>
             <nav class="editorial-canarias__otras" aria-label="Otras clasificaciones" data-selector-editorial>
               <p>Otras clasificaciones</p>
@@ -125,7 +126,7 @@ const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
                 const otroLider = lideres[otro];
                 const otroResumen = otroLider?.combustibles[otro] ?? null;
                 return <button type="button" data-combustible={otro} aria-controls={`panel-${otro}`} aria-pressed="false">
-                  <span><strong>{ETIQUETA[otro]}</strong><small>{otroLider && otroResumen ? `${nombreVisible(otroLider.nombre, 'provincia')} · ${formatearNumero(otroResumen.n)} est.` : 'Sin datos'}</small></span>
+                  <span><strong>{ETIQUETA[otro]}</strong><small>{otroLider && otroResumen ? `${nombreVisible(otroLider.nombre, 'provincia')} · ${formatearNumero(otroResumen.n)} est.` : mensajeAquiNoHay(otro)}</small></span>
                   <b>{otroResumen?.media === null || !otroResumen ? '—' : `${formatearPrecio(otroResumen.media)} €/L`}</b>
                 </button>;
               })}
@@ -138,7 +139,7 @@ const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
 
           <article class="editorial-canarias__lectura editorial-canarias__lectura--movil">
             <span>Lectura rápida</span>
-            <strong>{lider ? `${nombreVisible(lider.nombre, 'provincia')} tiene la menor media en ${ETIQUETA[combustible].toLocaleLowerCase('es')}.` : `No hay datos para ${ETIQUETA[combustible].toLocaleLowerCase('es')}.`}</strong>
+            <strong>{lider ? `${nombreVisible(lider.nombre, 'provincia')} tiene la menor media en ${ETIQUETA[combustible].toLocaleLowerCase('es')}.` : mensajeAquiNoHay(combustible)}</strong>
           </article>
 
           <details class="editorial-canarias__metodologia">

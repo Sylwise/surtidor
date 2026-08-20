@@ -5,9 +5,10 @@ import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoRotulo } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
 import { rotulosQueVenden, seleccionarMercadosFiscales, seleccionarRotulos, UMBRAL_ESTACIONES_ROTULO } from '../../../scripts/lib/rotulos.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { COMBUSTIBLES_EDITORIALES as ORDEN_COMBUSTIBLES, ETIQUETA } from '../../logica/combustibles.ts';
 import { formatearFechaHora, formatearNumero, formatearPrecio } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+import { mensajeAquiNoHay, mensajeMuestraInsuficienteRanking } from '../../logica/mensajesAusencia.ts';
 
 const ruta = '/hoy/marcas-mas-baratas/';
 const titulo = 'Marcas de gasolineras más baratas de España hoy · Surtidor';
@@ -43,7 +44,7 @@ const lideres = Object.fromEntries(
         const lider = lideres[combustible]; const resumen = lider?.combustibles[combustible];
         return <article class="editorial-destacado" data-destacado-combustible={combustible} hidden={indice > 0}>
           <span>Menor media · {ETIQUETA[combustible]}</span>
-          <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
+          <strong>{resumen?.media === null || !resumen ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}</strong>
           {lider && resumen && <div>
             <span>Marca</span>
             <b class="editorial-destacado__entidad">{lider.rotulo}</b>
@@ -88,7 +89,7 @@ const lideres = Object.fromEntries(
 
         <div class="editorial-ranking">
           <div class="editorial-ranking__cabecera"><span class="micro">Ranking de rótulos · Top {filasPrincipales.length}</span><span>{ETIQUETA[combustible]}</span></div>
-          {filas.length === 0 ? <section class="editorial-estado" role="status"><h3>Sin rótulos con muestra suficiente</h3><p>Ningún rótulo que supera el umbral publica {ETIQUETA[combustible].toLowerCase()} hoy.</p></section> : <>
+          {filas.length === 0 ? <section class="editorial-estado" role="status"><h3>{mensajeMuestraInsuficienteRanking()}</h3></section> : <>
             <TablaRotulosEditorial filas={filasPrincipales} combustible={combustible} principal />
             {filas.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver los {formatearNumero(filas.length)} rótulos</summary><TablaRotulosEditorial filas={filas.slice(6)} combustible={combustible} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
           </>}
@@ -104,11 +105,11 @@ const lideres = Object.fromEntries(
                   <small>
                     {referencia && resumen
                       ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'} con precio</>
-                      : `Ningún rótulo con la muestra local publica este combustible hoy`}
+                      : mensajeMuestraInsuficienteRanking()}
                   </small>
                   <small class="editorial-fiscal__umbral">Mínimo local: {formatearNumero(mercado.umbral)} estaciones</small>
                 </span>
-                <b>{resumen?.media === null || !resumen ? 'muestra insuficiente' : `${formatearPrecio(resumen.media)} €/L`}</b>
+                <b>{resumen?.media === null || !resumen ? mensajeMuestraInsuficienteRanking() : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>
             ))}
           </ul>
@@ -123,11 +124,11 @@ const lideres = Object.fromEntries(
                   <small>
                     {referencia && resumen
                       ? <>{referencia.elemento.rotulo} · {formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'} con precio</>
-                      : `Ningún rótulo con la muestra local publica este combustible hoy`}
+                      : mensajeMuestraInsuficienteRanking()}
                   </small>
                   <small class="editorial-fiscal__umbral">Mínimo local: {formatearNumero(mercado.umbral)} estaciones</small>
                 </span>
-                <b>{resumen?.media === null || !resumen ? 'muestra insuficiente' : `${formatearPrecio(resumen.media)} €/L`}</b>
+                <b>{resumen?.media === null || !resumen ? mensajeMuestraInsuficienteRanking() : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>
             ))}
           </ul>

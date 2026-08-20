@@ -28,7 +28,8 @@ import { join, dirname } from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
 import { fusionarProvincias, type EstacionZona } from '../src/logica/zona.ts';
 import { estacionesVisibles } from '../src/logica/visibilidad.ts';
-import { ETIQUETA } from '../src/logica/combustibles.ts';
+import { COMBUSTIBLES_COMPARTIR, ETIQUETA } from '../src/logica/combustibles.ts';
+import { mensajeAquiNoHay } from '../src/logica/mensajesAusencia.ts';
 import { formatearEuros, formatearFechaHora, formatearPrecio, nombreVisible } from '../src/logica/formato.ts';
 import { calcularAgregadosEditoriales } from './lib/agregados.ts';
 import { calcularAgregadosCapitales } from './lib/capitales.ts';
@@ -78,6 +79,9 @@ interface Tarjeta {
   actualizado: string | null;
 }
 
+type CombustibleCompartir = typeof COMBUSTIBLES_COMPARTIR[number];
+const [GASOLINA_COMPARTIR, DIESEL_COMPARTIR] = COMBUSTIBLES_COMPARTIR;
+
 export interface TarjetaEditorial {
   rutaSalida: string;
   titulo: string;
@@ -122,14 +126,14 @@ function truncarConElipsis(texto: string, anchoMaximo: number, tamFuente: number
  *  la aplicación); si ninguna de las visibles la vende, se cae a diésel. */
 function estacionMasBarata(estaciones: EstacionZona[]): EstacionZona | null {
   if (estaciones.length === 0) return null;
-  const porGasolina95 = estaciones.filter((e) => e.precios.gasolina95e5 !== null);
-  const candidatas = porGasolina95.length > 0 ? porGasolina95 : estaciones.filter((e) => e.precios.gasoleoA !== null);
+  const porGasolina95 = estaciones.filter((e) => e.precios[GASOLINA_COMPARTIR] !== null);
+  const candidatas = porGasolina95.length > 0 ? porGasolina95 : estaciones.filter((e) => e.precios[DIESEL_COMPARTIR] !== null);
   if (candidatas.length === 0) return null;
-  const clave = porGasolina95.length > 0 ? 'gasolina95e5' : 'gasoleoA';
+  const clave = porGasolina95.length > 0 ? GASOLINA_COMPARTIR : DIESEL_COMPARTIR;
   return [...candidatas].sort((a, b) => (a.precios[clave] as number) - (b.precios[clave] as number))[0];
 }
 
-function precioMinimo(estaciones: EstacionZona[], clave: 'gasolina95e5' | 'gasoleoA'): number | null {
+function precioMinimo(estaciones: EstacionZona[], clave: CombustibleCompartir): number | null {
   let minimo: number | null = null;
   for (const estacion of estaciones) {
     const precio = estacion.precios[clave];
@@ -152,16 +156,16 @@ const AVANCE_MONO = 0.6;
  *  reales: Castilla-La Mancha (2026-08-07) vende diésel a 1,460 y gasolina 95
  *  a 1,465 — el diésel es el héroe ahí. */
 function elegirHeroe(tarjeta: Tarjeta): {
-  clave: 'gasolina95e5' | 'gasoleoA';
+  clave: CombustibleCompartir;
   precio: number | null;
 } {
   const { precioGasolina95, precioDiesel } = tarjeta;
-  if (precioGasolina95 === null && precioDiesel === null) return { clave: 'gasolina95e5', precio: null };
-  if (precioDiesel === null) return { clave: 'gasolina95e5', precio: precioGasolina95 };
-  if (precioGasolina95 === null) return { clave: 'gasoleoA', precio: precioDiesel };
+  if (precioGasolina95 === null && precioDiesel === null) return { clave: GASOLINA_COMPARTIR, precio: null };
+  if (precioDiesel === null) return { clave: GASOLINA_COMPARTIR, precio: precioGasolina95 };
+  if (precioGasolina95 === null) return { clave: DIESEL_COMPARTIR, precio: precioDiesel };
   return precioGasolina95 <= precioDiesel
-    ? { clave: 'gasolina95e5', precio: precioGasolina95 }
-    : { clave: 'gasoleoA', precio: precioDiesel };
+    ? { clave: GASOLINA_COMPARTIR, precio: precioGasolina95 }
+    : { clave: DIESEL_COMPARTIR, precio: precioDiesel };
 }
 
 /** Tamaño de la etiqueta según el tamaño del número que corona: usado tanto
@@ -195,17 +199,17 @@ function bloquePrecio(
   x: number,
   yEtiqueta: number,
   yNumero: number,
-  etiqueta: string,
+  combustible: CombustibleCompartir,
   precio: number | null,
   tamNumero: number,
   colorNumero: string,
   tamUnidad: number,
 ): string {
   const tamEtiqueta = tamEtiquetaPara(tamNumero);
-  const etiquetaSvg = `<text x="${x}" y="${yEtiqueta}" font-family="Inter" font-weight="600" font-size="${tamEtiqueta}" letter-spacing="1.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(etiqueta.toUpperCase())}</text>`;
+  const etiquetaSvg = `<text x="${x}" y="${yEtiqueta}" font-family="Inter" font-weight="600" font-size="${tamEtiqueta}" letter-spacing="1.5" fill="${COLOR_MUTED_LIGHT}">${escaparXml(ETIQUETA[combustible].toUpperCase())}</text>`;
   if (precio === null) {
     return `${etiquetaSvg}
-    <text x="${x}" y="${yNumero}" font-family="Inter" font-weight="400" font-size="${Math.round(tamNumero * 0.3)}" fill="${COLOR_NO_VENDE}">no vende</text>`;
+    <text x="${x}" y="${yNumero}" font-family="Inter" font-weight="400" font-size="${Math.round(tamNumero * 0.3)}" fill="${COLOR_NO_VENDE}">${escaparXml(mensajeAquiNoHay(combustible))}</text>`;
   }
   const numero = formatearPrecio(precio);
   const anchoNumero = numero.length * tamNumero * AVANCE_MONO;
@@ -257,8 +261,8 @@ function totemCompleto(x: number, y: number, escala: number): string {
  */
 export function renderizarSvg(tarjeta: Tarjeta): string {
   const heroe = elegirHeroe(tarjeta);
-  const claveSecundaria = heroe.clave === 'gasolina95e5' ? 'gasoleoA' : 'gasolina95e5';
-  const precioSecundario = claveSecundaria === 'gasolina95e5' ? tarjeta.precioGasolina95 : tarjeta.precioDiesel;
+  const claveSecundaria = heroe.clave === GASOLINA_COMPARTIR ? DIESEL_COMPARTIR : GASOLINA_COMPARTIR;
+  const precioSecundario = claveSecundaria === GASOLINA_COMPARTIR ? tarjeta.precioGasolina95 : tarjeta.precioDiesel;
   const hayColumnaSecundaria = precioSecundario !== null;
 
   // --- 1. Banda superior ---
@@ -307,14 +311,14 @@ export function renderizarSvg(tarjeta: Tarjeta): string {
     xColIzquierda,
     yEtiquetas,
     yNumeros,
-    ETIQUETA[heroe.clave],
+    heroe.clave,
     heroe.precio,
     tamNumeroHeroe,
     COLOR_MEJOR_TEXTO,
     40,
   );
   const bloqueSecundarioSvg = hayColumnaSecundaria
-    ? bloquePrecio(xColDerecha, yEtiquetas, yNumeros, ETIQUETA[claveSecundaria], precioSecundario, 76, COLOR_PAPEL, 24)
+    ? bloquePrecio(xColDerecha, yEtiquetas, yNumeros, claveSecundaria, precioSecundario, 76, COLOR_PAPEL, 24)
     : '';
   const lineaSvg = `<line x1="${MARGEN}" y1="${yLinea}" x2="${ANCHO - MARGEN}" y2="${yLinea}" stroke="${COLOR_HAIR_DARK}" stroke-width="1.5" />`;
   const fechaTexto = tarjeta.actualizado ? `Actualizado el ${formatearFechaHora(tarjeta.actualizado)}` : '';
@@ -495,8 +499,8 @@ function escribir(tarjeta: Tarjeta): number {
   return png.length;
 }
 
-const cifraPrecio = (valor: number | null) => (valor === null ? 'sin datos' : `${formatearPrecio(valor)} €/L`);
-const cifraEuros = (valor: number | null) => (valor === null ? 'sin datos' : formatearEuros(valor));
+const cifraPrecio = (valor: number | null, combustible: CombustibleCompartir) => valor === null ? mensajeAquiNoHay(combustible) : `${formatearPrecio(valor)} €/L`;
+const cifraEuros = (valor: number | null, combustible: CombustibleCompartir) => valor === null ? mensajeAquiNoHay(combustible) : formatearEuros(valor);
 
 export function construirTarjetasEditoriales(): TarjetaEditorial[] {
   const indice = JSON.parse(readFileSync(join(DIR_DATOS, 'indice.json'), 'utf-8')) as Indice;
@@ -527,16 +531,16 @@ export function construirTarjetasEditoriales(): TarjetaEditorial[] {
     origenDiesel: diesel.origen,
     actualizado: indice.actualizado,
   });
-  const precioConOrigen = (resultado: { valor: number | null; origen: string }) => ({
-    cifra: cifraPrecio(resultado.valor),
+  const precioConOrigen = (resultado: { valor: number | null; origen: string }, combustible: CombustibleCompartir) => ({
+    cifra: cifraPrecio(resultado.valor, combustible),
     origen: resultado.origen,
   });
-  const eurosConOrigen = (resultado: { valor: number | null; origen: string }) => ({
-    cifra: cifraEuros(resultado.valor),
+  const eurosConOrigen = (resultado: { valor: number | null; origen: string }, combustible: CombustibleCompartir) => ({
+    cifra: cifraEuros(resultado.valor, combustible),
     origen: resultado.origen,
   });
-  const origenMinimo = (combustible: 'gasolina95e5' | 'gasoleoA') => ({
-    cifra: cifraPrecio(minimos[combustible].minimo),
+  const origenMinimo = (combustible: CombustibleCompartir) => ({
+    cifra: cifraPrecio(minimos[combustible].minimo, combustible),
     origen: minimos[combustible].origenes[0]
       ? nombreVisible(minimos[combustible].origenes[0].municipio, 'municipio')
       : 'Sin origen disponible',
@@ -546,38 +550,38 @@ export function construirTarjetasEditoriales(): TarjetaEditorial[] {
     tarjeta(
       'provincias-mas-baratas',
       'Las provincias más baratas para repostar',
-      precioConOrigen(menorMedia(provincias, 'gasolina95e5', (zona) => nombreVisible(zona.nombre, 'provincia'))),
-      precioConOrigen(menorMedia(provincias, 'gasoleoA', (zona) => nombreVisible(zona.nombre, 'provincia'))),
+      precioConOrigen(menorMedia(provincias, GASOLINA_COMPARTIR, (zona) => nombreVisible(zona.nombre, 'provincia')), GASOLINA_COMPARTIR),
+      precioConOrigen(menorMedia(provincias, DIESEL_COMPARTIR, (zona) => nombreVisible(zona.nombre, 'provincia')), DIESEL_COMPARTIR),
     ),
     tarjeta(
       'cuanto-te-juegas',
       'Cuánto puedes ahorrar al llenar el depósito',
-      eurosConOrigen(mayorCoste(provincias, 'gasolina95e5')),
-      eurosConOrigen(mayorCoste(provincias, 'gasoleoA')),
+      eurosConOrigen(mayorCoste(provincias, GASOLINA_COMPARTIR), GASOLINA_COMPARTIR),
+      eurosConOrigen(mayorCoste(provincias, DIESEL_COMPARTIR), DIESEL_COMPARTIR),
     ),
     tarjeta(
       'marcas-mas-baratas',
       'Qué marcas tienen los precios más bajos',
-      precioConOrigen(menorMedia(rotulosQueVenden(rotulos, 'gasolina95e5'), 'gasolina95e5', (rotulo) => rotulo.rotulo)),
-      precioConOrigen(menorMedia(rotulosQueVenden(rotulos, 'gasoleoA'), 'gasoleoA', (rotulo) => rotulo.rotulo)),
+      precioConOrigen(menorMedia(rotulosQueVenden(rotulos, GASOLINA_COMPARTIR), GASOLINA_COMPARTIR, (rotulo) => rotulo.rotulo), GASOLINA_COMPARTIR),
+      precioConOrigen(menorMedia(rotulosQueVenden(rotulos, DIESEL_COMPARTIR), DIESEL_COMPARTIR, (rotulo) => rotulo.rotulo), DIESEL_COMPARTIR),
     ),
     tarjeta(
       'capitales-de-provincia',
       'Qué capitales tienen el combustible más barato',
-      precioConOrigen(menorMedia(capitales, 'gasolina95e5', (capital) => nombreVisible(capital.nombre, 'municipio'))),
-      precioConOrigen(menorMedia(capitales, 'gasoleoA', (capital) => nombreVisible(capital.nombre, 'municipio'))),
+      precioConOrigen(menorMedia(capitales, GASOLINA_COMPARTIR, (capital) => nombreVisible(capital.nombre, 'municipio')), GASOLINA_COMPARTIR),
+      precioConOrigen(menorMedia(capitales, DIESEL_COMPARTIR, (capital) => nombreVisible(capital.nombre, 'municipio')), DIESEL_COMPARTIR),
     ),
     tarjeta(
       'la-mas-barata-de-espana',
       'Dónde está el combustible más barato de España',
-      origenMinimo('gasolina95e5'),
-      origenMinimo('gasoleoA'),
+      origenMinimo(GASOLINA_COMPARTIR),
+      origenMinimo(DIESEL_COMPARTIR),
     ),
     tarjeta(
       'canarias-ceuta-melilla',
       'Gasolina y diésel en Canarias, Ceuta y Melilla',
-      precioConOrigen(menorMedia(fiscales, 'gasolina95e5', (zona) => nombreVisible(zona.nombre, 'provincia'))),
-      precioConOrigen(menorMedia(fiscales, 'gasoleoA', (zona) => nombreVisible(zona.nombre, 'provincia'))),
+      precioConOrigen(menorMedia(fiscales, GASOLINA_COMPARTIR, (zona) => nombreVisible(zona.nombre, 'provincia')), GASOLINA_COMPARTIR),
+      precioConOrigen(menorMedia(fiscales, DIESEL_COMPARTIR, (zona) => nombreVisible(zona.nombre, 'provincia')), DIESEL_COMPARTIR),
     ),
   ];
 }
@@ -612,8 +616,8 @@ export function construirTarjetas(): Tarjeta[] {
     tarjetas.push({
       rutaSalida: join(DIR_SALIDA, `${zona.id}.png`),
       antetitulo: nombreVisible(zona.nombre, zona.tipo),
-      precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
-      precioDiesel: precioMinimo(visibles, 'gasoleoA'),
+      precioGasolina95: precioMinimo(visibles, GASOLINA_COMPARTIR),
+      precioDiesel: precioMinimo(visibles, DIESEL_COMPARTIR),
       estacionMasBarata: barata?.rotulo ?? null,
       actualizado,
     });
@@ -634,8 +638,8 @@ export function construirTarjetas(): Tarjeta[] {
     tarjetas.push({
       rutaSalida: join(DIR_SALIDA, provinciaSlug, `${municipioSlug}.png`),
       antetitulo: `${nombreVisible(municipio.nombre, 'municipio')}, ${nombreVisible(provincia.nombre, 'provincia')}`,
-      precioGasolina95: precioMinimo(visibles, 'gasolina95e5'),
-      precioDiesel: precioMinimo(visibles, 'gasoleoA'),
+      precioGasolina95: precioMinimo(visibles, GASOLINA_COMPARTIR),
+      precioDiesel: precioMinimo(visibles, DIESEL_COMPARTIR),
       estacionMasBarata: barata?.rotulo ?? null,
       actualizado,
     });

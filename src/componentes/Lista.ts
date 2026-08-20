@@ -12,7 +12,7 @@ import { calcularListaCombustible } from '../logica/listaEstaciones.ts';
 import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from '../logica/municipios.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
-import { ETIQUETA, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
+import { mensajeAquiNoHay } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { compararPorDistancia, distanciaKm, formatearDistancia } from '../logica/cercania.ts';
 import type { Precios } from '../../scripts/lib/tipos.ts';
@@ -105,10 +105,11 @@ function crearFilaEnlace(
   enlace: { href: string; nombre: string },
   // `undefined`: fila sin precio en absoluto (el "Ver toda la provincia" de
   // RF-90, que no es un municipio). `null`: es un municipio pero no vende
-  // el combustible activo (RF-94/RF-23: "no vende", nunca el precio de
+  // el combustible activo (RF-94: «Aquí no hay», nunca el precio de
   // otro). Un número: el precio real.
   precio: number | null | undefined,
   claseBanda: string,
+  combustible: EstadoApp['combustible'],
   textoAlternativo?: string,
 ): HTMLLIElement {
   const li = document.createElement('li');
@@ -128,7 +129,7 @@ function crearFilaEnlace(
     const precioEl = document.createElement('span');
     if (precio === null) {
       precioEl.className = 'enlaces-bloque__precio enlaces-bloque__precio--ausente';
-      precioEl.textContent = 'no vende';
+      precioEl.textContent = mensajeAquiNoHay(combustible);
     } else {
       precioEl.className = `enlaces-bloque__precio precio${claseBanda}`;
       precioEl.textContent = formatearPrecio(precio);
@@ -174,10 +175,10 @@ function crearEnlacesCierre(estado: EstadoApp, enlacesEstaticos?: EnlacesEstatic
 
   const items: HTMLLIElement[] = [];
   if (volverA) {
-    items.push(crearFilaEnlace(volverA, undefined, '', `Ver toda ${volverA.nombre}`));
+    items.push(crearFilaEnlace(volverA, undefined, '', estado.combustible, `Ver toda ${volverA.nombre}`));
   }
   for (const fila of filas) {
-    items.push(crearFilaEnlace(fila, fila.precio, fila.banda ? ` precio--${fila.banda}` : ''));
+    items.push(crearFilaEnlace(fila, fila.precio, fila.banda ? ` precio--${fila.banda}` : '', estado.combustible));
   }
 
   const nav = document.createElement('nav');
@@ -234,9 +235,8 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
     // RF-42: ninguna estación de la zona vende el combustible elegido.
     if (ordenadas.length === 0) {
       ponerCabecera(crearCabecera(estado, 0));
-      const nombreZona = estado.zonaNombre || 'esta zona';
       contenedor.append(
-        crearAviso(`Ninguna estación de ${nombreZona} vende ${etiquetaCombustibleEnFrase(estado.combustible)}.`)
+        crearAviso(mensajeAquiNoHay(estado.combustible))
       );
       const enlaces = crearEnlacesCierre(estado, enlacesEstaticos);
       if (enlaces) contenedor.append(enlaces);
@@ -258,7 +258,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
     // en paralelo el ámbito efectivo de provincia (Controles.ts).
     if (estado.ambitoAmpliado && estado.municipioNombre && estado.provinciaNombre) {
       const avisoAmbito = crearAviso(
-        `En ${estado.municipioNombre} no hay ${ETIQUETA[estado.combustible]} · se muestran las ${ordenadas.length} de ${estado.provinciaNombre}`,
+        `${mensajeAquiNoHay(estado.combustible)} Se muestran las ${ordenadas.length} estaciones de ${estado.provinciaNombre}.`,
       );
       avisoAmbito.classList.add('lista__aviso--ambito');
       contenedor.append(avisoAmbito);

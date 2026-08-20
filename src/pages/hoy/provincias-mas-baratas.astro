@@ -4,9 +4,10 @@ import TablaFiscalEditorial from '../../componentes/TablaFiscalEditorial.astro';
 import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { COMBUSTIBLES_EDITORIALES as ORDEN_COMBUSTIBLES, ETIQUETA } from '../../logica/combustibles.ts';
 import { formatearFechaHora, formatearNumero, formatearPrecio, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+import { mensajeAquiNoHay } from '../../logica/mensajesAusencia.ts';
 
 const ruta = '/hoy/provincias-mas-baratas/';
 const titulo = 'Provincias más baratas de España hoy · Surtidor';
@@ -54,7 +55,7 @@ const lideres = Object.fromEntries(
         return (
           <article class="editorial-destacado" data-destacado-combustible={combustible} hidden={indice > 0}>
             <span>Menor media · {ETIQUETA[combustible]}</span>
-            <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
+            <strong>{resumen?.media === null || !resumen ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}</strong>
             {lider && resumen && <div>
               <span>Provincia</span>
               <a href={`/${lider.id}/`}>{nombreVisible(lider.nombre, 'provincia')}</a>
@@ -97,8 +98,7 @@ const lideres = Object.fromEntries(
             </div>
             {conDatos.length === 0 ? (
               <section class="editorial-estado" role="status">
-                <h3>Sin datos para {ETIQUETA[combustible]}</h3>
-                <p>Ninguna provincia del mercado general publica este combustible hoy.</p>
+                <h3>{mensajeAquiNoHay(combustible)}</h3>
               </section>
             ) : (
               <>
@@ -143,7 +143,7 @@ const lideres = Object.fromEntries(
                     <strong><a href={`/${provincia.id}/`}>{nombreVisible(provincia.nombre, 'provincia')}</a></strong>
                     <small>{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
                   </span>
-                  <b>{resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}</b>
+                  <b>{resumen.media === null ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}</b>
                 </li>;
               })}
             </ul>

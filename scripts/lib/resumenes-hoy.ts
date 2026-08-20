@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { cambioEnPeriodo, serieMedia } from '../../src/logica/evolucion.ts';
 import { ETIQUETA } from '../../src/logica/combustibles.ts';
+import { mensajeAquiNoHay, mensajeHistoricoInsuficiente, mensajeMuestraInsuficienteRanking } from '../../src/logica/mensajesAusencia.ts';
 import { formatearEuros, formatearPrecio, nombreVisible } from '../../src/logica/formato.ts';
 import { calcularAgregadosEditoriales, type AgregadoZona, type AgregadosEditoriales, type MediaConN } from './agregados.ts';
 import { calcularAgregadosCapitales, type AgregadosCapitales } from './capitales.ts';
@@ -133,9 +134,9 @@ export function calcularResumenesPanelHoy(fuentes: FuentesResumenesHoy): Resumen
   return {
     actualizado: fuentes.agregados.actualizado,
     items: {
-      'provincias-mas-baratas': precioOAusencia(provincia, 'Sin media provincial publicada para Gasolina 95'),
+      'provincias-mas-baratas': precioOAusencia(provincia, mensajeAquiNoHay(combustible)),
       'cuanto-te-juegas': ahorro.valor === null
-        ? { tipo: 'sin-datos', texto: 'Sin media y mínimo comparables para 50 L' }
+        ? { tipo: 'sin-datos', texto: mensajeAquiNoHay(combustible) }
         : {
             tipo: 'ahorro',
             entidad: ahorro.origen,
@@ -144,17 +145,17 @@ export function calcularResumenesPanelHoy(fuentes: FuentesResumenesHoy): Resumen
             litros: LITROS_DEPOSITO_EDITORIAL,
             referencia: 'media provincial',
           },
-      'marcas-mas-baratas': precioOAusencia(rotulo, 'Sin rótulos con muestra suficiente para Gasolina 95'),
-      'capitales-de-provincia': precioOAusencia(capital, 'Sin media publicada en capitales para Gasolina 95'),
+      'marcas-mas-baratas': precioOAusencia(rotulo, mensajeMuestraInsuficienteRanking()),
+      'capitales-de-provincia': precioOAusencia(capital, mensajeAquiNoHay(combustible)),
       'la-mas-barata-de-espana': minimo.minimo === null || !origenMinimo
-        ? { tipo: 'sin-datos', texto: 'Sin mínimo nacional publicado para Gasolina 95' }
+        ? { tipo: 'sin-datos', texto: mensajeAquiNoHay(combustible) }
         : {
             tipo: 'precio',
             entidad: nombreVisible(origenMinimo.municipio, 'municipio'),
             combustible,
             valor: minimo.minimo,
           },
-      'canarias-ceuta-melilla': precioOAusencia(fiscal, 'Sin media fiscal separada para Gasolina 95'),
+      'canarias-ceuta-melilla': precioOAusencia(fiscal, mensajeAquiNoHay(combustible)),
       evolucion: cambio
         ? {
             tipo: 'evolucion',
@@ -165,7 +166,7 @@ export function calcularResumenesPanelHoy(fuentes: FuentesResumenesHoy): Resumen
         : {
             tipo: 'sin-datos',
             texto: historico
-              ? 'Gasolina 95 · sin observaciones comparables · 30 días'
+              ? mensajeHistoricoInsuficiente(PERIODO_RESUMEN_HOY)
               : 'Elige una provincia · comparación de 30 días',
           },
     },

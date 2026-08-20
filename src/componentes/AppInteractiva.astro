@@ -24,7 +24,8 @@
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
 import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
-import { ORDEN_COMBUSTIBLES, ETIQUETA, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
+import { ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { mensajeAquiNoHay } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 import type { ClavePrecio, Precios } from '../../scripts/lib/tipos.ts';
@@ -104,7 +105,7 @@ const COMBUSTIBLE_POR_DEFECTO = ORDEN_COMBUSTIBLES[0];
 
 // RF-89 ("los enlaces a otros municipios cierran la lista") + RF-90 (enlace
 // de vuelta a la provincia) + RF-94 (el precio sigue al combustible
-// seleccionado, "no vende" cuando el municipio no lo tiene). En una página
+// seleccionado, «Aquí no hay» cuando el municipio no lo tiene). En una página
 // de municipio, `enlacesMunicipio` ya trae vuelta+vecinos resueltos por el
 // frontmatter de esa página. En una de zona, se calculan aquí de las mismas
 // `estaciones` que alimentan la lista de arriba.
@@ -174,12 +175,12 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
               <div class="lista__grupo" data-combustible={clave} hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
                 {ambitoAmpliado && (
                   <p class="lista__aviso lista__aviso--ambito">
-                    En {municipioNombre} no hay {ETIQUETA[clave]} · se muestran las {filas.length} de {zonaNombre}
+                    {mensajeAquiNoHay(clave)} Se muestran las {filas.length} estaciones de {zonaNombre}.
                   </p>
                 )}
                 {filas.length === 0 ? (
                   <p class="lista__aviso">
-                    Ninguna estación de {zonaNombre || 'esta zona'} vende {etiquetaCombustibleEnFrase(clave)}.
+                    {mensajeAquiNoHay(clave)}
                   </p>
                 ) : (
                   <>
@@ -227,7 +228,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
                         const fila = filasCierrePorCombustible[clave][indice]!;
                         return fila.precio === null ? (
                           <span class="enlaces-bloque__precio enlaces-bloque__precio--ausente" hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
-                            no vende
+                            {mensajeAquiNoHay(clave)}
                           </span>
                         ) : (
                           <span

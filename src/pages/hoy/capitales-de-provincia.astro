@@ -4,9 +4,10 @@ import TablaCapitalesEditorial from '../../componentes/TablaCapitalesEditorial.a
 import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosCapitales, type AgregadoCapital } from '../../../scripts/lib/capitales.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { COMBUSTIBLES_EDITORIALES as ORDEN_COMBUSTIBLES, ETIQUETA } from '../../logica/combustibles.ts';
 import { formatearFechaHora, formatearNumero, formatearPrecio, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
+import { mensajeAquiNoHay } from '../../logica/mensajesAusencia.ts';
 
 const ruta = '/hoy/capitales-de-provincia/';
 const titulo = 'Capitales de provincia con gasolina más barata hoy · Surtidor';
@@ -43,7 +44,7 @@ const lideres = Object.fromEntries(
         const resumen = lider?.combustibles[combustible] ?? null;
         return <article class="editorial-destacado" data-destacado-combustible={combustible} hidden={indice > 0}>
           <span>Capital con menor media · {ETIQUETA[combustible]}</span>
-          <strong>{resumen?.media === null || !resumen ? 'sin datos' : `${formatearPrecio(resumen.media)} €/L`}</strong>
+          <strong>{resumen?.media === null || !resumen ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}</strong>
           {lider && resumen && <div>
             <span>Capital</span>
             <a href={lider.href}>{nombreVisible(lider.nombre, 'municipio')}</a>
@@ -73,7 +74,7 @@ const lideres = Object.fromEntries(
 
         <div class="editorial-ranking">
           <div class="editorial-ranking__cabecera"><span class="micro">Ranking de capitales · Top {filasPrincipales.length}</span><span>Media simple</span></div>
-          {conDatos.length === 0 ? <section class="editorial-estado" role="status"><h3>Sin datos para {ETIQUETA[combustible]}</h3><p>Ninguna capital del mercado general publica este combustible hoy.</p></section> : <>
+          {conDatos.length === 0 ? <section class="editorial-estado" role="status"><h3>{mensajeAquiNoHay(combustible)}</h3></section> : <>
             <TablaCapitalesEditorial filas={filasPrincipales} combustible={combustible} principal />
             {conDatos.length > 6 && <details class="editorial-detalles editorial-detalles--ranking"><summary>Ver las {formatearNumero(filas.length)} capitales</summary><TablaCapitalesEditorial filas={conDatos.slice(6)} combustible={combustible} duplicadas={2} etiqueta={`Clasificación completa de ${ETIQUETA[combustible]}`} /></details>}
           </>}
@@ -89,7 +90,7 @@ const lideres = Object.fromEntries(
                   <strong><a href={capital.href}>{nombreVisible(capital.nombre, 'municipio')}</a></strong>
                   <small>{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
                 </span>
-                <b>{resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}</b>
+                <b>{resumen.media === null ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}</b>
               </li>;
             })}
           </ul>

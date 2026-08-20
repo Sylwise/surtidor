@@ -12,3 +12,9 @@ test('la zona guardada se recupera sin incorporar estado efímero de la hoja', (
 test('preferencias corruptas no crean una zona guardada', () => {
   assert.deepEqual(normalizarPreferencias({ zonaId: 1 }), {});
 });
+
+test('un combustible guardado tiene que existir en el catálogo', () => {
+  assert.deepEqual(normalizarPreferencias({ zonaId: 'araba-alava', combustible: 'queroseno' }), {
+    zonaId: 'araba-alava',
+  });
+});

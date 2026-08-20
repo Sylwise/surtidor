@@ -1,21 +1,22 @@
-import { ETIQUETA } from '../logica/combustibles.ts';
+import { COMBUSTIBLES_EVOLUCION, ETIQUETA, combustibleDisponibleEnEvolucion, esClavePrecio } from '../logica/combustibles.ts';
+import { mensajeAquiNoHay, mensajeCombustibleNoDisponibleEnEvolucion, mensajeHistoricoInsuficiente, mensajeNoVende, mensajeSinDato } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, serieDeEstacion, serieMedia, serieMinimo, validarHistoricoPublico, type CambioEstacion, type PeriodoEvolucion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { AgregadoHistorico } from '../../scripts/lib/artefactos-historicos.ts';
-import type { ClavePrecio, ClavePrecioHistorico, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecioHistorico, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
 import { bandaPrecio, crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { clasificarGestoGrafico } from '../logica/gestoGrafico.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 function eur(milesimas: number | null): string {
-  return milesimas === null ? 'sin dato' : `${(milesimas / 1000).toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €/L`;
+  return milesimas === null ? mensajeSinDato() : `${(milesimas / 1000).toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €/L`;
 }
 
 function eurTooltip(milesimas: number | null): string {
-  return milesimas === null ? 'Sin dato' : `${formatearPrecio(milesimas / 1000)} €`;
+  return milesimas === null ? mensajeSinDato() : `${formatearPrecio(milesimas / 1000)} €`;
 }
 
 function fecha(iso: string): string {
@@ -105,7 +106,10 @@ function dibujarGrafico(
     const anterior = principal[indiceActivo - 1]?.milesimas ?? null;
     const variacion = document.createElement('small'); variacion.className = 'evolucion-tooltip__cambio';
     if (punto.milesimas !== null && anterior !== null) { const diferencia = punto.milesimas - anterior; variacion.textContent = `${diferencia > 0 ? '+' : diferencia < 0 ? '−' : ''}${centimos(diferencia)} cts desde ayer`; }
-    else { variacion.classList.add('evolucion-tooltip__cambio--sin-dato'); variacion.textContent = 'Sin comparación con ayer'; }
+    else {
+      variacion.classList.add('evolucion-tooltip__cambio--sin-dato');
+      variacion.textContent = punto.milesimas === null ? mensajeSinDato() : mensajeHistoricoInsuficiente(1);
+    }
     tooltip.replaceChildren(tituloTooltip, variacion, filaPrincipal, filaSecundaria, ...(filaTerciaria ? [filaTerciaria] : []));
     tooltip.hidden = false;
     if (esMovil) {
@@ -201,10 +205,18 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const estacionesPublicas = actual.estaciones.filter((estacion) => estacion.tipoVenta === 'P');
     if (!estaciones.length) throw new Error('No hay estaciones con histórico en esta provincia.');
     const parametrosIniciales = new URLSearchParams(location.search);
-    const combustibleSolicitado = parametrosIniciales.get('combustible') as ClavePrecio | null;
+    const combustibleSolicitadoCrudo = parametrosIniciales.get('combustible');
+    if (combustibleSolicitadoCrudo !== null && !esClavePrecio(combustibleSolicitadoCrudo)) {
+      throw new Error('El combustible solicitado no es válido.');
+    }
+    const combustibleSolicitado = esClavePrecio(combustibleSolicitadoCrudo) ? combustibleSolicitadoCrudo : null;
+    if (combustibleSolicitado && !combustibleDisponibleEnEvolucion(combustibleSolicitado)) {
+      estado.textContent = mensajeCombustibleNoDisponibleEnEvolucion(combustibleSolicitado);
+      estado.dataset.tipo = 'aviso';
+      return;
+    }
     const periodoSolicitado = Number(parametrosIniciales.get('periodo'));
-    const combustiblesHistoricos: ClavePrecioHistorico[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
-    let combustible: ClavePrecioHistorico = combustibleSolicitado && combustiblesHistoricos.includes(combustibleSolicitado as ClavePrecioHistorico) ? combustibleSolicitado as ClavePrecioHistorico : 'gasolina95e5';
+    let combustible: ClavePrecioHistorico = combustibleSolicitado && combustibleDisponibleEnEvolucion(combustibleSolicitado) ? combustibleSolicitado : COMBUSTIBLES_EVOLUCION[0];
     let periodo: PeriodoEvolucion = [1, 7, 30, 90].includes(periodoSolicitado) ? periodoSolicitado as PeriodoEvolucion : 30;
     let filtroSheet: 'baratas' | 'cercanas' | 'abiertas' = 'baratas';
     let ubicacionUsuario: PosicionUsuario | null = null;
@@ -227,7 +239,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const destinosCombustible = [...contenedor.querySelectorAll<HTMLElement>('[data-combustibles]')];
     const etiquetaCompacta: Record<ClavePrecioHistorico, string> = { gasolina95e5: '95', gasoleoA: 'Diésel', gasolina98e5: '98', gasoleoPremium: 'Diésel +' };
     const etiquetaControl: Record<ClavePrecioHistorico, string> = { gasolina95e5: ETIQUETA.gasolina95e5, gasoleoA: ETIQUETA.gasoleoA, gasolina98e5: ETIQUETA.gasolina98e5, gasoleoPremium: 'Diésel +' };
-    const botonesCombustible = destinosCombustible.flatMap((destino) => combustiblesHistoricos.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.ariaLabel = etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
+    const botonesCombustible = destinosCombustible.flatMap((destino) => COMBUSTIBLES_EVOLUCION.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.ariaLabel = etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
     const botonesPeriodo = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-periodo]')];
     const botonesFiltroSheet = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-filtro-sheet]')];
     const contadorSheet = contenedor.querySelector<HTMLElement>('[data-sheet-contador]')!;
@@ -307,15 +319,15 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         : `Media de ${nombreMunicipioActivo ?? nombreVisible(actual.provincia.nombre, 'provincia')}`;
       const precioActualEstacion = estacionActiva?.precios[combustible] ?? null;
       contenedor.querySelector<HTMLElement>('[data-etiqueta-precio]')!.textContent = estacionActiva ? 'Precio actual' : 'Último cierre';
-      contenedor.querySelector<HTMLElement>('[data-precio]')!.textContent = estacionActiva ? (precioActualEstacion === null ? 'no vende' : eur(Math.round(precioActualEstacion * 1000))) : eur(seriePrincipal.at(-1)?.milesimas ?? null);
+      contenedor.querySelector<HTMLElement>('[data-precio]')!.textContent = estacionActiva ? (precioActualEstacion === null ? mensajeNoVende() : eur(Math.round(precioActualEstacion * 1000))) : eur(seriePrincipal.at(-1)?.milesimas ?? null);
       const cambioElemento = contenedor.querySelector<HTMLElement>('[data-cambio]')!;
       const cambioMovilElemento = contenedor.querySelector<HTMLElement>('[data-cambio-movil]')!;
       const fraseDesktop = contenedor.querySelector<HTMLElement>('[data-frase-desktop]')!;
       const fraseMovil = contenedor.querySelector<HTMLElement>('[data-frase-movil]')!;
       if (!cambio) {
         cambioElemento.textContent = '—'; cambioMovilElemento.textContent = '—';
-        fraseDesktop.textContent = estacionActiva && precioActualEstacion === null ? 'No vende este combustible' : 'Aún no hay histórico suficiente';
-        fraseMovil.textContent = estacionActiva && precioActualEstacion === null ? 'No vende' : 'Sin histórico suficiente';
+        fraseDesktop.textContent = estacionActiva && precioActualEstacion === null ? mensajeNoVende() : mensajeHistoricoInsuficiente(periodo);
+        fraseMovil.textContent = fraseDesktop.textContent;
       }
       else {
         cambioElemento.textContent = cambio.diferenciaMilesimas === 0 ? 'Sin cambio' : `${cambio.diferenciaMilesimas > 0 ? '↗ +' : '↘ −'}${centimos(cambio.diferenciaMilesimas)} cts`;
@@ -391,14 +403,14 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         const textoVacio = contenedor.querySelector<HTMLElement>('[data-vacio-texto]')!;
         const accionVacio = contenedor.querySelector<HTMLButtonElement>('[data-vacio-accion]')!;
         if (sinCombustible) {
-          const alternativa = combustiblesHistoricos.find((clave) => estacionActiva?.precios[clave] !== null);
-          tituloVacio.textContent = 'No vende este combustible';
-          textoVacio.textContent = `${estacionActiva!.rotulo} no publica precio de ${ETIQUETA[combustible]}. Puedes consultar otro combustible.`;
+          const alternativa = COMBUSTIBLES_EVOLUCION.find((clave) => estacionActiva?.precios[clave] !== null);
+          tituloVacio.textContent = mensajeNoVende();
+          textoVacio.textContent = '';
           accionVacio.textContent = alternativa ? `Ver ${ETIQUETA[alternativa]} →` : nombreMunicipioActivo ? `Volver a la media de ${nombreMunicipioActivo} →` : 'Volver a la media provincial →';
           accionVacio.onclick = () => { if (alternativa) combustible = alternativa; else estacionActiva = null; actualizarUrl(); render(); };
         } else {
-          tituloVacio.textContent = 'Aún no hay histórico';
-          textoVacio.textContent = `No hay dos observaciones comparables en los últimos ${periodo === 1 ? '1 día' : `${periodo} días`}.`;
+          tituloVacio.textContent = mensajeHistoricoInsuficiente(periodo);
+          textoVacio.textContent = '';
           accionVacio.textContent = nombreMunicipioActivo ? `Volver a la media de ${nombreMunicipioActivo} →` : 'Volver a la media provincial →';
           accionVacio.onclick = () => { estacionActiva = null; actualizarUrl(); render(); };
         }
@@ -469,7 +481,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       const tabla = contenedor.querySelector<HTMLTableSectionElement>('[data-tabla-observaciones]')!;
       tabla.replaceChildren();
       const filasTabla = document.createDocumentFragment();
-      const textoDato = (valor: number | null, n?: number): string => valor === null ? 'Sin dato' : `${eur(valor)}${n === undefined ? '' : ` · n=${n}`}`;
+      const textoDato = (valor: number | null, n?: number): string => valor === null ? mensajeSinDato() : `${eur(valor)}${n === undefined ? '' : ` · n=${n}`}`;
       historico.fechas.forEach((fechaDia, indice) => {
         const fila = document.createElement('tr');
         const celdaFecha = document.createElement('th'); celdaFecha.scope = 'row'; celdaFecha.textContent = fechaTooltip(fechaDia);
@@ -505,7 +517,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       contadorSheet.textContent = `${estacionesCombustible.length} resultados · ${ordenarPorCercania ? 'ordenadas por cercanía' : filtroSheet === 'abiertas' ? 'abiertas ahora' : 'ordenadas por precio'}`;
       const listaSheet = contenedor.querySelector<HTMLOListElement>('[data-sheet-lista]')!; listaSheet.replaceChildren();
       if (estacionesCombustible.length === 0) {
-        const li = document.createElement('li'); const texto = document.createElement('small'); texto.textContent = filtroSheet === 'abiertas' ? 'Ninguna abierta ahora.' : 'Ninguna estación vende este combustible.'; li.append(texto); listaSheet.append(li);
+        const li = document.createElement('li'); const texto = document.createElement('small'); texto.textContent = filtroSheet === 'abiertas' ? 'Ninguna abierta ahora.' : mensajeAquiNoHay(combustible); li.append(texto); listaSheet.append(li);
       }
       estacionesCombustible.forEach((estacion, indice) => {
         const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button';
@@ -549,7 +561,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       coincidencias.slice(0, 8).forEach((estacion) => {
         const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button';
         const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = `${nombreVisible(estacion.municipio, 'municipio')} · ${cajaDeTitulo(estacion.direccion)}`; identidad.append(nombre, lugar);
-        const precio = document.createElement('b'); precio.textContent = estacion.precios[combustible] === null ? 'No vende' : estacion.precios[combustible]!.toLocaleString('es-ES', { minimumFractionDigits: 3 }); boton.append(identidad, precio); boton.onclick = () => abrirEstacion(estacion); li.append(boton); resultados.append(li);
+        const precio = document.createElement('b'); precio.textContent = estacion.precios[combustible] === null ? mensajeNoVende() : estacion.precios[combustible]!.toLocaleString('es-ES', { minimumFractionDigits: 3 }); boton.append(identidad, precio); boton.onclick = () => abrirEstacion(estacion); li.append(boton); resultados.append(li);
       });
     };
     buscar.oninput = actualizarBusqueda;

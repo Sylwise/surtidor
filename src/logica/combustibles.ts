@@ -1,24 +1,51 @@
 // Nombres de dominio de los combustibles, en la voz del conductor
 // (docs/05-diseno.md): "gasolina 95", no "producto 1".
 
-import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecio, ClavePrecioHistorico } from '../../scripts/lib/tipos.ts';
 
-/** Orden fijo en el que se muestran los combustibles en pestañas y en la ficha. */
-export const ORDEN_COMBUSTIBLES: ClavePrecio[] = [
+/** Conjuntos declarados por sección (ADR-0028). Ningún consumidor de interfaz
+ * mantiene su propia lista: las diferencias son decisiones de producto y de
+ * disponibilidad de datos, no coincidencias entre arrays repetidos. */
+export const COMBUSTIBLES_PRECIOS = [
   'gasolina95e5',
   'gasoleoA',
   'gasolina98e5',
   'gasoleoPremium',
   'gasoleoB',
   'glp',
-];
+] as const satisfies readonly ClavePrecio[];
 
-/** Combustibles que pueden aparecer en comparaciones, editoriales e
- * imágenes. El GLP queda fuera porque su consumo por volumen no permite
- * comparar el precio por litro con el resto (ADR-0027/RF-122). */
-export const ORDEN_COMBUSTIBLES_COMPARABLES: ClavePrecio[] = ORDEN_COMBUSTIBLES.filter(
-  (clave) => clave !== 'glp',
-);
+export const COMBUSTIBLES_EDITORIALES = [
+  'gasolina95e5',
+  'gasoleoA',
+  'gasolina98e5',
+  'gasoleoPremium',
+  'gasoleoB',
+] as const satisfies readonly ClavePrecio[];
+
+export const COMBUSTIBLES_EVOLUCION = [
+  'gasolina95e5',
+  'gasoleoA',
+  'gasolina98e5',
+  'gasoleoPremium',
+] as const satisfies readonly ClavePrecioHistorico[];
+
+export const COMBUSTIBLES_COMPARTIR = [
+  'gasolina95e5',
+  'gasoleoA',
+] as const satisfies readonly ClavePrecio[];
+
+/** Alias de dominio conservados para los consumidores generales. */
+export const ORDEN_COMBUSTIBLES = COMBUSTIBLES_PRECIOS;
+export const ORDEN_COMBUSTIBLES_COMPARABLES = COMBUSTIBLES_EDITORIALES;
+
+export function esClavePrecio(valor: unknown): valor is ClavePrecio {
+  return typeof valor === 'string' && COMBUSTIBLES_PRECIOS.some((clave) => clave === valor);
+}
+
+export function combustibleDisponibleEnEvolucion(clave: ClavePrecio): clave is ClavePrecioHistorico {
+  return COMBUSTIBLES_EVOLUCION.some((candidata) => candidata === clave);
+}
 
 export function combustibleEsComparable(clave: ClavePrecio): boolean {
   return clave !== 'glp';

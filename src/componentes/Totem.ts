@@ -1,5 +1,5 @@
 // Ficha de la estación seleccionada: rótulo, dirección, municipio, lado de
-// la carretera (RF-29), horario, cómo llegar (RF-27, RF-28), los cuatro
+// la carretera (RF-29), horario, cómo llegar (RF-27, RF-28), los seis
 // combustibles (RF-22, RF-23), puesto dentro de la zona (RF-24) y el bloque
 // de ahorro (RF-25). Ver la sección "Tótem" y "Móvil" de docs/05-diseno.md.
 //
@@ -9,7 +9,8 @@
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
 import { calcularAhorro } from '../logica/ahorro.ts';
-import { combustibleEsComparable, ETIQUETA, etiquetaCombustibleEnFrase, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { combustibleDisponibleEnEvolucion, combustibleEsComparable, ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { mensajeHistoricoInsuficiente, mensajeNoVende } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearEuros, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
 import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
@@ -151,7 +152,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       if (peticion !== peticionEvolucion) return;
       const serie = serieDeEstacion(historico, estacionId, combustible);
       const cambio = serie ? cambioEnPeriodo(serie, 7) : null;
-      if (!cambio) evolucionCambio.textContent = 'Sin comparación completa a 7 días';
+      if (!cambio) evolucionCambio.textContent = mensajeHistoricoInsuficiente(7);
       else if (cambio.diferenciaMilesimas === 0) {
         const estabilidad = estabilidadObservada(serie!);
         evolucionCambio.textContent = estabilidad && estabilidad.dias > 0
@@ -200,9 +201,8 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     // la dirección pasa a caja de título y los territorios usan el único
     // nombre visible de RF-76.
     rotulo.textContent = estacion.rotulo;
-    const combustiblesHistoricos: ClavePrecioHistorico[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
-    const combustibleHistorico = combustiblesHistoricos.includes(estado.combustible as ClavePrecioHistorico)
-      ? estado.combustible as ClavePrecioHistorico
+    const combustibleHistorico = combustibleDisponibleEnEvolucion(estado.combustible)
+      ? estado.combustible
       : null;
     evolucionCambio.hidden = combustibleHistorico === null;
     enlaceEvolucion.hidden = combustibleHistorico === null;
@@ -250,7 +250,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
       // vende.
       if (precio === null) {
         entrada.valor.className = 'totem__precio totem__precio--ausente';
-        entrada.valor.textContent = 'no vende';
+        entrada.valor.textContent = mensajeNoVende();
         entrada.boton.disabled = true;
       } else {
         entrada.valor.className = 'totem__precio';
@@ -261,7 +261,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
     const precioActivo = estacion.precios[estado.combustible];
     if (precioActivo === null) {
-      puesto.textContent = `Esta estación no vende ${etiquetaCombustibleEnFrase(estado.combustible)}: no se puede calcular su puesto ni el ahorro.`;
+      puesto.textContent = mensajeNoVende();
       ahorro.replaceChildren();
       return;
     }

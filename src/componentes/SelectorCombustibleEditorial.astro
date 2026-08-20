@@ -1,5 +1,5 @@
 ---
-import { ETIQUETA, ETIQUETA_CORTA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { COMBUSTIBLES_EDITORIALES as ORDEN_COMBUSTIBLES, ETIQUETA, ETIQUETA_CORTA } from '../logica/combustibles.ts';
 
 interface Props {
   etiqueta?: string;
@@ -29,7 +29,7 @@ const { etiqueta = 'Seleccionar combustible' } = Astro.props;
     [data-editorial-ranking] [data-destacado-combustible]:first-of-type[hidden] { display: block !important; }
     [data-editorial-ranking] [data-selector-editorial] { display: none; }
   </style>
-  <p class="editorial-aviso-noscript">JavaScript está desactivado: se muestran seguidos los cuatro combustibles.</p>
+  <p class="editorial-aviso-noscript">JavaScript está desactivado: se muestran seguidos los cinco combustibles.</p>
 </noscript>
 
 <script>

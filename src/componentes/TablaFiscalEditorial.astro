@@ -2,6 +2,7 @@
 import type { AgregadoZona } from '../../scripts/lib/agregados.ts';
 import type { FilaRanking } from '../../scripts/lib/ranking.ts';
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import { mensajeAquiNoHay } from '../logica/mensajesAusencia.ts';
 import { formatearNumero, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 
 interface Props {
@@ -33,7 +34,7 @@ const { filas, combustible } = Astro.props;
               <small class="editorial-tabla__muestra">{formatearNumero(resumen.n)} {resumen.n === 1 ? 'estación' : 'estaciones'}</small>
             </td>
             <td class:list={['editorial-tabla__numero', 'editorial-tabla__media', { 'editorial-tabla__ausente': resumen.media === null }]}>
-              {resumen.media === null ? 'no vende' : `${formatearPrecio(resumen.media)} €/L`}
+              {resumen.media === null ? mensajeAquiNoHay(combustible) : `${formatearPrecio(resumen.media)} €/L`}
             </td>
             <td class="editorial-tabla__numero editorial-tabla__estaciones">
               {formatearNumero(resumen.n)}<span class="editorial-tabla__unidad"> {resumen.n === 1 ? 'estación' : 'estaciones'}</span>

@@ -8,6 +8,7 @@
 import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona, FalloProvincia } from './zona.ts';
 import type { PosicionUsuario } from './cercania.ts';
+import { esClavePrecio } from './combustibles.ts';
 
 export type OrdenLista = 'precio' | 'distancia';
 
@@ -60,7 +61,7 @@ export function normalizarPreferencias(valor: unknown): Preferencias {
   const datos = valor as Record<string, unknown>;
   const resultado: Preferencias = {};
   if (typeof datos.zonaId === 'string') resultado.zonaId = datos.zonaId;
-  if (typeof datos.combustible === 'string') resultado.combustible = datos.combustible as ClavePrecio;
+  if (esClavePrecio(datos.combustible)) resultado.combustible = datos.combustible;
   return resultado;
 }
 

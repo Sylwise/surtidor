@@ -223,18 +223,11 @@ controles. Luego las filas.
 la lista, junto al contador que modifica. Una fila entera para un interruptor son
 44 px tirados, y además estaba lejos del número al que afecta.
 
-**Estado de ficha.** Las pestañas de combustible **desaparecen**. No porque el
-combustible deje de importar —cambia el puesto y cambia el ahorro— sino porque
-**la ficha ya lista los cuatro precios**: el mismo control estaría dos veces en
-pantalla, y una de ellas con más información que la otra.
-
-En su lugar, **las cuatro filas de combustible de la ficha son pulsables**. Tocar
+**Estado de ficha.** El selector de combustible permanece accesible en la
+cabecera y la ficha lista los seis precios. **Las seis filas de combustible que
+la estación vende son pulsables**. Tocar
 "Gasolina 98 · 1,769" lo convierte en el combustible activo. Objetivo de
-pulsación grande, el precio por delante, y cero controles duplicados. La fila
-activa se marca en `--signal`, como ya hace.
-
-Entre las dos cosas se recuperan unos 100 px de 730. Una séptima parte de la
-pantalla.
+pulsación grande y el precio por delante. La fila activa se marca en `--signal`.
 
 ### Cerrar la ficha
 
@@ -273,8 +266,8 @@ costando una línea. Ver [ADR-0006](adr/0006-marcadores-dom-con-colisiones.md).
 Fondo `--petrol`, borde inferior de 3 px en `--signal`. Réplica del cartel:
 rótulo arriba, filas de combustible con el precio en monoespaciada grande a la
 derecha. El combustible seleccionado se pinta en `--signal`; los demás en
-blanco. "no vende" en gris al 28 % y un cuerpo menor, porque es ausencia de dato
-y no debe competir.
+blanco. "no vende" en gris al 28 % y un cuerpo menor, porque la estación no
+vende ese combustible y el estado no debe competir con los precios.
 
 Debajo, el bloque de ahorro: el número en euros es lo más grande del bloque.
 
@@ -321,8 +314,8 @@ tono.
 
 La media es simple por estación pública. Solo cuentan las que venden el
 combustible; `null` nunca es cero. El filtro de abiertas no modifica ni la media
-ni su `n`. Si `n` es cero, la segunda y tercera líneas se sustituyen por «No
-vende {combustible} · 0 estaciones»: no se usa un guion que parezca una carga
+ni su `n`. Si `n` es cero, la segunda y tercera líneas se sustituyen por «Aquí
+no hay {combustible} · 0 estaciones»: no se usa un guion que parezca una carga
 pendiente ni un color de precio.
 
 El ancla es la media de las coordenadas de todas las estaciones públicas de la
@@ -340,7 +333,7 @@ el resumen nacional.
 
 Las 52 pastillas no caben simultáneamente en 360 px. La detección de colisiones
 puede ocultarlas con un orden determinista: foco primero; después provincias con
-dato, de menor a mayor media; finalmente provincias sin dato; los empates por ID
+dato, de menor a mayor media; finalmente provincias sin estaciones vendedoras; los empates por ID
 oficial. Una pastilla oculta sale también del recorrido de teclado. Cuando baste
 un desplazamiento visual corto para resolver una colisión, el poste conserva el
 ancla en el centroide.
@@ -348,7 +341,7 @@ ancla en el centroide.
 Cada pastilla visible es un botón de al menos 44 × 44 px. Su etiqueta accesible
 dice, por ejemplo, «ARABA/ALAVA. Precio medio de gasolina 95: 1,547 euros por
 litro, calculado sobre 84 estaciones. Pulsar para abrir la provincia». Con cero
-datos anuncia que ninguna estación vende el combustible. El orden de tabulación
+estaciones vendedoras anuncia «Aquí no hay {combustible}». El orden de tabulación
 es estable por catálogo, no por precio.
 
 Cada provincia se identifica por su ID oficial y conserva el mismo nodo del DOM
@@ -523,13 +516,13 @@ contenido. Identifica el proyecto y la fuente de datos y ofrece navegación a la
 portada y a las demás editoriales publicadas; no repite rankings ni funciona
 como un segundo sitemap. Ver RF-107.
 
-**Las cuatro listas se generan en el build.** El HTML servido contiene las
-estaciones ordenadas por cada uno de los cuatro combustibles. Las pastillas
-de combustible eligen cuál se muestra; las otras tres siguen en el documento.
-Son cuatro números por estación, datos que ya están en el JSON de provincia.
+**Las seis listas se generan en el build.** El HTML servido contiene las
+estaciones ordenadas por cada uno de los seis combustibles. El selector elige
+cuál se muestra; las otras cinco siguen en el documento. Son seis números por
+estación, datos que ya están en el JSON de provincia.
 
 Con esto hay más texto indexable por página que con la tabla anterior, no
-menos: cuatro precios por estación en vez de uno.
+menos: seis precios por estación en vez de uno.
 
 **Cada fila lleva rótulo, dirección y precio.** La dirección va bajo el
 rótulo, en el sitio donde antes iba el municipio. En una página de municipio
@@ -555,7 +548,7 @@ terceros.
 |---|---|
 | Datos sin cargar | Mensaje con la causa y botón de reintentar. Nunca un spinner infinito. |
 | Mapa sin cargar | El hueco del mapa explica qué falló. Lista y tótem siguen funcionando. |
-| Provincia sin ese combustible | "Ninguna estación de {provincia} vende {combustible}." Y se sugiere cambiar. |
+| Ámbito sin ese combustible | «Aquí no hay {combustible}». |
 | Filtro sin resultados | "Ninguna abierta ahora" con opción de quitar el filtro. |
 | Datos de más de 6 h | Aviso discreto con la hora real del dato. |
 
@@ -629,7 +622,7 @@ en caja de título. Código nuevo y revisiones deben conservarla.
   vía"** y **"A la izquierda de la vía"**. Si el campo es `N`, no se muestra nada:
   una etiqueta que dice "sin margen" es ruido.
 - **"Litros a repostar"**, nunca "depósito".
-- **"no vende"** en minúscula y en gris: es ausencia de dato, no compite.
+- **"no vende"** en minúscula y en gris: indica que esa estación no vende el combustible; no compite.
 
 ## Presupuesto de interfaz
 

@@ -1,6 +1,7 @@
 import { expandirTerritorios, validarEstadoHistorico, type EstadoHistorico } from './estado-historico.ts';
 import type { ClavePrecioHistorico } from './tipos.ts';
 import type { PrecioHistorico } from './historico.ts';
+import { COMBUSTIBLES_EVOLUCION } from '../../src/logica/combustibles.ts';
 
 export type PuntoAgregadoHistorico = [
   sumaMilesimas: number,
@@ -32,12 +33,7 @@ export interface HistoricoProvincia {
   municipios: Record<string, AgregadoHistorico>;
 }
 
-const CLAVES_PRECIO: ClavePrecioHistorico[] = [
-  'gasolina95e5',
-  'gasoleoA',
-  'gasolina98e5',
-  'gasoleoPremium',
-];
+const CLAVES_PRECIO: readonly ClavePrecioHistorico[] = COMBUSTIBLES_EVOLUCION;
 
 function agregadoVacio(dias: number): AgregadoHistorico {
   return Object.fromEntries(

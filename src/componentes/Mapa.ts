@@ -27,8 +27,9 @@ import {
   type Racimo,
 } from '../logica/colisiones.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
-import { combustibleEsComparable, ETIQUETA, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
+import { combustibleEsComparable, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
+import { mensajeAquiNoHay, mensajeNoVende } from '../logica/mensajesAusencia.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import {
   calcularRellenoMapa,
@@ -580,7 +581,7 @@ export function montarMapa(
       // usa un guion, nunca "0,000" (mismo espíritu que RF-23 en la ficha).
       clases.push('marcador--sin-dato');
       texto = '—';
-      etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: no vende ${etiquetaCombustibleEnFrase(estado.combustible)}`;
+      etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: ${mensajeNoVende()}`;
     } else {
       const comparable = combustibleEsComparable(estado.combustible);
       const barata = comparable && escala.esMasBarata(precio);
@@ -737,11 +738,11 @@ export function montarMapa(
     const provinciaVisible = nombreVisible(entrada.provincia.nombre, 'provincia');
     entrada.nombre.textContent = provinciaVisible;
     if (media === null) {
-      entrada.precio.textContent = `No vende ${ETIQUETA[estado.combustible]}`;
+      entrada.precio.textContent = mensajeAquiNoHay(estado.combustible);
       entrada.cuenta.textContent = '0 estaciones';
       entrada.boton.setAttribute(
         'aria-label',
-        `${provinciaVisible}. Ninguna estación vende ${combustible}. Pulsa para abrir la provincia.`,
+        `${provinciaVisible}. ${mensajeAquiNoHay(estado.combustible)} Pulsa para abrir la provincia.`,
       );
       return;
     }
@@ -880,7 +881,7 @@ export function montarMapa(
       entrada.boton.setAttribute(
         'aria-label',
         racimo.precioMinimo === null
-          ? `${racimo.ids.length} estaciones agrupadas, sin dato de ${etiquetaCombustibleEnFrase(ultimoEstado.combustible)}. Pulsa para acercar.`
+          ? `${racimo.ids.length} estaciones agrupadas. ${mensajeAquiNoHay(ultimoEstado.combustible)} Pulsa para acercar.`
           : `${racimo.ids.length} estaciones agrupadas, desde ${textoPrecio} euros. Pulsa para acercar.`
       );
       entrada.boton.hidden = !visibles.has(clave);
@@ -906,7 +907,7 @@ export function montarMapa(
     if (avisoSinCombustible) {
       avisoSinCombustible.hidden = vendedoras.length > 0;
       avisoSinCombustible.textContent = vendedoras.length === 0
-        ? `Ninguna estación de ${estado.zonaNombre || 'esta zona'} vende ${etiquetaCombustibleEnFrase(estado.combustible)}.`
+        ? mensajeAquiNoHay(estado.combustible)
         : '';
     }
 
