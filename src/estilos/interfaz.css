@@ -1550,7 +1550,14 @@ input {
   line-height: 1;
   white-space: nowrap;
 }
-.totem__fila-combustible--activa .totem__precio::after { content: ' €/L'; }
+.totem__fila-combustible--activa .totem__precio:not(.totem__precio--ausente)::after {
+  content: ' €/L';
+}
+.totem__fila-combustible--activa .totem__precio.totem__precio--ausente {
+  color: var(--no-vende);
+  font-size: var(--fs-3);
+  line-height: 1.2;
+}
 .totem__puesto {
   justify-self: end;
   align-self: center;

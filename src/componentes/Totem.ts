@@ -260,8 +260,12 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     }
 
     const precioActivo = estacion.precios[estado.combustible];
+    // La fila activa ya expresa la ausencia en el lugar del precio. El puesto
+    // solo tiene sentido cuando la estación participa en la comparación.
+    puesto.hidden = precioActivo === null;
+    ahorro.hidden = precioActivo === null;
     if (precioActivo === null) {
-      puesto.textContent = mensajeNoVende();
+      puesto.textContent = '';
       ahorro.replaceChildren();
       return;
     }
