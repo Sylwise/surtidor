@@ -2198,6 +2198,9 @@ input {
   font-weight: 650;
   text-decoration: none;
 }
+.totem__lleno .totem__evolucion[hidden] {
+  display: none;
+}
 .totem__lleno .totem__evolucion span { color: inherit; font-size: inherit; }
 .totem__lleno .totem__llegar-boton,
 .totem__lleno .totem__evolucion {
