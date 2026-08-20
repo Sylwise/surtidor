@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { ProvinciaNacional } from '../../scripts/lib/tipos.ts';
-import { compararProvincias, modoMapaParaZoom } from './vistaNacional.ts';
+import { compararProvincias, modoMapaParaZoom, posicionMarcadorProvincia } from './vistaNacional.ts';
 
 function provincia(id: string, media: number | null): ProvinciaNacional {
   const agregado = { media, n: media === null ? 0 : 1 };
@@ -37,5 +37,20 @@ describe('compararProvincias', () => {
       provincias.sort((a, b) => compararProvincias(a, b, 'gasolina95e5', '03')).map((p) => p.id),
       ['03', '01', '02', '04'],
     );
+  });
+});
+
+describe('posicionMarcadorProvincia', () => {
+  it('ancla Las Palmas sobre Gran Canaria en vez de usar el centroide entre islas', () => {
+    const lasPalmas = provincia('35', 1.4);
+    lasPalmas.centro = { lat: 28.22, lon: -14.98 };
+
+    assert.deepEqual(posicionMarcadorProvincia(lasPalmas), [-15.59, 27.96]);
+  });
+
+  it('mantiene el centroide para el resto de provincias', () => {
+    const madrid = provincia('28', 1.5);
+
+    assert.deepEqual(posicionMarcadorProvincia(madrid), [-3, 40]);
   });
 });

@@ -290,9 +290,16 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
   .editorial-titulo { font-size:32px; font-weight:700; line-height:1.04; }
   .editorial-entradilla { margin:0; font-size:13px; line-height:1.4; }
   .editorial-actualizado { margin:0; }
-  .editorial-destacado { display:grid; width:100%; grid-template-columns:minmax(0,1fr) minmax(112px,auto); grid-template-rows:32px 44px minmax(22px,auto); align-self:stretch; min-height:132px; height:auto; margin-top:10px; padding:14px 18px; }
+  .editorial-destacado { display:grid; width:100%; grid-template-columns:minmax(0,3fr) minmax(0,2fr); grid-template-rows:32px 44px minmax(22px,auto); align-self:stretch; min-height:132px; height:auto; margin-top:10px; padding:14px 18px; }
   .editorial-destacado > span { display:flex; min-height:32px; align-items:flex-start; grid-column:1 / -1; line-height:1.25; }
-  .editorial-destacado > strong { align-self:start; grid-column:1; grid-row:2; margin-top:0; font-size:34px; }
+  .editorial-destacado > strong {
+    align-self:start;
+    grid-column:1;
+    grid-row:2;
+    margin-top:0;
+    font-size:clamp(26px,7vw,30px);
+    white-space:nowrap;
+  }
   .editorial-destacado--minimo > strong {
     font-size:clamp(28px,8vw,32px);
     letter-spacing:-.04em;
@@ -364,7 +371,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
   .editorial-canarias__principal > a { grid-column:1; grid-row:2; font-size:var(--fs-4); }
   .editorial-canarias__principal > small { grid-column:1; grid-row:3; font-size:var(--fs-1); }
   .editorial-canarias__principal > time { display:none; }
-  .editorial-canarias__resumen { height:110px; margin-top:8px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .editorial-canarias__resumen { height:auto; margin-top:8px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
   .editorial-canarias__tarjeta { padding:12px; gap:6px; }
   .editorial-canarias__tarjeta:first-child { display:none; }
   .editorial-canarias__tarjeta > span { font-size:8px; letter-spacing:.07em; }

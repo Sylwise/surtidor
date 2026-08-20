@@ -40,6 +40,7 @@ import {
   cargarResumenNacional,
   compararProvincias,
   modoMapaParaZoom,
+  posicionMarcadorProvincia,
   ZOOM_SALIDA_NACIONAL,
   type ModoMapa,
 } from '../logica/vistaNacional.ts';
@@ -691,11 +692,9 @@ export function montarMapa(
     cartel.append(nombre, precio, cuenta);
     boton.append(cartel, poste);
 
+    const posicion = posicionMarcadorProvincia(provincia);
     const entrada: EntradaProvincia = {
-      marker: new Marker({ element: boton, anchor: 'bottom' }).setLngLat([
-        provincia.centro.lon,
-        provincia.centro.lat,
-      ]),
+      marker: new Marker({ element: boton, anchor: 'bottom' }).setLngLat(posicion),
       boton,
       nombre,
       precio,
@@ -721,7 +720,7 @@ export function montarMapa(
       // fitBounds: se conserva este acercamiento para que las estaciones
       // aparezcan con una sola pulsación también en móvil.
       omitirSiguienteEncuadrePorProvincia = alElegirProvincia?.(provincia.id) ?? false;
-      saltarOVolar([provincia.centro.lon, provincia.centro.lat], ZOOM_SALIDA_NACIONAL);
+      saltarOVolar([...posicion], ZOOM_SALIDA_NACIONAL);
     });
 
     if (mapa) entrada.marker.addTo(mapa);
@@ -767,7 +766,7 @@ export function montarMapa(
       if (!entrada) continue;
       entrada.boton.hidden = false;
       actualizarProvincia(entrada, ultimoEstado);
-      const punto = mapa.project([provincia.centro.lon, provincia.centro.lat]);
+      const punto = mapa.project(posicionMarcadorProvincia(provincia));
       puntos.push({
         id: provincia.id,
         x: punto.x,

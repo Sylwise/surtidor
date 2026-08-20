@@ -10,6 +10,13 @@ const COMBUSTIBLES: readonly ClavePrecio[] = [
   'gasoleoPremium',
 ];
 
+/** Posiciones de lectura para provincias cuyo centroide de estaciones cae
+ * fuera de tierra. Las Palmas se reparte entre varias islas; su media queda
+ * en el mar, así que el cartel nacional se ancla en Gran Canaria. */
+const POSICIONES_MARCADOR: Readonly<Record<string, readonly [number, number]>> = {
+  '35': [-15.59, 27.96],
+};
+
 export type ModoMapa = 'nacional' | 'zona';
 
 /** Histéresis de V2-18: entre ambos umbrales se conserva el modo anterior. */
@@ -33,6 +40,13 @@ export function compararProvincias(
   if (mediaA !== null && mediaB === null) return -1;
   if (mediaA !== null && mediaB !== null && mediaA !== mediaB) return mediaA - mediaB;
   return a.id.localeCompare(b.id);
+}
+
+/** Coordenadas [longitud, latitud] usadas solo para dibujar el cartel. El
+ * centroide original se conserva en los datos para los cálculos geográficos. */
+export function posicionMarcadorProvincia(provincia: ProvinciaNacional): [number, number] {
+  const posicion = POSICIONES_MARCADOR[provincia.id];
+  return posicion ? [...posicion] : [provincia.centro.lon, provincia.centro.lat];
 }
 
 function esResumenNacional(valor: unknown): valor is ResumenNacional {
