@@ -8,6 +8,8 @@ const SIN_PRECIOS: Precios = {
   gasoleoA: null,
   gasolina98e5: null,
   gasoleoPremium: null,
+  gasoleoB: null,
+  glp: null,
 };
 
 function estacion(id: string, precios: Partial<Precios>, rotulo = 'ROTULO'): Estacion {

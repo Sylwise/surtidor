@@ -13,6 +13,8 @@ function rotulo(nombre: string, estaciones: number): AgregadoRotulo {
       gasoleoA: combustible,
       gasolina98e5: combustible,
       gasoleoPremium: combustible,
+      gasoleoB: combustible,
+      glp: combustible,
     },
   };
 }

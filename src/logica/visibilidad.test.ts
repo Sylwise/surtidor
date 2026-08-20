@@ -26,6 +26,8 @@ function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
       gasoleoA: 1.489,
       gasolina98e5: null,
       gasoleoPremium: null,
+      gasoleoB: null,
+      glp: null,
     },
     provinciaId: '01',
     provinciaNombre: 'ARABA/ALAVA',
@@ -67,7 +69,7 @@ test('solo se representan estaciones que venden el combustible seleccionado', ()
     estacion({ id: 'vende-95' }),
     estacion({
       id: 'solo-diesel',
-      precios: { gasolina95e5: null, gasoleoA: 1.489, gasolina98e5: null, gasoleoPremium: null },
+      precios: { gasolina95e5: null, gasoleoA: 1.489, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
     }),
   ];
 

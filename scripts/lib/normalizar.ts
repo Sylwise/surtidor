@@ -21,6 +21,11 @@ const CAMPOS_PRECIO: Record<ClavePrecio, [normal: string, escapada: string]> = {
   gasoleoA: ['Precio Gasoleo A', 'Precio_x0020_Gasoleo_x0020_A'],
   gasolina98e5: ['Precio Gasolina 98 E5', 'Precio_x0020_Gasolina_x0020_98_x0020_E5'],
   gasoleoPremium: ['Precio Gasoleo Premium', 'Precio_x0020_Gasoleo_x0020_Premium'],
+  gasoleoB: ['Precio Gasoleo B', 'Precio_x0020_Gasoleo_x0020_B'],
+  glp: [
+    'Precio Gases licuados del petróleo',
+    'Precio_x0020_Gases_x0020_licuados_x0020_del_x0020_petróleo',
+  ],
 };
 
 const CAMPO_LATITUD: [string, string] = ['Latitud', 'Latitud'];

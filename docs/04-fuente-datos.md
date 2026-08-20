@@ -204,7 +204,9 @@ junto a ellas.
       "Precio Gasolina 95 E5": "1,409",
       "Precio Gasoleo A": "1,489",
       "Precio Gasolina 98 E5": "",
-      "Precio Gasoleo Premium": ""
+      "Precio Gasoleo Premium": "",
+      "Precio Gasoleo B": "",
+      "Precio Gases licuados del petróleo": ""
     }
   ]
 }
@@ -220,6 +222,8 @@ Comprobar siempre que `ResultadoConsulta` sea `OK` antes de procesar nada.
 | `Precio Gasoleo A` | `gasoleoA` |
 | `Precio Gasolina 98 E5` | `gasolina98e5` |
 | `Precio Gasoleo Premium` | `gasoleoPremium` |
+| `Precio Gasoleo B` | `gasoleoB` |
+| `Precio Gases licuados del petróleo` | `glp` |
 
 Hay muchos más (`Precio Biodiesel`, `Precio Gas Natural Comprimido`, `Precio
 Hidrogeno`, `Precio Adblue`…). Fuera de la v1, pero el normalizador no debe

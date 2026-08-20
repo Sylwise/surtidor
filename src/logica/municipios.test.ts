@@ -29,6 +29,8 @@ function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
       gasoleoA: 1.489,
       gasolina98e5: null,
       gasoleoPremium: null,
+      gasoleoB: null,
+      glp: null,
     },
     provinciaId: '01',
     provinciaNombre: 'ARABA/ALAVA',
@@ -47,17 +49,17 @@ test('el resumen agrupa por municipio+provincia y se queda con el precio mínimo
     estacion({
       id: 'a',
       municipio: 'VITORIA-GASTEIZ',
-      precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: 1.7, gasoleoPremium: null },
+      precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: 1.7, gasoleoPremium: null, gasoleoB: null, glp: null },
     }),
     estacion({
       id: 'b',
       municipio: 'VITORIA-GASTEIZ',
-      precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+      precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
     }),
     estacion({
       id: 'c',
       municipio: 'LLODIO',
-      precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+      precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
     }),
   ]);
   assert.equal(resumen.length, 2);
@@ -86,7 +88,7 @@ test('hrefMunicipioZona es null por debajo del mínimo de estaciones (RF-60)', (
     provinciaId: '01',
     provinciaNombre: 'ARABA/ALAVA',
     estaciones: 2,
-    precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+    precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
   });
   assert.equal(href, null);
 });
@@ -97,7 +99,7 @@ test('hrefMunicipioZona genera la URL con los slugs de provincia y municipio', (
     provinciaId: '01',
     provinciaNombre: 'ARABA/ALAVA',
     estaciones: 5,
-    precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+    precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
   });
   assert.equal(href, '/araba-alava/vitoria-gasteiz/');
 });
@@ -119,12 +121,12 @@ test('calcularEnlacesMunicipio (RF-94): un municipio que no vende el combustible
       {
         href: '/a/',
         nombre: 'Vitoria-Gasteiz',
-        precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: 1.9, gasoleoPremium: null },
+        precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: 1.9, gasoleoPremium: null, gasoleoB: null, glp: null },
       },
       {
         href: '/b/',
         nombre: 'Llodio',
-        precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+        precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
       },
     ],
     'gasolina98e5',
@@ -139,8 +141,8 @@ test('calcularEnlacesMunicipio (RF-94): un municipio que no vende el combustible
 test('calcularEnlacesMunicipio calcula la banda de color solo con los precios del combustible pedido', () => {
   const filas = calcularEnlacesMunicipio(
     [
-      { href: '/a/', nombre: 'A', precios: { gasolina95e5: 1.0, gasoleoA: 5.0, gasolina98e5: null, gasoleoPremium: null } },
-      { href: '/b/', nombre: 'B', precios: { gasolina95e5: 2.0, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } },
+      { href: '/a/', nombre: 'A', precios: { gasolina95e5: 1.0, gasoleoA: 5.0, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } },
+      { href: '/b/', nombre: 'B', precios: { gasolina95e5: 2.0, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } },
     ],
     'gasolina95e5',
   );
@@ -149,4 +151,15 @@ test('calcularEnlacesMunicipio calcula la banda de color solo con los precios de
   // pide aquí) sea el más caro con diferencia: la banda no se contamina
   // entre combustibles.
   assert.equal(a?.banda, 'barata');
+});
+
+test('calcularEnlacesMunicipio no asigna banda cromática al GLP', () => {
+  const filas = calcularEnlacesMunicipio(
+    [
+      { href: '/a/', nombre: 'A', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.91 } },
+      { href: '/b/', nombre: 'B', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.99 } },
+    ],
+    'glp',
+  );
+  assert.deepEqual(filas.map((fila) => fila.banda), [null, null]);
 });

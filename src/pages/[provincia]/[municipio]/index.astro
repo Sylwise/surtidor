@@ -26,7 +26,11 @@ import AppInteractiva from '../../../componentes/AppInteractiva.astro';
 import type { EnlacesEstaticos } from '../../../componentes/Lista.ts';
 import { fusionarProvincias, type EstacionZona } from '../../../logica/zona.ts';
 import { estacionesVisibles } from '../../../logica/visibilidad.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../../logica/combustibles.ts';
+import {
+  ETIQUETA,
+  ORDEN_COMBUSTIBLES,
+  ORDEN_COMBUSTIBLES_COMPARABLES,
+} from '../../../logica/combustibles.ts';
 import { cajaDeTitulo, formatearFechaHora, formatearPrecio, nombreVisible } from '../../../logica/formato.ts';
 import { generarSlug } from '../../../../scripts/lib/slug.ts';
 import {
@@ -136,12 +140,19 @@ function precioMinimo(clave: ClavePrecio): number | null {
   return minimo;
 }
 
-// RF-65/RF-89/RF-94: precio mínimo de los CUATRO combustibles de cada
+// RF-65/RF-89/RF-94: precio mínimo de los SEIS combustibles de cada
 // municipio VECINO, para la pastilla que lo enlaza al cerrar la lista
 // (docs/05-diseno.md#La-lista-es-el-contenido). Quien pinta la fila elige
 // cuál enseñar según el combustible activo, nunca fijo a gasolina 95.
 function preciosDeVecino(nombreMunicipio: string): Precios {
-  const precios: Precios = { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null };
+  const precios: Precios = {
+    gasolina95e5: null,
+    gasoleoA: null,
+    gasolina98e5: null,
+    gasoleoPremium: null,
+    gasoleoB: null,
+    glp: null,
+  };
   for (const estacion of visiblesProvincia) {
     if (estacion.municipio.trim() !== nombreMunicipio.trim()) continue;
     for (const clave of ORDEN_COMBUSTIBLES) {
@@ -169,8 +180,9 @@ const enlacesMunicipio: EnlacesEstaticos = {
 // COMBUSTIBLE_POR_DEFECTO en src/logica/estado.ts) y el que usan también los
 // títulos de ejemplo de docs/06-roadmap.md; si ninguna estación del
 // municipio la vende (raro, pero RF-23 obliga a contemplarlo), se cae al
-// primer combustible de ORDEN_COMBUSTIBLES que sí tenga precio.
-const claveTitulo = ORDEN_COMBUSTIBLES.find((clave) => precioMinimo(clave) !== null) ?? null;
+// primer combustible comparable que sí tenga precio. El GLP queda fuera del
+// reclamo editorial y de compartición (RF-122), aunque se sirva en la lista.
+const claveTitulo = ORDEN_COMBUSTIBLES_COMPARABLES.find((clave) => precioMinimo(clave) !== null) ?? null;
 const precioTitulo = claveTitulo ? precioMinimo(claveTitulo) : null;
 
 const titulo =
@@ -256,6 +268,8 @@ const jsonLd = {
       zonaNombre={nombreProvincia}
       hidratacionEmbebida={true}
       estaciones={filasMunicipio}
+      estacionesProvincia={visiblesProvincia}
+      municipioNombre={nombreMunicipio}
       mock={mock}
       actualizado={actualizado}
       esPaginaDeZona={false}

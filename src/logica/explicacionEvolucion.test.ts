@@ -10,7 +10,7 @@ const agregado = (series: number[][]): AgregadoHistorico => ({
   gasolina95e5: precios.map((_, indice) => { const valores = series.map((serie) => serie[indice]!); return [valores.reduce((a, b) => a + b, 0), valores.length, Math.min(...valores)]; }),
   gasoleoA: [], gasolina98e5: [], gasoleoPremium: [],
 });
-const estaciones: Estacion[] = ['1', '2', '3'].map((id) => ({ id, rotulo: id === '3' ? 'OTRA' : 'REPSOL', direccion: id, municipio: 'Vitoria-Gasteiz', cp: '', lat: 0, lon: 0, horario: '', tipoVenta: 'P', margen: null, precios: { gasolina95e5: 1.55, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }));
+const estaciones: Estacion[] = ['1', '2', '3'].map((id) => ({ id, rotulo: id === '3' ? 'OTRA' : 'REPSOL', direccion: id, municipio: 'Vitoria-Gasteiz', cp: '', lat: 0, lon: 0, horario: '', tipoVenta: 'P', margen: null, precios: { gasolina95e5: 1.55, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }));
 const series = [precios, precios.map((p) => p + 10), precios.map((p, i) => p - i * 4)];
 const historico = { version: 1, provinciaId: '01', fechas, estaciones: series.map((serie, indice) => [String(indice + 1), indice === 2 ? '2' : '1', Array(90).fill(1), serie, Array(90).fill(null), Array(90).fill(null), Array(90).fill(null)]), provincia: agregado(series), municipios: { '1': agregado(series.slice(0, 2)), '2': agregado([series[2]!]) } } as HistoricoProvincia;
 

@@ -24,7 +24,7 @@
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
 import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
-import { ORDEN_COMBUSTIBLES, ETIQUETA } from '../logica/combustibles.ts';
+import { ORDEN_COMBUSTIBLES, ETIQUETA, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
 import type { ClavePrecio, Precios } from '../../scripts/lib/tipos.ts';
@@ -44,6 +44,9 @@ interface Props {
    *  hidratación, solo de qué estaciones hay que enseñar. */
   hidratacionEmbebida: boolean;
   estaciones?: EstacionZona[];
+  /** Solo en páginas municipales: reserva provincial para RF-123. */
+  estacionesProvincia?: EstacionZona[];
+  municipioNombre?: string | null;
   mock?: boolean;
   actualizado?: string | null;
   /** RF-88 (ADR-0016): en una página de zona, elegir otra zona no recarga —
@@ -68,6 +71,8 @@ const {
   zonaNombre,
   hidratacionEmbebida,
   estaciones = [],
+  estacionesProvincia = [],
+  municipioNombre = null,
   mock = false,
   actualizado = null,
   esPaginaDeZona,
@@ -76,16 +81,25 @@ const {
 } = Astro.props;
 
 const datosHidratacion = hidratacionEmbebida
-  ? JSON.stringify({ estaciones, mock, actualizado }).replace(/</g, '\\u003c')
+  ? JSON.stringify({ estaciones, estacionesProvincia, municipioNombre, mock, actualizado }).replace(/</g, '\\u003c')
   : '';
 
-// RF-89: el HTML del build contiene las estaciones ordenadas por los CUATRO
-// combustibles; las pastillas eligen cuál se muestra (Controles.ts,
-// hidratado más abajo), las otras tres siguen en el documento. Con el
+// RF-89/RF-120: el HTML del build contiene las estaciones ordenadas por los
+// SEIS combustibles; el selector elige cuál se muestra (Controles.ts,
+// hidratado más abajo), las otras cinco siguen en el documento. Con el
 // cliente montado, Lista.ts sustituye este bloque casi al instante por el
 // mismo cálculo (src/logica/listaEstaciones.ts) — esto es lo que ve un
 // rastreador o alguien sin JavaScript.
-const listasPorCombustible = calcularListasPorCombustible(estaciones);
+const listasMunicipioPorCombustible = calcularListasPorCombustible(estaciones);
+const listasProvinciaPorCombustible = calcularListasPorCombustible(estacionesProvincia);
+const listasPorCombustible: Record<ClavePrecio, ReturnType<typeof calcularListasPorCombustible>[ClavePrecio]> = Object.fromEntries(
+  ORDEN_COMBUSTIBLES.map((clave) => [
+    clave,
+    municipioNombre && listasMunicipioPorCombustible[clave].length === 0 && listasProvinciaPorCombustible[clave].length > 0
+      ? listasProvinciaPorCombustible[clave]
+      : listasMunicipioPorCombustible[clave],
+  ]),
+) as Record<ClavePrecio, ReturnType<typeof calcularListasPorCombustible>[ClavePrecio]>;
 const COMBUSTIBLE_POR_DEFECTO = ORDEN_COMBUSTIBLES[0];
 
 // RF-89 ("los enlaces a otros municipios cierran la lista") + RF-90 (enlace
@@ -110,7 +124,7 @@ const entradasCierre: { href: string; nombre: string; precios: Precios }[] = enl
       })
       .filter((entrada): entrada is { href: string; nombre: string; precios: Precios } => entrada !== null);
 
-// RF-94: los CUATRO combustibles a la vez (mismo patrón que
+// RF-94: los SEIS combustibles a la vez (mismo patrón que
 // calcularListasPorCombustible, arriba), con la misma función que usa
 // Lista.ts (src/logica/municipios.ts#calcularEnlacesMunicipio) para que el
 // HTML servido no diverja del repintado del cliente al cambiar de
@@ -150,12 +164,22 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
         <section id="lista" class="lista" aria-label="Lista de estaciones">
           {ORDEN_COMBUSTIBLES.map((clave) => {
             const filas = listasPorCombustible[clave];
+            const ambitoAmpliado = Boolean(
+              municipioNombre &&
+              listasMunicipioPorCombustible[clave].length === 0 &&
+              listasProvinciaPorCombustible[clave].length > 0
+            );
             const explicacionEscala = explicacionEscalaSuprimida(crearEscala(filas.map(({ precio }) => precio)));
             return (
               <div class="lista__grupo" data-combustible={clave} hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
+                {ambitoAmpliado && (
+                  <p class="lista__aviso lista__aviso--ambito">
+                    En {municipioNombre} no hay {ETIQUETA[clave]} · se muestran las {filas.length} de {zonaNombre}
+                  </p>
+                )}
                 {filas.length === 0 ? (
                   <p class="lista__aviso">
-                    Ninguna estación de {zonaNombre || 'esta zona'} vende {ETIQUETA[clave].toLowerCase()}.
+                    Ninguna estación de {zonaNombre || 'esta zona'} vende {etiquetaCombustibleEnFrase(clave)}.
                   </p>
                 ) : (
                   <>
@@ -280,6 +304,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   import { montarLista, type EnlacesEstaticos } from './Lista.ts';
   import { montarTotem } from './Totem.ts';
   import { montarHoja } from './Hoja.ts';
+  import { resolverAmbitoCombustible } from '../logica/ambitoCombustible.ts';
   import { datosDesactualizados } from '../logica/frescura.ts';
   import { formatearFechaHora, nombreVisible } from '../logica/formato.ts';
   import { tituloZona, descripcionZona } from '../logica/metaZona.ts';
@@ -642,6 +667,8 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
     // estado se rellena con esto en vez de pedirlo por red.
     const datosZona = JSON.parse(datosZonaEl.textContent ?? 'null') as {
       estaciones: EstacionZona[];
+      estacionesProvincia: EstacionZona[];
+      municipioNombre: string | null;
       mock: boolean;
       actualizado: string | null;
     } | null;
@@ -652,6 +679,11 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
       zonaId: zonaDeLaPagina,
       zonaNombre: nombreDeLaPagina,
       estaciones: datosZona.estaciones,
+      estacionesMunicipio: datosZona.municipioNombre ? datosZona.estaciones : [],
+      estacionesProvincia: datosZona.estacionesProvincia,
+      municipioNombre: datosZona.municipioNombre,
+      provinciaNombre: datosZona.municipioNombre ? nombreDeLaPagina : null,
+      ambitoAmpliado: false,
       provinciasFallidas: [],
       mock: datosZona.mock,
       cargando: false,
@@ -711,6 +743,26 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
 
   montarLista(contenedorLista, enlacesEstaticos ?? undefined);
   montarTotem(contenedorTotem);
+
+  // RF-123: el cambio de combustible puede cambiar solo el ámbito efectivo,
+  // nunca la zona elegida ni su URL. La guarda por referencias evita que el
+  // parche recursivo vuelva a notificarse sin necesidad.
+  const actualizarAmbitoCombustible = (estado: EstadoApp): void => {
+    if (!estado.municipioNombre) return;
+    const ambito = resolverAmbitoCombustible(
+      estado.estacionesMunicipio,
+      estado.estacionesProvincia,
+      estado.combustible,
+    );
+    if (estado.estaciones === ambito.estaciones && estado.ambitoAmpliado === ambito.ampliado) return;
+    actualizarEstado({
+      estaciones: ambito.estaciones,
+      ambitoAmpliado: ambito.ampliado,
+      estacionId: ambito.estaciones.some((estacion) => estacion.id === estado.estacionId) ? estado.estacionId : null,
+    });
+  };
+  suscribir(actualizarAmbitoCombustible);
+  actualizarAmbitoCombustible(obtenerEstado());
 
   // RF-37: al encontrar la ubicación se cambia zonaId a la provincia más
   // cercana. Aquí eso dispara la navegación de arriba, a la página estática

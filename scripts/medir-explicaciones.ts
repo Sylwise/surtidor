@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { explicarEvolucion } from '../src/logica/explicacionEvolucion.ts';
 import type { HistoricoProvincia } from './lib/artefactos-historicos.ts';
-import type { ClavePrecio, Estacion } from './lib/tipos.ts';
+import type { ClavePrecioHistorico, Estacion } from './lib/tipos.ts';
 
 const provincias = process.argv.slice(2).length ? process.argv.slice(2) : ['01', '08', '28'];
-const combustibles: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
+const combustibles: ClavePrecioHistorico[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
 
 for (const provinciaId of provincias) {
   const actual = JSON.parse(readFileSync(`public/data/provincias/${provinciaId}.json`, 'utf8')) as { provincia: { nombre: string }; estaciones: Estacion[] };

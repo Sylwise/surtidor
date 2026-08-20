@@ -22,7 +22,7 @@ import { generarRedirects, type ParRedirect } from './lib/redirecciones.ts';
 import { calcularResumenNacional } from './lib/resumen-nacional.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO, type ClavePrecio, type DatosProvincia, type Indice, type IndiceMunicipios, type ResumenProvincia, type Zona } from './lib/tipos.ts';
 
-const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
+const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium', 'gasoleoB', 'glp'];
 
 const DIRECTORIO_PUBLIC = join(import.meta.dirname, '..', 'public');
 const DIRECTORIO_DATOS = join(DIRECTORIO_PUBLIC, 'data');

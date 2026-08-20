@@ -7,6 +7,8 @@ export const CLAVES_PRECIO: readonly ClavePrecio[] = [
   'gasoleoA',
   'gasolina98e5',
   'gasoleoPremium',
+  'gasoleoB',
+  'glp',
 ];
 
 const PROVINCIAS_AMBITO_FISCAL_APARTE = new Set(['35', '38', '51', '52']);

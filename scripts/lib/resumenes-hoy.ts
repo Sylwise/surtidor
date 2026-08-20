@@ -10,9 +10,9 @@ import { calcularAgregadosMinimos, type AgregadosMinimos } from './minimos.ts';
 import { ordenarRanking } from './ranking.ts';
 import { rotulosQueVenden, seleccionarRotulos } from './rotulos.ts';
 import type { HistoricoProvincia } from './artefactos-historicos.ts';
-import type { ClavePrecio, DatosProvincia, Indice, IndiceMunicipios } from './tipos.ts';
+import type { ClavePrecio, ClavePrecioHistorico, DatosProvincia, Indice, IndiceMunicipios } from './tipos.ts';
 
-export const COMBUSTIBLE_RESUMEN_HOY: ClavePrecio = 'gasolina95e5';
+export const COMBUSTIBLE_RESUMEN_HOY: ClavePrecioHistorico = 'gasolina95e5';
 export const PERIODO_RESUMEN_HOY = 30 as const;
 
 export type SlugResumenHoy =

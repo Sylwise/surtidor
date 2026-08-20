@@ -1,5 +1,5 @@
 import { expandirTerritorios, validarEstadoHistorico, type EstadoHistorico } from './estado-historico.ts';
-import type { ClavePrecio } from './tipos.ts';
+import type { ClavePrecioHistorico } from './tipos.ts';
 import type { PrecioHistorico } from './historico.ts';
 
 export type PuntoAgregadoHistorico = [
@@ -8,7 +8,7 @@ export type PuntoAgregadoHistorico = [
   minimoMilesimas: number | null,
 ];
 
-export type AgregadoHistorico = Record<ClavePrecio, PuntoAgregadoHistorico[]>;
+export type AgregadoHistorico = Record<ClavePrecioHistorico, PuntoAgregadoHistorico[]>;
 
 export type SerieHistoricaPublica = [
   id: string,
@@ -32,7 +32,7 @@ export interface HistoricoProvincia {
   municipios: Record<string, AgregadoHistorico>;
 }
 
-const CLAVES_PRECIO: ClavePrecio[] = [
+const CLAVES_PRECIO: ClavePrecioHistorico[] = [
   'gasolina95e5',
   'gasoleoA',
   'gasolina98e5',

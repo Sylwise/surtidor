@@ -7,7 +7,7 @@ function estacion(id: string, lat: number, lon: number): EstacionZona {
   return {
     id, lat, lon, rotulo: id, direccion: '', municipio: '', cp: '', horario: '',
     tipoVenta: 'P', margen: null, provinciaId: '01', provinciaNombre: 'ARABA/ALAVA',
-    precios: { gasolina95e5: 1.5, gasoleoA: 1.4, gasolina98e5: null, gasoleoPremium: null },
+    precios: { gasolina95e5: 1.5, gasoleoA: 1.4, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
   };
 }
 

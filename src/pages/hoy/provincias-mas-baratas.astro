@@ -4,7 +4,7 @@ import TablaFiscalEditorial from '../../componentes/TablaFiscalEditorial.astro';
 import DocumentoEditorial from '../../layouts/DocumentoEditorial.astro';
 import { leerAgregadosEditoriales, type AgregadoZona } from '../../../scripts/lib/agregados.ts';
 import { ordenarRanking } from '../../../scripts/lib/ranking.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES_COMPARABLES as ORDEN_COMBUSTIBLES } from '../../logica/combustibles.ts';
 import { formatearFechaHora, formatearNumero, formatearPrecio, nombreVisible } from '../../logica/formato.ts';
 import type { ClavePrecio } from '../../../scripts/lib/tipos.ts';
 

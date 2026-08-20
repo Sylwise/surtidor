@@ -17,7 +17,7 @@ function estacion(extra: Partial<Estacion> = {}): Estacion {
     horario: 'L-D: 24H',
     tipoVenta: 'P',
     margen: 'D',
-    precios: { gasolina95e5: 1.409, gasoleoA: 1.489, gasolina98e5: null, gasoleoPremium: null },
+    precios: { gasolina95e5: 1.409, gasoleoA: 1.489, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
     ...extra,
   };
 }

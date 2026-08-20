@@ -237,7 +237,7 @@ descarta; los ya descartados conservan su identificador y el motivo.
 | V2-09 | ~~Favoritos fijados arriba, en `localStorage`.~~ **Descartado:** se perciben como un dato duradero, pero no cruzan navegadores o dispositivos y pueden desaparecer. Darles continuidad exigiría cuentas y sincronización. Ver [ADR-0023](adr/0023-evolucion-contextual-sin-perfil.md). |
 | V2-10 | **Completado.** Seis páginas editoriales automáticas bajo `/hoy/`, conforme a RF-97 a RF-107. |
 | V2-11 | Publicar los JSON normalizados como datos abiertos, con su documentación. |
-| V2-12 | Combustibles adicionales, empezando por gasóleo B. Antes de publicarlos se resuelve RF-118. |
+| V2-12 | **Completado con un selector.** Gasóleo B y GLP entran en un selector desplegable que sustituye a las cuatro pastillas. Ver el ADR correspondiente. |
 | V2-13 | **Completado.** Ordenar por distancia geográfica con geolocalización concedida y mostrar la posición aproximada del usuario en el mapa. La posición y el modo de orden son efímeros: no se persisten ni salen del dispositivo. |
 | V2-14 | ~~PWA con la última zona en caché para uso sin conexión.~~ **Descartado**, ver [ADR-0013](adr/0013-pwa-sin-conexion-descartada.md). |
 | V2-16 | ~~El mapa decide la zona mostrada.~~ **Descartado**, ver [ADR-0015](adr/0015-el-mapa-manda-abandonado.md). |
@@ -264,6 +264,18 @@ descarta; los ya descartados conservan su identificador y el motivo.
 | ID | Requisito |
 |---|---|
 | RF-118 | La escala relativa requiere al menos 2 precios comparables. A partir de 2, la condición principal es la dispersión: si la diferencia entre el precio mayor y el menor es inferior a 20 milésimas por litro, las bandas no se aplican en ninguno de sus consumidores. Todos los elementos usan la banda neutra, el precio continúa escrito y todas las estaciones empatadas en el precio mínimo conservan el tratamiento destacado. Con menos de 2 precios no se destaca una más barata. La interfaz explica que no existe muestra o variación suficiente para comparar mediante colores. Los dos umbrales son constantes únicas y declaradas. Ver [ADR-0025](adr/0025-condiciones-minimas-para-la-escala.md). |
+
+### Selector de combustible (v2)
+
+| ID | Requisito |
+|---|---|
+| RF-120 | El selector desplegable de combustible sustituye a las cuatro pastillas. Su panel agrupa gasolina 95, diésel, gasolina 98 y diésel + como habituales, y gasóleo B y GLP como alternativos; cada fila muestra a la derecha el precio mínimo de la zona en monoespaciada y sin píldora de color. Cerrado, es una pastilla oscura sólida con denominación dominante, descriptor pequeño, sin precio y con flecha sin círculo; gasóleo B y GLP muestran su nombre completo y el descriptor «Alternativo». |
+| RF-121 | En escritorio, los selectores de combustible y zona viven juntos en el rail. En móvil, ambos aparecen en la misma línea. |
+| RF-122 | El GLP se presenta sin banda de color y con una nota que explica que su precio por litro no es comparable con el de los demás combustibles por su mayor consumo en volumen. Queda fuera de las comparaciones entre combustibles, las páginas editoriales y las imágenes de compartición. |
+| RF-123 | Si el combustible activo no se vende en el municipio pero sí en su provincia, la aplicación ensancha automáticamente el ámbito a la provincia e indica el municipio sin oferta, la provincia mostrada y el número de estaciones resultante. |
+| RF-124 | Si ninguna estación de la zona vende el combustible activo, la aplicación muestra un mensaje explícito de ausencia y nunca deja vacíos el mapa o la lista. |
+| RF-125 | Cada sección declara y respeta su propio conjunto de combustibles: los seis en Precios; los cinco comparables —incluido gasóleo B y excluido GLP— en editoriales y comparaciones; los cuatro con histórico disponible en Evolución; y gasolina 95 y diésel en las imágenes de compartición. Ver [ADR-0028](adr/0028-cada-seccion-tiene-su-propio-conjunto-de-combustibles.md). |
+| RF-126 | Cuando un combustible no está disponible en una sección, se comunica explícitamente y nunca se sustituye por otro en silencio. El destino explica la ausencia y su motivo, o el enlace no se ofrece. Ver [ADR-0028](adr/0028-cada-seccion-tiene-su-propio-conjunto-de-combustibles.md). |
 
 ### Detalle verificable de V2-18
 

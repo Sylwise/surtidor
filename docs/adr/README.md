@@ -35,6 +35,8 @@ nuevo que lo supersede y explica el cambio. No lo contradigas en silencio.
 | [0024](0024-ventana-historica-en-despliegue.md) | La ventana histórica se transporta en el despliegue estático | aceptado |
 | [0025](0025-condiciones-minimas-para-la-escala.md) | La escala de color exige muestra y dispersión suficientes | aceptado |
 | [0026](0026-pagina-municipio-no-se-pierde-por-ausencia.md) | Una página de municipio no se pierde por una ausencia | aceptado |
+| [0027](0027-un-selector-de-combustible-en-lugar-de-cuatro-pastillas.md) | Un selector de combustible en lugar de cuatro pastillas | aceptado |
+| [0028](0028-cada-seccion-tiene-su-propio-conjunto-de-combustibles.md) | Cada sección tiene su propio conjunto de combustibles | aceptado |
 
 ## Plantilla
 

@@ -1,9 +1,9 @@
 import type { AgregadoHistorico, HistoricoProvincia, SerieHistoricaPublica } from '../../scripts/lib/artefactos-historicos.ts';
-import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecioHistorico } from '../../scripts/lib/tipos.ts';
 
 export type PeriodoEvolucion = 1 | 7 | 30 | 90;
 
-const INDICE_PRECIO: Record<ClavePrecio, 3 | 4 | 5 | 6> = {
+const INDICE_PRECIO: Record<ClavePrecioHistorico, 3 | 4 | 5 | 6> = {
   gasolina95e5: 3,
   gasoleoA: 4,
   gasolina98e5: 5,
@@ -35,7 +35,7 @@ export interface EstabilidadObservada {
 export function serieDeEstacion(
   historico: HistoricoProvincia,
   estacionId: string,
-  combustible: ClavePrecio,
+  combustible: ClavePrecioHistorico,
 ): PuntoEvolucion[] | null {
   const estacion = historico.estaciones.find((serie) => serie[0] === estacionId);
   if (!estacion) return null;
@@ -45,7 +45,7 @@ export function serieDeEstacion(
 function puntosDeSerie(
   historico: HistoricoProvincia,
   estacion: SerieHistoricaPublica,
-  combustible: ClavePrecio,
+  combustible: ClavePrecioHistorico,
 ): PuntoEvolucion[] {
   const precios = estacion[INDICE_PRECIO[combustible]];
   return historico.fechas.map((fecha, indice) => ({
@@ -54,14 +54,14 @@ function puntosDeSerie(
   }));
 }
 
-export function serieMedia(agregado: AgregadoHistorico, fechas: string[], combustible: ClavePrecio): PuntoEvolucion[] {
+export function serieMedia(agregado: AgregadoHistorico, fechas: string[], combustible: ClavePrecioHistorico): PuntoEvolucion[] {
   return fechas.map((fecha, indice) => {
     const [suma, n] = agregado[combustible][indice] ?? [0, 0, null];
     return { fecha, milesimas: n === 0 ? null : Math.round(suma / n) };
   });
 }
 
-export function serieMinimo(agregado: AgregadoHistorico, fechas: string[], combustible: ClavePrecio): PuntoEvolucion[] {
+export function serieMinimo(agregado: AgregadoHistorico, fechas: string[], combustible: ClavePrecioHistorico): PuntoEvolucion[] {
   return fechas.map((fecha, indice) => ({
     fecha,
     milesimas: agregado[combustible][indice]?.[2] ?? null,
@@ -112,7 +112,7 @@ export function estabilidadObservada(serie: PuntoEvolucion[]): EstabilidadObserv
 
 export function cambiosDeEstaciones(
   historico: HistoricoProvincia,
-  combustible: ClavePrecio,
+  combustible: ClavePrecioHistorico,
   dias: PeriodoEvolucion,
   municipioId?: string | null,
 ): CambioEstacion[] {

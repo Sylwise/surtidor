@@ -243,11 +243,17 @@ La ventana es móvil y está limitada a 90 días cerrados. No se conserva ni se
 publica un histórico anual: Evolución aporta certidumbre sobre cambios recientes,
 no sirve estudios de mercado.
 
-**Más combustibles.** Gasóleo B (agrícola, con demanda real en Álava rural y mal
-atendido), GLP, GNC. El normalizador ya no debe romperse con campos nuevos.
+**Más combustibles — V2-12, completado con un selector.** Gasóleo B y GLP entran
+en un selector desplegable que sustituye a las cuatro pastillas. El panel los
+agrupa como alternativos, separándolos de los cuatro combustibles habituales, y
+muestra el precio mínimo de cada combustible. El GLP se marca como no comparable
+y queda fuera de comparaciones, editoriales e imágenes de compartición. Si el
+municipio no vende el combustible, el ámbito se ensancha a provincia; si la zona
+tampoco lo vende, se muestra un mensaje explícito. Ver
+[ADR-0027](adr/0027-un-selector-de-combustible-en-lugar-de-cuatro-pastillas.md).
 
-Cuando entre el gasóleo B, **entra con él RF-56**: es el único combustible donde
-la venta restringida existe de verdad, así que el interruptor y la etiqueta de
+Con el gasóleo B **entra también RF-56**: es el único combustible donde la venta
+restringida existe de verdad, así que el interruptor y la etiqueta de
 "restringida" pasan a tener sentido. El filtro silencioso y sus pruebas ya están
 escritos desde la v1, solo hay que darles interfaz.
 

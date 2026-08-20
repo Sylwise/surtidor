@@ -5,9 +5,16 @@ export type ClavePrecio =
   | 'gasolina95e5'
   | 'gasoleoA'
   | 'gasolina98e5'
-  | 'gasoleoPremium';
+  | 'gasoleoPremium'
+  | 'gasoleoB'
+  | 'glp';
 
 export type Precios = Record<ClavePrecio, number | null>;
+
+/** La ventana histórica anterior a V2-12 conserva su contrato de cuatro
+ * series. Los nuevos combustibles entran en datos actuales y editoriales;
+ * ampliar el artefacto histórico requiere una migración propia. */
+export type ClavePrecioHistorico = Exclude<ClavePrecio, 'gasoleoB' | 'glp'>;
 
 export type TipoVenta = 'P' | 'R' | 'A';
 

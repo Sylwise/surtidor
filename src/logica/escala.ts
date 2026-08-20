@@ -7,7 +7,7 @@ import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona } from './zona.ts';
 
 export type Banda = 'p1' | 'p2' | 'p3' | 'p4' | 'p5';
-export type BandaPrecio = Banda | 'barata';
+export type BandaPrecio = Banda | 'barata' | 'no-comparable';
 export type MotivoSupresionEscala = 'muestra' | 'dispersion' | null;
 
 /** RF-118 / ADR-0025: constantes únicas para todos los consumidores. */

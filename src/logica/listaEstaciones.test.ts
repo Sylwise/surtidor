@@ -1,5 +1,5 @@
 // RF-89: calcularListaCombustible/calcularListasPorCombustible alimentan
-// tanto el HTML servido en el build (los cuatro combustibles a la vez, ver
+// tanto el HTML servido en el build (los seis combustibles a la vez, ver
 // AppInteractiva.astro) como la lista reactiva del cliente
 // (src/componentes/Lista.ts). Las dos vías tienen que dar el mismo
 // resultado, así que la prueba es del cálculo puro.
@@ -27,6 +27,8 @@ function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
       gasoleoA: 1.489,
       gasolina98e5: null,
       gasoleoPremium: null,
+      gasoleoB: null,
+      glp: null,
     },
     provinciaId: '01',
     provinciaNombre: 'ARABA/ALAVA',
@@ -37,9 +39,9 @@ function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
 test('las filas se ordenan de más barata a más cara y llevan puesto 1-based', () => {
   const filas = calcularListaCombustible(
     [
-      estacion({ id: 'a', precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }),
-      estacion({ id: 'b', precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }),
-      estacion({ id: 'c', precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }),
+      estacion({ id: 'a', precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
+      estacion({ id: 'b', precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
+      estacion({ id: 'c', precios: { gasolina95e5: 1.4, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
     ],
     'gasolina95e5',
   );
@@ -56,8 +58,8 @@ test('las filas se ordenan de más barata a más cara y llevan puesto 1-based', 
 test('las estaciones sin el combustible activo no aparecen', () => {
   const filas = calcularListaCombustible(
     [
-      estacion({ id: 'sin-dato', precios: { gasolina95e5: null, gasoleoA: 1.2, gasolina98e5: null, gasoleoPremium: null } }),
-      estacion({ id: 'con-dato', precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }),
+      estacion({ id: 'sin-dato', precios: { gasolina95e5: null, gasoleoA: 1.2, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
+      estacion({ id: 'con-dato', precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
     ],
     'gasolina95e5',
   );
@@ -75,8 +77,8 @@ test('las estaciones sin venta al público (RF-48) no entran en la lista', () =>
 test('la más barata lleva banda "barata"', () => {
   const filas = calcularListaCombustible(
     [
-      estacion({ id: 'a', precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }),
-      estacion({ id: 'b', precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null } }),
+      estacion({ id: 'a', precios: { gasolina95e5: 1.5, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
+      estacion({ id: 'b', precios: { gasolina95e5: 1.3, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } }),
     ],
     'gasolina95e5',
   );
@@ -88,7 +90,7 @@ test('la lista comparte los extremos de la escala visual: barata y p5', () => {
   const filas = calcularListaCombustible(
     Array.from({ length: 8 }, (_, indice) => estacion({
       id: String(indice),
-      precios: { gasolina95e5: 1.3 + indice * .05, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null },
+      precios: { gasolina95e5: 1.3 + indice * .05, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null },
     })),
     'gasolina95e5',
   );
@@ -96,7 +98,18 @@ test('la lista comparte los extremos de la escala visual: barata y p5', () => {
   assert.equal(filas.at(-1)?.banda, 'p5');
 });
 
-test('calcularListasPorCombustible devuelve las cuatro claves (RF-89)', () => {
+test('el GLP no recibe banda de comparación aunque tenga varios precios', () => {
+  const filas = calcularListaCombustible(
+    [
+      estacion({ id: 'a', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.93 } }),
+      estacion({ id: 'b', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.99 } }),
+    ],
+    'glp',
+  );
+  assert.deepEqual(filas.map((fila) => fila.banda), ['no-comparable', 'no-comparable']);
+});
+
+test('calcularListasPorCombustible devuelve las seis claves (RF-89)', () => {
   const listas = calcularListasPorCombustible([estacion({ id: 'a' })]);
   assert.deepEqual(Object.keys(listas).sort(), [...ORDEN_COMBUSTIBLES].sort());
   assert.deepEqual(listas.gasolina95e5.map((f) => f.estacion.id), ['a']);

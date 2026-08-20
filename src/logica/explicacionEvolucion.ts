@@ -1,6 +1,6 @@
 import { cambioEnPeriodo, cambiosDeEstaciones, serieMedia, type CambioEvolucion, type PeriodoEvolucion } from './evolucion.ts';
 import type { HistoricoProvincia } from '../../scripts/lib/artefactos-historicos.ts';
-import type { ClavePrecio, Estacion } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecioHistorico, Estacion } from '../../scripts/lib/tipos.ts';
 
 export interface TramoIntenso {
   desde: string;
@@ -74,7 +74,7 @@ function encontrarTramoIntenso(
 export function explicarEvolucion(
   historico: HistoricoProvincia,
   estacionesActuales: Estacion[],
-  combustible: ClavePrecio,
+  combustible: ClavePrecioHistorico,
   dias: PeriodoEvolucion,
   municipioId: string | null = null,
 ): ExplicacionEvolucion {

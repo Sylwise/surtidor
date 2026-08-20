@@ -8,6 +8,8 @@ const COMBUSTIBLES: readonly ClavePrecio[] = [
   'gasoleoA',
   'gasolina98e5',
   'gasoleoPremium',
+  'gasoleoB',
+  'glp',
 ];
 
 /** Posiciones de lectura para provincias cuyo centroide de estaciones cae

@@ -14,6 +14,8 @@ function provincia(id: string, media: number | null): ProvinciaNacional {
       gasoleoA: agregado,
       gasolina98e5: agregado,
       gasoleoPremium: agregado,
+      gasoleoB: agregado,
+      glp: agregado,
     },
   };
 }

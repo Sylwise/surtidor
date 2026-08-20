@@ -21,6 +21,8 @@ function estacionBase(extra: EstacionCruda = {}): EstacionCruda {
     'Precio Gasoleo A': '1,489',
     'Precio Gasolina 98 E5': '',
     'Precio Gasoleo Premium': '',
+    'Precio Gasoleo B': '',
+    'Precio Gases licuados del petróleo': '',
     ...extra,
   };
 }
@@ -68,6 +70,8 @@ test('acepta las claves escapadas del endpoint histórico (_x0020_, _x0028_, _x0
     Precio_x0020_Gasoleo_x0020_A: '1,590',
     Precio_x0020_Gasolina_x0020_98_x0020_E5: '',
     Precio_x0020_Gasoleo_x0020_Premium: '',
+    Precio_x0020_Gasoleo_x0020_B: '1,010',
+    Precio_x0020_Gases_x0020_licuados_x0020_del_x0020_petróleo: '0,949',
   };
 
   const resultado = normalizarEstacion(cruda);
@@ -76,6 +80,8 @@ test('acepta las claves escapadas del endpoint histórico (_x0020_, _x0028_, _x0
   assert.equal(resultado?.lon, -3.7035);
   assert.equal(resultado?.precios.gasolina95e5, 1.65);
   assert.equal(resultado?.precios.gasoleoA, 1.59);
+  assert.equal(resultado?.precios.gasoleoB, 1.01);
+  assert.equal(resultado?.precios.glp, 0.949);
 });
 
 test('una estación sin coordenadas (lat/lon ausentes) se descarta', () => {
@@ -108,13 +114,15 @@ test('normalizarEstaciones cuenta las descartadas sin perder las válidas', () =
   assert.equal(resultado.sinCoordenadas, 1);
 });
 
-test('traduce las cuatro claves de precio que nos interesan a sus nombres internos', () => {
+test('traduce las seis claves de precio que nos interesan a sus nombres internos', () => {
   const resultado = normalizarEstacion(
     estacionBase({
       'Precio Gasolina 95 E5': '1,409',
       'Precio Gasoleo A': '1,489',
       'Precio Gasolina 98 E5': '1,559',
       'Precio Gasoleo Premium': '1,599',
+      'Precio Gasoleo B': '1,099',
+      'Precio Gases licuados del petróleo': '0,949',
     }),
   );
 
@@ -123,6 +131,8 @@ test('traduce las cuatro claves de precio que nos interesan a sus nombres intern
     gasoleoA: 1.489,
     gasolina98e5: 1.559,
     gasoleoPremium: 1.599,
+    gasoleoB: 1.099,
+    glp: 0.949,
   });
 });
 
@@ -150,9 +160,11 @@ test('ignora campos de precio que no nos interesan (Biodiesel, GNC, Hidrógeno, 
   assert.ok(resultado);
   assert.deepEqual(Object.keys(resultado.precios).sort(), [
     'gasoleoA',
+    'gasoleoB',
     'gasoleoPremium',
     'gasolina95e5',
     'gasolina98e5',
+    'glp',
   ]);
 });
 

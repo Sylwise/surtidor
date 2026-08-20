@@ -9,7 +9,7 @@
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
 import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
 import { calcularAhorro } from '../logica/ahorro.ts';
-import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { combustibleEsComparable, ETIQUETA, etiquetaCombustibleEnFrase, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearEuros, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { enlaceAppleMaps, enlacePrincipal, enlaceWaze } from '../logica/llegar.ts';
 import { crearIconoMargen, ETIQUETA_MARGEN } from '../logica/margen.ts';
@@ -18,7 +18,7 @@ import { multiProvinciaDe } from '../logica/municipios.ts';
 import { cargarHistoricoProvincia } from '../logica/datosEvolucion.ts';
 import { cambioEnPeriodo, estabilidadObservada, serieDeEstacion } from '../logica/evolucion.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
-import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecio, ClavePrecioHistorico } from '../../scripts/lib/tipos.ts';
 
 /** Litros de referencia para el cálculo de ahorro en toda la aplicación
  *  (decisión de docs/02-requisitos.md): fijos, sin control de usuario. */
@@ -98,7 +98,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   secundarios.append(enlaceWazeEl, enlaceAppleEl);
   llegar.append(botonLlegar, secundarios);
 
-  // RF-81: con la ficha abierta, las cuatro filas son el selector de
+  // RF-81/RF-120: con la ficha abierta, las seis filas son el selector de
   // combustible (las pestañas de Controles.ts están ocultas, RF-80). Cada
   // fila es un botón de 44 px mínimo, no el <li> entero, para no atrapar
   // toques fuera de su área real.
@@ -140,7 +140,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   let peticionEvolucion = 0;
   let claveEvolucion = '';
 
-  async function actualizarEvolucion(estacionId: string, provinciaId: string, combustible: ClavePrecio): Promise<void> {
+  async function actualizarEvolucion(estacionId: string, provinciaId: string, combustible: ClavePrecioHistorico): Promise<void> {
     const clave = `${provinciaId}:${estacionId}:${combustible}`;
     if (clave === claveEvolucion) return;
     claveEvolucion = clave;
@@ -200,9 +200,17 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     // la dirección pasa a caja de título y los territorios usan el único
     // nombre visible de RF-76.
     rotulo.textContent = estacion.rotulo;
-    const parametrosEvolucion = new URLSearchParams({ estacion: estacion.id, combustible: estado.combustible });
-    enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?${parametrosEvolucion}`;
-    void actualizarEvolucion(estacion.id, estacion.provinciaId, estado.combustible);
+    const combustiblesHistoricos: ClavePrecioHistorico[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
+    const combustibleHistorico = combustiblesHistoricos.includes(estado.combustible as ClavePrecioHistorico)
+      ? estado.combustible as ClavePrecioHistorico
+      : null;
+    evolucionCambio.hidden = combustibleHistorico === null;
+    enlaceEvolucion.hidden = combustibleHistorico === null;
+    if (combustibleHistorico) {
+      const parametrosEvolucion = new URLSearchParams({ estacion: estacion.id, combustible: combustibleHistorico });
+      enlaceEvolucion.href = `/hoy/evolucion/${encodeURIComponent(estacion.provinciaId)}/?${parametrosEvolucion}`;
+      void actualizarEvolucion(estacion.id, estacion.provinciaId, combustibleHistorico);
+    }
 
     const direccionLegible = `${cajaDeTitulo(estacion.direccion)}, ${nombreVisible(estacion.municipio, 'municipio')}`;
     direccion.textContent = multiProvincia
@@ -253,7 +261,13 @@ export function montarTotem(contenedor: HTMLElement): () => void {
 
     const precioActivo = estacion.precios[estado.combustible];
     if (precioActivo === null) {
-      puesto.textContent = `Esta estación no vende ${ETIQUETA[estado.combustible].toLowerCase()}: no se puede calcular su puesto ni el ahorro.`;
+      puesto.textContent = `Esta estación no vende ${etiquetaCombustibleEnFrase(estado.combustible)}: no se puede calcular su puesto ni el ahorro.`;
+      ahorro.replaceChildren();
+      return;
+    }
+
+    if (!combustibleEsComparable(estado.combustible)) {
+      puesto.textContent = 'GLP · el consumo por volumen es mayor; su precio por litro no se compara con los demás combustibles.';
       ahorro.replaceChildren();
       return;
     }

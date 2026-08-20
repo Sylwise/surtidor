@@ -25,6 +25,8 @@ function estacion(extra: Partial<Estacion> = {}): Estacion {
       gasoleoA: 1.489,
       gasolina98e5: null,
       gasoleoPremium: null,
+      gasoleoB: null,
+      glp: null,
     },
     ...extra,
   };

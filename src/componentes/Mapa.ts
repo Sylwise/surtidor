@@ -1,5 +1,5 @@
 // Mapa interactivo: MapLibre GL JS + tiles de OpenFreeMap, estilo `positron`
-// (ADR-0002). Marcadores tótem con sus cuatro estados (docs/05-diseno.md
+// (ADR-0002). Marcadores tótem con sus estados (docs/05-diseno.md
 // #Marcador) y sincronía en los dos sentidos con la lista (RF-21).
 //
 // Regla dura 2 de CLAUDE.md: el mapa es un extra, no el cimiento. Todo lo que
@@ -27,7 +27,7 @@ import {
   type Racimo,
 } from '../logica/colisiones.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
-import { ETIQUETA } from '../logica/combustibles.ts';
+import { combustibleEsComparable, ETIQUETA, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import {
@@ -45,7 +45,7 @@ import {
   type ModoMapa,
 } from '../logica/vistaNacional.ts';
 import type { EstacionZona } from '../logica/zona.ts';
-import type { ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecio, ProvinciaNacional, ResumenNacional } from '../../scripts/lib/tipos.ts';
 
 const ESTILO_TILES = 'https://tiles.openfreemap.org/styles/positron';
 // Encuadre antes de que lleguen las estaciones, o mientras no hay zona
@@ -322,6 +322,7 @@ export function montarMapa(
   let lienzoWebGL: HTMLCanvasElement | null = null;
   let cancelarSuscripcion: () => void = () => {};
   let observador: ResizeObserver | null = null;
+  let avisoSinCombustible: HTMLParagraphElement | null = null;
   const hoja = contenedor.closest('.app')?.querySelector<HTMLElement>('.hoja') ?? null;
   const marcadores = new Map<string, EntradaMarcador>();
   const racimoMarkers = new Map<string, EntradaRacimo>();
@@ -579,10 +580,11 @@ export function montarMapa(
       // usa un guion, nunca "0,000" (mismo espíritu que RF-23 en la ficha).
       clases.push('marcador--sin-dato');
       texto = '—';
-      etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: no vende ${ETIQUETA[estado.combustible].toLowerCase()}`;
+      etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: no vende ${etiquetaCombustibleEnFrase(estado.combustible)}`;
     } else {
-      const barata = escala.esMasBarata(precio);
-      clases.push(barata ? 'marcador--barata' : `marcador--${escala.banda(precio)}`);
+      const comparable = combustibleEsComparable(estado.combustible);
+      const barata = comparable && escala.esMasBarata(precio);
+      clases.push(comparable ? (barata ? 'marcador--barata' : `marcador--${escala.banda(precio)}`) : 'marcador--no-comparable');
       texto = formatearPrecio(precio);
       etiqueta = `${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}: ${texto} euros${barata ? ', la más barata de la zona' : ''}`;
       prioridad = barata ? 3 : 2;
@@ -613,6 +615,7 @@ export function montarMapa(
       'marcador--p3',
       'marcador--p4',
       'marcador--p5',
+      'marcador--no-comparable',
       'marcador--cerrada',
       'marcador--activa',
     );
@@ -622,8 +625,9 @@ export function montarMapa(
     entrada.cartel.textContent = texto;
   }
 
-  function claseBanda(precio: number | null, escala: Escala): string {
+  function claseBanda(precio: number | null, escala: Escala, combustible: ClavePrecio): string {
     if (precio === null) return 'marcador--sin-dato';
+    if (!combustibleEsComparable(combustible)) return 'marcador--no-comparable';
     return escala.esMasBarata(precio) ? 'marcador--barata' : `marcador--${escala.banda(precio)}`;
   }
 
@@ -729,7 +733,7 @@ export function montarMapa(
 
   function actualizarProvincia(entrada: EntradaProvincia, estado: EstadoApp): void {
     const { media, n } = entrada.provincia.combustibles[estado.combustible];
-    const combustible = ETIQUETA[estado.combustible].toLowerCase();
+    const combustible = etiquetaCombustibleEnFrase(estado.combustible);
     const provinciaVisible = nombreVisible(entrada.provincia.nombre, 'provincia');
     entrada.nombre.textContent = provinciaVisible;
     if (media === null) {
@@ -866,8 +870,9 @@ export function montarMapa(
         'marcador--p3',
         'marcador--p4',
         'marcador--p5',
+        'marcador--no-comparable',
       );
-      entrada.boton.classList.add(claseBanda(racimo.precioMinimo, ultimaEscala));
+      entrada.boton.classList.add(claseBanda(racimo.precioMinimo, ultimaEscala, ultimoEstado.combustible));
 
       const textoPrecio = racimo.precioMinimo === null ? '—' : formatearPrecio(racimo.precioMinimo);
       entrada.precioSpan.textContent = textoPrecio;
@@ -875,7 +880,7 @@ export function montarMapa(
       entrada.boton.setAttribute(
         'aria-label',
         racimo.precioMinimo === null
-          ? `${racimo.ids.length} estaciones agrupadas, sin dato de ${ETIQUETA[ultimoEstado.combustible].toLowerCase()}. Pulsa para acercar.`
+          ? `${racimo.ids.length} estaciones agrupadas, sin dato de ${etiquetaCombustibleEnFrase(ultimoEstado.combustible)}. Pulsa para acercar.`
           : `${racimo.ids.length} estaciones agrupadas, desde ${textoPrecio} euros. Pulsa para acercar.`
       );
       entrada.boton.hidden = !visibles.has(clave);
@@ -892,10 +897,18 @@ export function montarMapa(
     // tampoco genera marcador ni entra en racimos o colisiones. Además, solo
     // las que tienen coordenadas de verdad: ver tieneCoordenadas.
     const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
+    const vendedoras = estacionesQueVenden(visiblesTipoVenta, estado.combustible);
     const visiblesPorApertura = (
       estado.soloAbiertas ? visiblesTipoVenta.filter((e) => estaAbierta(e.horario, new Date())) : visiblesTipoVenta
     );
     const visibles = estacionesQueVenden(visiblesPorApertura, estado.combustible).filter(tieneCoordenadas);
+
+    if (avisoSinCombustible) {
+      avisoSinCombustible.hidden = vendedoras.length > 0;
+      avisoSinCombustible.textContent = vendedoras.length === 0
+        ? `Ninguna estación de ${estado.zonaNombre || 'esta zona'} vende ${etiquetaCombustibleEnFrase(estado.combustible)}.`
+        : '';
+    }
 
     const idsVisibles = new Set(visibles.map((e) => e.id));
     for (const [id, entrada] of marcadores) {
@@ -955,12 +968,16 @@ export function montarMapa(
   try {
     const lienzo = document.createElement('div');
     lienzo.className = 'mapa-lienzo';
+    avisoSinCombustible = document.createElement('p');
+    avisoSinCombustible.className = 'mapa__aviso-sin-combustible';
+    avisoSinCombustible.setAttribute('role', 'status');
+    avisoSinCombustible.hidden = true;
     contenedor.innerHTML = '';
     // `position` no se toca aquí: lo decide interfaz.css (position:relative
     // en escritorio, position:fixed en móvil, ADR-0006). Un estilo en línea
     // pisaría con más especificidad la regla del media query.
     contenedor.setAttribute('style', 'padding:0;display:block');
-    contenedor.append(lienzo);
+    contenedor.append(lienzo, avisoSinCombustible);
 
     const rellenoInicial = obtenerRelleno();
     mapa = new MapaLibre({

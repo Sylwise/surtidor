@@ -30,7 +30,7 @@ const DIRECTORIO_DATOS = join(DIRECTORIO_PUBLIC, 'data');
 // public/, no lo despliega nadie, solo lo lee el build.
 const DIRECTORIO_BUILD = join(import.meta.dirname, '..', 'datos-build');
 
-const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
+const CLAVES_PRECIO: ClavePrecio[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium', 'gasoleoB', 'glp'];
 
 // prettier-ignore
 const PROVINCIAS: ProvinciaEstatica[] = [
@@ -154,6 +154,8 @@ function generarEstaciones(provincia: ProvinciaEstatica): Estacion[] {
       gasoleoA: precioOAusente(base + 0.06, 0.02),
       gasolina98e5: precioOAusente(base + 0.15, 0.35),
       gasoleoPremium: precioOAusente(base + 0.2, 0.5),
+      gasoleoB: precioOAusente(base - 0.12, 0.72),
+      glp: precioOAusente(base - 0.5, 0.82),
     };
     return {
       id: `mock-${provincia.id}-${i}`,

@@ -372,12 +372,20 @@ posición y el modo de orden viven solo en memoria durante esa carga.
 
 ### Selector de combustible
 
-Grupo de cuatro botones, nunca desplegable. Cada opción es un rectángulo compacto
-con `--radio`, separado 4 px del siguiente: conserva la lectura de elección
-exclusiva sin parecer una barra de navegación. La activa lleva fondo `--petrol`,
-texto claro y ningún adorno adicional. En móvil el grupo ocupa todo el ancho
-disponible y reparte el espacio; en escritorio conserva un ancho compacto. Un
-toque, no dos.
+Selector desplegable hermano del selector de zona. En escritorio ambos viven
+juntos en el rail; en móvil aparecen en la misma línea. El panel abierto agrupa
+los seis combustibles en **habituales** (gasolina 95, diésel, gasolina 98 y
+diésel +) y **alternativos** (gasóleo B y GLP).
+
+Cada fila muestra a la derecha el precio mínimo de la zona, en monoespaciada y
+sin píldora de color. El selector cerrado es una pastilla oscura sólida: cifra
+dominante y nombre pequeño en gasolina, nombre principal en los diéseles. Para
+gasóleo B y GLP, el nombre completo es principal y «Alternativo» el descriptor.
+No muestra precio y su flecha va sin círculo.
+
+El GLP no es comparable con los demás combustibles: su fila no lleva banda de
+color y muestra una nota que explica que su mayor consumo por volumen impide
+comparar directamente su precio por litro.
 
 El filtro «Abiertas» sigue siendo una píldora redonda independiente porque es
 una activación binaria, no otra opción del grupo.

@@ -31,6 +31,13 @@ export interface EstadoApp {
 
   /** Estaciones fusionadas de la zona activa (src/logica/zona.ts). */
   estaciones: EstacionZona[];
+  /** En una página municipal, conjunto original y reserva provincial para
+   *  el ensanche automático de RF-123. Vacíos en páginas de zona. */
+  estacionesMunicipio: EstacionZona[];
+  estacionesProvincia: EstacionZona[];
+  municipioNombre: string | null;
+  provinciaNombre: string | null;
+  ambitoAmpliado: boolean;
   /** Provincias de la zona que no se han podido cargar (RF-36). */
   provinciasFallidas: FalloProvincia[];
   /** true mientras se está cargando la zona activa. */
@@ -99,6 +106,11 @@ let estado: EstadoApp = {
   ubicacionUsuario: null,
   ordenLista: 'precio',
   estaciones: [],
+  estacionesMunicipio: [],
+  estacionesProvincia: [],
+  municipioNombre: null,
+  provinciaNombre: null,
+  ambitoAmpliado: false,
   provinciasFallidas: [],
   cargando: true,
   error: null,

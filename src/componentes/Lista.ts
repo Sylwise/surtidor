@@ -2,7 +2,7 @@
 // sincronizada con la selección (RF-20, RF-21).
 //
 // El HTML que sirve el build (AppInteractiva.astro, RF-89) ya trae esta
-// misma lista pintada para los cuatro combustibles; en cuanto este módulo
+// misma lista pintada para los seis combustibles; en cuanto este módulo
 // monta, la sustituye por la versión reactiva de aquí (mismo cálculo,
 // src/logica/listaEstaciones.ts, para que las dos vías no diverjan) y a
 // partir de ahí manda ella.
@@ -12,7 +12,7 @@ import { calcularListaCombustible } from '../logica/listaEstaciones.ts';
 import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from '../logica/municipios.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
-import { ETIQUETA } from '../logica/combustibles.ts';
+import { ETIQUETA, etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { compararPorDistancia, distanciaKm, formatearDistancia } from '../logica/cercania.ts';
 import type { Precios } from '../../scripts/lib/tipos.ts';
@@ -20,7 +20,7 @@ import type { Precios } from '../../scripts/lib/tipos.ts';
 export interface EnlaceMunicipio {
   href: string;
   nombre: string;
-  /** Los cuatro combustibles (RF-94): quien pinta la fila elige cuál
+  /** Los seis combustibles (RF-94/RF-120): quien pinta la fila elige cuál
    *  enseñar según el combustible activo, nunca fijo a uno solo. */
   precios: Precios;
 }
@@ -227,7 +227,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
     }
 
     // RF-89: mismo cálculo (puesto, precio, banda) que el HTML servido en el
-    // build para los cuatro combustibles a la vez.
+    // build para los seis combustibles a la vez.
     const ordenadas = calcularListaCombustible(estado.estaciones, estado.combustible);
     const escala = crearEscala(ordenadas.map(({ precio }) => precio));
 
@@ -236,7 +236,7 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
       ponerCabecera(crearCabecera(estado, 0));
       const nombreZona = estado.zonaNombre || 'esta zona';
       contenedor.append(
-        crearAviso(`Ninguna estación de ${nombreZona} vende ${ETIQUETA[estado.combustible].toLowerCase()}.`)
+        crearAviso(`Ninguna estación de ${nombreZona} vende ${etiquetaCombustibleEnFrase(estado.combustible)}.`)
       );
       const enlaces = crearEnlacesCierre(estado, enlacesEstaticos);
       if (enlaces) contenedor.append(enlaces);
@@ -252,6 +252,17 @@ export function montarLista(contenedor: HTMLElement, enlacesEstaticos?: EnlacesE
       : visiblesPorApertura;
 
     ponerCabecera(crearCabecera(estado, visibles.length));
+
+    // RF-123: una sola línea, sin tarjeta ni fondo, antes de las filas. El
+    // selector territorial conserva el municipio como intención y muestra
+    // en paralelo el ámbito efectivo de provincia (Controles.ts).
+    if (estado.ambitoAmpliado && estado.municipioNombre && estado.provinciaNombre) {
+      const avisoAmbito = crearAviso(
+        `En ${estado.municipioNombre} no hay ${ETIQUETA[estado.combustible]} · se muestran las ${ordenadas.length} de ${estado.provinciaNombre}`,
+      );
+      avisoAmbito.classList.add('lista__aviso--ambito');
+      contenedor.append(avisoAmbito);
+    }
 
     // Filtro sin resultados.
     if (visibles.length === 0) {

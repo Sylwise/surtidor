@@ -1,11 +1,11 @@
-import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, serieDeEstacion, serieMedia, serieMinimo, validarHistoricoPublico, type CambioEstacion, type PeriodoEvolucion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import type { AgregadoHistorico } from '../../scripts/lib/artefactos-historicos.ts';
-import type { ClavePrecio, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
+import type { ClavePrecio, ClavePrecioHistorico, DatosProvincia, Estacion } from '../../scripts/lib/tipos.ts';
 import { bandaPrecio, crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { clasificarGestoGrafico } from '../logica/gestoGrafico.ts';
 
@@ -203,7 +203,8 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const parametrosIniciales = new URLSearchParams(location.search);
     const combustibleSolicitado = parametrosIniciales.get('combustible') as ClavePrecio | null;
     const periodoSolicitado = Number(parametrosIniciales.get('periodo'));
-    let combustible: ClavePrecio = combustibleSolicitado && ORDEN_COMBUSTIBLES.includes(combustibleSolicitado) ? combustibleSolicitado : 'gasolina95e5';
+    const combustiblesHistoricos: ClavePrecioHistorico[] = ['gasolina95e5', 'gasoleoA', 'gasolina98e5', 'gasoleoPremium'];
+    let combustible: ClavePrecioHistorico = combustibleSolicitado && combustiblesHistoricos.includes(combustibleSolicitado as ClavePrecioHistorico) ? combustibleSolicitado as ClavePrecioHistorico : 'gasolina95e5';
     let periodo: PeriodoEvolucion = [1, 7, 30, 90].includes(periodoSolicitado) ? periodoSolicitado as PeriodoEvolucion : 30;
     let filtroSheet: 'baratas' | 'cercanas' | 'abiertas' = 'baratas';
     let ubicacionUsuario: PosicionUsuario | null = null;
@@ -224,9 +225,9 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       : null;
     let municipioIdActivo = municipioIdDeEstacion(estacionActiva ?? estacionDelMunicipioSolicitado ?? null);
     const destinosCombustible = [...contenedor.querySelectorAll<HTMLElement>('[data-combustibles]')];
-    const etiquetaCompacta: Record<ClavePrecio, string> = { gasolina95e5: '95', gasoleoA: 'Diésel', gasolina98e5: '98', gasoleoPremium: 'Diésel +' };
-    const etiquetaControl: Record<ClavePrecio, string> = { ...ETIQUETA, gasoleoPremium: 'Diésel +' };
-    const botonesCombustible = destinosCombustible.flatMap((destino) => ORDEN_COMBUSTIBLES.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.ariaLabel = etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
+    const etiquetaCompacta: Record<ClavePrecioHistorico, string> = { gasolina95e5: '95', gasoleoA: 'Diésel', gasolina98e5: '98', gasoleoPremium: 'Diésel +' };
+    const etiquetaControl: Record<ClavePrecioHistorico, string> = { gasolina95e5: ETIQUETA.gasolina95e5, gasoleoA: ETIQUETA.gasoleoA, gasolina98e5: ETIQUETA.gasolina98e5, gasoleoPremium: 'Diésel +' };
+    const botonesCombustible = destinosCombustible.flatMap((destino) => combustiblesHistoricos.map((clave) => { const boton = document.createElement('button'); boton.type = 'button'; boton.textContent = destino.closest('.evolucion-controles--movil') ? etiquetaCompacta[clave] : etiquetaControl[clave]; boton.ariaLabel = etiquetaControl[clave]; boton.dataset.clave = clave; destino.append(boton); return boton; }));
     const botonesPeriodo = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-periodo]')];
     const botonesFiltroSheet = [...contenedor.querySelectorAll<HTMLButtonElement>('[data-filtro-sheet]')];
     const contadorSheet = contenedor.querySelector<HTMLElement>('[data-sheet-contador]')!;
@@ -390,7 +391,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         const textoVacio = contenedor.querySelector<HTMLElement>('[data-vacio-texto]')!;
         const accionVacio = contenedor.querySelector<HTMLButtonElement>('[data-vacio-accion]')!;
         if (sinCombustible) {
-          const alternativa = ORDEN_COMBUSTIBLES.find((clave) => estacionActiva?.precios[clave] !== null);
+          const alternativa = combustiblesHistoricos.find((clave) => estacionActiva?.precios[clave] !== null);
           tituloVacio.textContent = 'No vende este combustible';
           textoVacio.textContent = `${estacionActiva!.rotulo} no publica precio de ${ETIQUETA[combustible]}. Puedes consultar otro combustible.`;
           accionVacio.textContent = alternativa ? `Ver ${ETIQUETA[alternativa]} →` : nombreMunicipioActivo ? `Volver a la media de ${nombreMunicipioActivo} →` : 'Volver a la media provincial →';
@@ -520,7 +521,7 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
         contenedor.querySelector<HTMLButtonElement>('[data-cerrar-estacion]')!.textContent = nombreMunicipioActivo ? `← Media de ${nombreMunicipioActivo}` : '← Media provincial';
       }
     };
-    botonesCombustible.forEach((b) => b.onclick = () => { combustible = b.dataset.clave as ClavePrecio; actualizarUrl(); render(); });
+    botonesCombustible.forEach((b) => b.onclick = () => { combustible = b.dataset.clave as ClavePrecioHistorico; actualizarUrl(); render(); });
     botonesPeriodo.forEach((b) => b.onclick = () => { periodo = Number(b.dataset.periodo) as PeriodoEvolucion; actualizarUrl(); render(); });
     const pedirUbicacion = (): void => {
       if (pidiendoUbicacion) return;

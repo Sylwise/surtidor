@@ -1,5 +1,5 @@
 // Resumen de estaciones por municipio dentro de una zona: cuántas hay y su
-// precio mínimo de los CUATRO combustibles (RF-94), más el href de su
+// precio mínimo de los SEIS combustibles (RF-94/RF-120), más el href de su
 // página si llega al mínimo de RF-60. Alimenta las pastillas que cierran la
 // lista de una página de zona (RF-89, RF-74: "los enlaces a otros
 // municipios cierran la lista") y, con la misma forma de entrada, los
@@ -12,7 +12,7 @@
 
 import { estacionesVisibles } from './visibilidad.ts';
 import { crearEscala } from './escala.ts';
-import { ORDEN_COMBUSTIBLES } from './combustibles.ts';
+import { combustibleEsComparable, ORDEN_COMBUSTIBLES } from './combustibles.ts';
 import { generarSlug } from '../../scripts/lib/slug.ts';
 import { MINIMO_ESTACIONES_MUNICIPIO } from '../../scripts/lib/tipos.ts';
 import type { Banda } from './escala.ts';
@@ -28,13 +28,20 @@ export interface ResumenMunicipioZona {
 }
 
 function preciosVacios(): Precios {
-  return { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null };
+  return {
+    gasolina95e5: null,
+    gasoleoA: null,
+    gasolina98e5: null,
+    gasoleoPremium: null,
+    gasoleoB: null,
+    glp: null,
+  };
 }
 
 /** Agrupa las estaciones visibles (RF-48) de una zona por municipio+provincia
  *  (RF-76/ADR-0007: el mismo nombre de municipio puede repetirse en varias
  *  provincias), ordenado alfabéticamente. El precio mínimo se calcula para
- *  los cuatro combustibles a la vez (RF-94): quien consume esto elige cuál
+ *  los seis combustibles a la vez (RF-94/RF-120): quien consume esto elige cuál
  *  enseñar según el combustible activo, en vez de fijarlo aquí. */
 export function resumenMunicipiosDe(estaciones: EstacionZona[]): ResumenMunicipioZona[] {
   const visibles = estacionesVisibles(estaciones);
@@ -105,7 +112,11 @@ export function calcularEnlacesMunicipio(
       href: entrada.href,
       nombre: entrada.nombre,
       precio,
-      banda: precio === null ? null : escala.esMasBarata(precio) ? 'barata' : escala.banda(precio),
+      banda: precio === null || !combustibleEsComparable(combustible)
+        ? null
+        : escala.esMasBarata(precio)
+          ? 'barata'
+          : escala.banda(precio),
     };
   });
 }
