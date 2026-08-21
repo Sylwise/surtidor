@@ -1,0 +1,34 @@
+---
+import marcaSvg from '../assets/marca.svg?raw';
+import { EDITORIALES_HOY, HERRAMIENTAS_HOY, hrefEntradaHoy } from '../datos/navegacion.ts';
+import { formatearFechaHora } from '../logica/formato.ts';
+
+interface Props {
+  actualizado?: string;
+}
+
+const { actualizado } = Astro.props;
+---
+
+<footer class="editorial-pie" id="pie-editorial">
+  <div class="editorial-pie__interior">
+    <div class="editorial-pie__proyecto">
+      <a class="editorial-pie__marca" href="/">
+        <span class="editorial-marca__icono" aria-hidden="true" set:html={marcaSvg} />
+        <span>Surtidor</span>
+      </a>
+      <p class="editorial-pie__lema">Sin anuncios · Sin registro · Sin rastreo</p>
+      <span class="editorial-pie__separador" aria-hidden="true"></span>
+      <p class="editorial-pie__fuente">Datos oficiales del Ministerio para la Transición Ecológica y el Reto Demográfico.</p>
+      {actualizado && <p class="editorial-pie__actualizado">Datos actualizados · <time datetime={actualizado}>{formatearFechaHora(actualizado)}</time></p>}
+    </div>
+    <nav class="editorial-pie__navegacion" aria-label="Más en Surtidor">
+      <p>MÁS EN SURTIDOR</p>
+      <div class="editorial-pie__enlaces">
+        {EDITORIALES_HOY.map((entrada) => <a href={hrefEntradaHoy(entrada)}>{entrada.nombre}</a>)}
+        {HERRAMIENTAS_HOY.map((entrada) => <a href={hrefEntradaHoy(entrada)}>{entrada.nombre}</a>)}
+      </div>
+    </nav>
+    <a class="editorial-pie__arriba" href="/">PORTADA</a>
+  </div>
+</footer>

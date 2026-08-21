@@ -1,7 +1,9 @@
 ---
 import '../../../estilos/tokens.css';
+import '../../../estilos/editorial.css';
 import '../../../estilos/evolucion.css';
 import CabeceraGlobal from '../../../componentes/CabeceraGlobal.astro';
+import PieEditorial from '../../../componentes/PieEditorial.astro';
 import '../../../estilos/navegacion-global.css';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -59,7 +61,17 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
               <ul data-resultados-estacion></ul>
               <article data-detalle-estacion hidden><button type="button" data-cerrar-estacion>← Media provincial</button><h3 data-estacion-titulo></h3><p data-estacion-resumen></p></article>
             </section>
-            <section class="evolucion-ranking" aria-labelledby="titulo-ranking"><h2 id="titulo-ranking">Movimientos destacados</h2><div class="evolucion-ranking__columnas"><section><h3>Bajadas</h3><ol data-bajadas></ol></section><section><h3>Subidas</h3><ol data-subidas></ol></section></div></section>
+            <section class="evolucion-ranking" aria-labelledby="titulo-ranking">
+              <header class="evolucion-ranking__cabecera">
+                <h2 id="titulo-ranking">Cambios destacados</h2>
+                <p data-contexto-cambios></p>
+              </header>
+              <ol data-cambios-destacados></ol>
+              <button class="evolucion-ranking__observaciones" type="button" data-ver-observaciones>
+                <span data-texto-observaciones></span>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+              </button>
+            </section>
           </aside>
 
           <article class="evolucion-canvas evolucion-panel">
@@ -113,7 +125,13 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
               </div>
             </details>
 
-            <section class="evolucion-movimientos-movil"><header><h2>Movimientos destacados</h2><button type="button" data-abrir-todas>Ver todas las estaciones <span aria-hidden="true">›</span></button></header><ol data-movimientos-movil></ol></section>
+            <section class="evolucion-movimientos-movil" aria-labelledby="titulo-cambios-movil">
+              <header>
+                <div><h2 id="titulo-cambios-movil">Cambios destacados</h2><p data-contexto-cambios></p></div>
+                <button type="button" data-abrir-todas aria-label="Ver todas las estaciones"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg></button>
+              </header>
+              <ol data-cambios-destacados></ol>
+            </section>
             <p class="evolucion-nota">Media simple de las estaciones que publicaron precio cada día. Los huecos no se interpolan.</p>
           </article>
 
@@ -127,6 +145,7 @@ const canonical = new URL(`/hoy/evolucion/${provinciaId}/`, Astro.site);
         </div>
       </main>
     </div>
+    <PieEditorial />
     <script type="application/json" id="evolucion-actual" is:inline set:html={actualJson} />
     <script type="application/json" id="evolucion-historico" is:inline set:html={historicoJson} />
     <script>

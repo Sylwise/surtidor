@@ -2539,8 +2539,11 @@ input {
 
   .hoja__rapidos .boton-zona__nombre {
     max-width: none;
-    font-size: var(--fs-1);
+    font-size: var(--fs-3);
+    font-weight: 750;
   }
+
+  .selector-combustible__boton { padding-left: 14px; }
 
   .hoja__rapidos,
   .app--sin-zona .hoja__rapidos {

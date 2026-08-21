@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, serieDeEstacion, serieMedia, serieMinimo } from './evolucion.ts';
+import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, seleccionarCambiosDestacados, serieDeEstacion, serieMedia, serieMinimo } from './evolucion.ts';
 import type { HistoricoProvincia } from '../../scripts/lib/artefactos-historicos.ts';
 
 const fechas = Array.from({ length: 90 }, (_, i) => `2026-05-${String(i + 1).padStart(2, '0')}`);
@@ -51,4 +51,22 @@ test('el ranking excluye estaciones sin ambos extremos exactos', () => {
   const conHueco = structuredClone(historico);
   conHueco.estaciones[0]![3][82] = null;
   assert.deepEqual(cambiosDeEstaciones(conHueco, 'gasolina95e5', 7), []);
+});
+
+test('selecciona como máximo tres cambios por variación absoluta', () => {
+  const cambio = (estacionId: string, diferenciaMilesimas: number) => ({
+    estacionId,
+    diferenciaMilesimas,
+    porcentaje: 0,
+    desde: { fecha: '2026-08-01', milesimas: 1400 },
+    hasta: { fecha: '2026-08-31', milesimas: 1400 + diferenciaMilesimas },
+  });
+  const destacados = seleccionarCambiosDestacados([
+    cambio('estable', 0),
+    cambio('menor', -41),
+    cambio('subida-2', 125),
+    cambio('subida-1', 126),
+    cambio('fuera', 20),
+  ]);
+  assert.deepEqual(destacados.map(({ estacionId }) => estacionId), ['subida-1', 'subida-2', 'menor']);
 });

@@ -125,6 +125,13 @@ export function cambiosDeEstaciones(
     .sort((a, b) => a.diferenciaMilesimas - b.diferenciaMilesimas || a.estacionId.localeCompare(b.estacionId));
 }
 
+export function seleccionarCambiosDestacados(cambios: CambioEstacion[], limite = 3): CambioEstacion[] {
+  return [...cambios]
+    .filter((cambio) => cambio.diferenciaMilesimas !== 0)
+    .sort((a, b) => Math.abs(b.diferenciaMilesimas) - Math.abs(a.diferenciaMilesimas) || a.estacionId.localeCompare(b.estacionId))
+    .slice(0, limite);
+}
+
 export function validarHistoricoPublico(valor: unknown, provinciaId: string): HistoricoProvincia {
   if (!valor || typeof valor !== 'object') throw new Error('El histórico no tiene un formato válido.');
   const h = valor as Partial<HistoricoProvincia>;

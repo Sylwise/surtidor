@@ -84,7 +84,7 @@ const mayorAhorro = ORDEN_COMBUSTIBLES
     )}
   </header>
 
-  <section class="editorial-resumen" aria-label="Mayor ahorro posible por depósito y combustible">
+  <section class="editorial-resumen editorial-resumen--cinco" aria-label="Mayor ahorro posible por depósito y combustible">
     {ORDEN_COMBUSTIBLES.map((combustible) => {
       const lider = lideres[combustible];
       const diferencia = lider ? coste(lider, combustible) : null;

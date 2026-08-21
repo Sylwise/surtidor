@@ -1,7 +1,7 @@
 import { COMBUSTIBLES_EVOLUCION, ETIQUETA, combustibleDisponibleEnEvolucion, esClavePrecio } from '../logica/combustibles.ts';
 import { mensajeAquiNoHay, mensajeCombustibleNoDisponibleEnEvolucion, mensajeHistoricoInsuficiente, mensajeNoVende, mensajeSinDato } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
-import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, serieDeEstacion, serieMedia, serieMinimo, validarHistoricoPublico, type CambioEstacion, type PeriodoEvolucion, type PuntoEvolucion } from '../logica/evolucion.ts';
+import { cambioEnPeriodo, cambiosDeEstaciones, estabilidadObservada, seleccionarCambiosDestacados, serieDeEstacion, serieMedia, serieMinimo, validarHistoricoPublico, type CambioEstacion, type PeriodoEvolucion, type PuntoEvolucion } from '../logica/evolucion.ts';
 import { explicarEvolucion } from '../logica/explicacionEvolucion.ts';
 import { distanciaKm, formatearDistancia, mensajeErrorGeolocalizacion, type PosicionUsuario } from '../logica/cercania.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
@@ -184,17 +184,6 @@ function dibujarGrafico(
   if (esMovil) mostrarIndice(indiceActivo);
 }
 
-interface GrupoCambio { representante: CambioEstacion; estaciones: Estacion[]; }
-function agruparCambios(cambios: CambioEstacion[], estaciones: Estacion[]): GrupoCambio[] {
-  const grupos = new Map<string, GrupoCambio>();
-  for (const cambio of cambios) {
-    const estacion = estaciones.find((e) => e.id === cambio.estacionId); if (!estacion) continue;
-    const clave = `${estacion.rotulo}|${cambio.desde.milesimas}|${cambio.hasta.milesimas}`;
-    const grupo = grupos.get(clave) ?? { representante: cambio, estaciones: [] }; grupo.estaciones.push(estacion); grupos.set(clave, grupo);
-  }
-  return [...grupos.values()];
-}
-
 export async function montarEvolucion(contenedor: HTMLElement, provinciaId: string, actualCrudo: unknown, historicoCrudo: unknown): Promise<void> {
   const estado = contenedor.querySelector<HTMLElement>('[data-estado]')!;
   try {
@@ -249,10 +238,16 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
     const limpiarBusqueda = contenedor.querySelector<HTMLButtonElement>('[data-limpiar-busqueda]')!;
     const sheet = contenedor.querySelector<HTMLElement>('[data-sheet]')!;
     const fondoSheet = contenedor.querySelector<HTMLElement>('[data-sheet-fondo]')!;
+    const detallesObservaciones = contenedor.querySelector<HTMLDetailsElement>('.evolucion-datos')!;
     let focoAntesDelSheet: HTMLElement | null = null;
     const abrirSheet = (): void => { focoAntesDelSheet = document.activeElement instanceof HTMLElement ? document.activeElement : null; sheet.hidden = false; fondoSheet.hidden = false; document.body.dataset.sheet = 'abierta'; sheet.querySelector<HTMLInputElement>('input')?.focus(); };
     const cerrarSheet = (): void => { sheet.hidden = true; fondoSheet.hidden = true; delete document.body.dataset.sheet; focoAntesDelSheet?.focus(); };
     contenedor.querySelectorAll<HTMLButtonElement>('[data-abrir-todas], [data-abrir-explorador]').forEach((boton) => { boton.onclick = abrirSheet; });
+    contenedor.querySelector<HTMLButtonElement>('[data-ver-observaciones]')!.onclick = () => {
+      detallesObservaciones.open = true;
+      detallesObservaciones.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      detallesObservaciones.querySelector<HTMLElement>('summary')?.focus({ preventScroll: true });
+    };
     contenedor.querySelector<HTMLButtonElement>('[data-cerrar-sheet]')!.onclick = cerrarSheet;
     fondoSheet.onclick = cerrarSheet;
     sheet.onkeydown = (evento) => {
@@ -275,19 +270,43 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       history.replaceState(null, '', url);
     };
     const abrirEstacion = (estacion: Estacion): void => { estacionActiva = estacion; municipioIdActivo = municipioIdDeEstacion(estacion); actualizarUrl(); buscar.value = ''; resultados.replaceChildren(); resumenBusqueda.hidden = true; limpiarBusqueda.hidden = true; render(); };
-    const pintarRanking = (destino: string, grupos: GrupoCambio[]): boolean => {
-      const lista = contenedor.querySelector<HTMLElement>(destino)!; lista.replaceChildren();
-      lista.parentElement!.hidden = false;
-      if (!grupos.length) {
+    const pintarCambios = (
+      lista: HTMLOListElement,
+      destacados: CambioEstacion[],
+      mayorBajada: CambioEstacion | undefined,
+      mayorSubida: CambioEstacion | undefined,
+      ambito: 'municipio' | 'provincia',
+    ): void => {
+      lista.replaceChildren();
+      if (!destacados.length) {
         const li = document.createElement('li'); li.className = 'evolucion-ranking__vacio';
-        const titulo = document.createElement('strong'); titulo.textContent = destino.includes('bajadas') ? 'No hubo bajadas' : 'No hubo subidas';
-        const texto = document.createElement('small'); texto.textContent = `Ninguna estación cambió el precio de ${ETIQUETA[combustible]} en esta dirección durante ${periodo === 1 ? 'el último día' : `los últimos ${periodo} días`}.`;
+        const titulo = document.createElement('strong'); titulo.textContent = 'No hubo cambios destacados';
+        const texto = document.createElement('small'); texto.textContent = `Ninguna estación cambió el precio de ${ETIQUETA[combustible]} durante ${periodo === 1 ? 'el último día' : `los últimos ${periodo} días`}.`;
         li.append(titulo, texto);
         if (periodo !== 30) { const ampliar = document.createElement('button'); ampliar.type = 'button'; ampliar.textContent = 'Ver periodo de 30 días →'; ampliar.onclick = () => { periodo = 30; actualizarUrl(); render(); }; li.append(ampliar); }
-        lista.append(li); return false;
+        lista.append(li); return;
       }
-      grupos.slice(0, 3).forEach((grupo) => { const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = grupo.estaciones[0]!.rotulo; const detalle = document.createElement('small'); detalle.textContent = grupo.estaciones.length > 1 ? `${grupo.estaciones.length} estaciones con la misma serie` : `${cajaDeTitulo(grupo.estaciones[0]!.direccion)} · ${nombreVisible(grupo.estaciones[0]!.municipio, 'municipio')}`; identidad.append(nombre, detalle); const cifra = document.createElement('b'); cifra.textContent = `${grupo.representante.diferenciaMilesimas < 0 ? '−' : '+'}${(Math.abs(grupo.representante.diferenciaMilesimas) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(grupo.estaciones[0]!); li.append(boton); lista.append(li); });
-      return true;
+      destacados.forEach((movimiento) => {
+        const estacion = estaciones.find((candidata) => candidata.id === movimiento.estacionId); if (!estacion) return;
+        const esBajada = movimiento.diferenciaMilesimas < 0;
+        const esMayor = movimiento.estacionId === (esBajada ? mayorBajada?.estacionId : mayorSubida?.estacionId);
+        const detalleCorto = esMayor ? `${esBajada ? 'Bajada' : 'Subida'} mayor` : `También ha ${esBajada ? 'bajado' : 'subido'}`;
+        const detalleLargo = esMayor ? `${detalleCorto} ${ambito === 'municipio' ? 'del municipio' : 'de la provincia'}` : detalleCorto;
+        const li = document.createElement('li'); li.className = `evolucion-cambio evolucion-cambio--${esBajada ? 'bajada' : 'subida'}`;
+        const boton = document.createElement('button'); boton.type = 'button';
+        boton.ariaLabel = `Ver evolución de ${estacion.rotulo}. ${detalleLargo}. ${movimiento.diferenciaMilesimas > 0 ? 'Subida' : 'Bajada'} de ${centimos(movimiento.diferenciaMilesimas)} céntimos por litro.`;
+        const indicador = document.createElement('span'); indicador.className = 'evolucion-cambio__indicador'; indicador.ariaHidden = 'true';
+        const flecha = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); flecha.setAttribute('viewBox', '0 0 24 24');
+        const trazoFlecha = document.createElementNS('http://www.w3.org/2000/svg', 'path'); trazoFlecha.setAttribute('d', esBajada ? 'M12 5v14m7-7-7 7-7-7' : 'M12 19V5m-7 7 7-7 7 7');
+        flecha.append(trazoFlecha); indicador.append(flecha);
+        const identidad = document.createElement('span'); identidad.className = 'evolucion-cambio__identidad';
+        const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo;
+        const detalleDesktop = document.createElement('small'); detalleDesktop.className = 'evolucion-cambio__detalle evolucion-cambio__detalle--desktop'; detalleDesktop.textContent = detalleLargo;
+        const detalleMovil = document.createElement('small'); detalleMovil.className = 'evolucion-cambio__detalle evolucion-cambio__detalle--movil'; detalleMovil.textContent = detalleCorto;
+        identidad.append(nombre, detalleDesktop, detalleMovil);
+        const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts/L`;
+        boton.append(indicador, identidad, cifra); boton.onclick = () => abrirEstacion(estacion); li.append(boton); lista.append(li);
+      });
     };
 
     const render = (): void => {
@@ -502,12 +521,24 @@ export async function montarEvolucion(contenedor: HTMLElement, provinciaId: stri
       tabla.append(filasTabla);
 
       const cambios = cambiosDeEstaciones(historico, combustible, periodo, municipioIdActivo);
-      pintarRanking('[data-bajadas]', agruparCambios(cambios.filter((c) => c.diferenciaMilesimas < 0), estaciones));
-      pintarRanking('[data-subidas]', agruparCambios(cambios.filter((c) => c.diferenciaMilesimas > 0).reverse(), estaciones));
+      const firmasCambios = new Set<string>();
+      const cambiosRepresentativos = cambios.filter((movimiento) => {
+        const estacion = estaciones.find((candidata) => candidata.id === movimiento.estacionId); if (!estacion) return false;
+        const firma = `${estacion.rotulo}|${movimiento.desde.milesimas}|${movimiento.hasta.milesimas}`;
+        if (firmasCambios.has(firma)) return false;
+        firmasCambios.add(firma); return true;
+      });
+      const destacados = seleccionarCambiosDestacados(cambiosRepresentativos);
+      const mayorBajada = cambiosRepresentativos.find((movimiento) => movimiento.diferenciaMilesimas < 0);
+      const mayorSubida = cambiosRepresentativos.findLast((movimiento) => movimiento.diferenciaMilesimas > 0);
+      const territorioCambios = (nombreMunicipioActivo?.split('/')[0]?.trim()) || nombreVisible(actual.provincia.nombre, 'provincia');
+      const contextoCambios = `${territorioCambios} · ${ETIQUETA[combustible]} · ${periodo} ${periodo === 1 ? 'día' : 'días'}`;
+      contenedor.querySelectorAll<HTMLElement>('[data-contexto-cambios]').forEach((elemento) => { elemento.textContent = contextoCambios; });
+      contenedor.querySelectorAll<HTMLElement>('[data-texto-observaciones]').forEach((elemento) => { elemento.textContent = `Ver las ${historico.fechas.length} observaciones`; });
+      contenedor.querySelectorAll<HTMLOListElement>('[data-cambios-destacados]').forEach((lista) => {
+        pintarCambios(lista, destacados, mayorBajada, mayorSubida, municipioIdActivo ? 'municipio' : 'provincia');
+      });
       contenedor.querySelector<HTMLElement>('.evolucion-ranking')!.hidden = false;
-      const movimientosMovil = contenedor.querySelector<HTMLOListElement>('[data-movimientos-movil]')!; movimientosMovil.replaceChildren();
-      const destacados = [cambios.filter((c) => c.diferenciaMilesimas > 0).at(-1), cambios.find((c) => c.diferenciaMilesimas < 0)].filter((c): c is CambioEstacion => Boolean(c));
-      destacados.forEach((movimiento) => { const estacion = estaciones.find((e) => e.id === movimiento.estacionId); if (!estacion) return; const li = document.createElement('li'); const boton = document.createElement('button'); boton.type = 'button'; boton.ariaLabel = `Ver evolución de ${estacion.rotulo}, ${nombreVisible(estacion.municipio, 'municipio')}`; const identidad = document.createElement('span'); const nombre = document.createElement('strong'); nombre.textContent = estacion.rotulo; const lugar = document.createElement('small'); lugar.textContent = nombreVisible(estacion.municipio, 'municipio'); identidad.append(nombre, lugar); const cifra = document.createElement('b'); cifra.textContent = `${movimiento.diferenciaMilesimas > 0 ? '+' : '−'}${centimos(movimiento.diferenciaMilesimas)} cts`; boton.append(identidad, cifra); boton.onclick = () => abrirEstacion(estacion); li.append(boton); movimientosMovil.append(li); });
       let estacionesCombustible = estaciones.filter((e) => e.precios[combustible] !== null && (!municipioIdActivo || municipioIdDeEstacion(e) === municipioIdActivo));
       if (filtroSheet === 'abiertas') estacionesCombustible = estacionesCombustible.filter((e) => estaAbierta(e.horario, new Date()));
       const ordenarPorCercania = filtroSheet === 'cercanas' && ubicacionUsuario !== null;

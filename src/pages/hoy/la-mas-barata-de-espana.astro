@@ -47,7 +47,7 @@ const rankingsFiscales = Object.fromEntries(
       })}
     </header>
 
-    <section class="editorial-resumen editorial-resumen--minimos" aria-label="Mínimos nacionales para los cuatro combustibles">
+    <section class="editorial-resumen editorial-resumen--minimos editorial-resumen--cinco" aria-label="Mínimos nacionales para los cinco combustibles">
       {ORDEN_COMBUSTIBLES.map((combustible) => {
         const resumen = agregados.nacional[combustible];
         return <article class="editorial-tarjeta editorial-tarjeta--secundaria">
