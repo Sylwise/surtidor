@@ -550,7 +550,7 @@ terceros.
 |---|---|
 | Datos sin cargar | Mensaje con la causa y botón de reintentar. Nunca un spinner infinito. |
 | Mapa sin cargar | El hueco del mapa explica qué falló. Lista y tótem siguen funcionando. |
-| Ámbito sin ese combustible | «Aquí no hay {combustible}». |
+| Ámbito sin ese combustible | La lista muestra «Aquí no hay {combustible}». El mapa muestra «En {zona} no hay {combustible}» y encuadra la zona con todas sus estaciones; el aviso desaparece al navegar manualmente por el mapa. |
 | Filtro sin resultados | "Ninguna abierta ahora" con opción de quitar el filtro. |
 | Datos de más de 6 h | Aviso discreto con la hora real del dato. |
 

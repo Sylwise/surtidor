@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   mensajeAquiNoHay,
   mensajeCombustibleNoDisponibleEnEvolucion,
+  mensajeEnZonaNoHay,
   mensajeHistoricoInsuficiente,
   mensajeMuestraInsuficienteRanking,
   mensajeNoVende,
@@ -12,6 +13,7 @@ import {
 test('cada ausencia conserva su redacción propia', () => {
   assert.equal(mensajeNoVende(), 'no vende');
   assert.equal(mensajeAquiNoHay('glp'), 'Aquí no hay GLP.');
+  assert.equal(mensajeEnZonaNoHay('Ceuta', 'gasoleoB'), 'En Ceuta no hay gasóleo B.');
   assert.equal(mensajeSinDato(), 'sin dato');
   assert.equal(
     mensajeCombustibleNoDisponibleEnEvolucion('gasoleoB'),

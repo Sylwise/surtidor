@@ -29,14 +29,18 @@ import {
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { etiquetaCombustibleEnFrase } from '../logica/combustibles.ts';
 import { mensajeErrorGeolocalizacion } from '../logica/cercania.ts';
-import { mensajeAquiNoHay, mensajeNoVende } from '../logica/mensajesAusencia.ts';
+import { mensajeAquiNoHay, mensajeEnZonaNoHay, mensajeNoVende } from '../logica/mensajesAusencia.ts';
 import { formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import {
   calcularRellenoMapa,
   desplazamientoParaRelleno,
   type RellenoMapa,
 } from '../logica/rellenoMapa.ts';
-import { estacionesQueVenden, estacionesVisibles } from '../logica/visibilidad.ts';
+import {
+  estacionesParaEncuadreMapa,
+  estacionesQueVenden,
+  estacionesVisibles,
+} from '../logica/visibilidad.ts';
 import {
   cargarResumenNacional,
   compararProvincias,
@@ -127,17 +131,6 @@ interface EntradaProvincia {
   precio: HTMLSpanElement;
   cuenta: HTMLSpanElement;
   provincia: ProvinciaNacional;
-}
-
-/** Descarta estaciones con coordenadas ausentes que la fuente representa
- *  como (0, 0) — "Null Island", en el golfo de Guinea, nunca un punto real
- *  de España. No se toca el normalizador (regla de CLAUDE.md): el dato tal
- *  cual sigue disponible en la lista y la ficha, que no usan lat/lon. Sin
- *  este filtro, una sola estación así arrastra el `fitBounds` de la zona
- *  entera a un zoom absurdo (RF-19: el resto de estaciones quedan reducidas
- *  a un punto y el mapa se aleja hasta encajar también el (0, 0)). */
-function tieneCoordenadas(estacion: EstacionZona): boolean {
-  return !(estacion.lat === 0 && estacion.lon === 0);
 }
 
 function prefiereMovimientoReducido(): boolean {
@@ -338,7 +331,11 @@ export function montarMapa(
   // vez por debajo del umbral de entrada y devolver al usuario a la vista nacional.
   let omitirSiguienteEncuadrePorProvincia = false;
   let estacionAnterior: string | null = obtenerEstado().estacionId;
-  let firmaEstacionesAnterior: string | null = null;
+  let firmaEncuadreAnterior: string | null = null;
+  // El aviso pertenece a una combinación concreta de zona y combustible.
+  // Una navegación manual lo descarta sin alterar el estado vacío de la
+  // lista; al elegir otra zona o combustible aparece de nuevo si procede.
+  let avisoDescartadoPara: string | null = null;
   // Snapshot del último render(), para que moveend/zoomend puedan recalcular
   // la disposición sin depender de que también haya cambiado el estado.
   let ultimasVisibles: EstacionZona[] = [];
@@ -895,15 +892,23 @@ export function montarMapa(
     // las que tienen coordenadas de verdad: ver tieneCoordenadas.
     const visiblesTipoVenta = estacionesVisibles(estado.estaciones);
     const vendedoras = estacionesQueVenden(visiblesTipoVenta, estado.combustible);
+    const estacionesEncuadre = estacionesParaEncuadreMapa(estado.estaciones);
     const visiblesPorApertura = (
       estado.soloAbiertas ? visiblesTipoVenta.filter((e) => estaAbierta(e.horario, new Date())) : visiblesTipoVenta
     );
-    const visibles = estacionesQueVenden(visiblesPorApertura, estado.combustible).filter(tieneCoordenadas);
+    const visibles = estacionesParaEncuadreMapa(
+      estacionesQueVenden(visiblesPorApertura, estado.combustible),
+    );
 
     if (avisoSinCombustible) {
-      avisoSinCombustible.hidden = vendedoras.length > 0;
-      avisoSinCombustible.textContent = vendedoras.length === 0
-        ? mensajeAquiNoHay(estado.combustible)
+      const claveAviso = `${estado.zonaId ?? ''}:${estado.combustible}`;
+      const sinCombustible = vendedoras.length === 0;
+      if (!sinCombustible && avisoDescartadoPara === claveAviso) avisoDescartadoPara = null;
+      avisoSinCombustible.hidden = !sinCombustible || avisoDescartadoPara === claveAviso;
+      avisoSinCombustible.textContent = sinCombustible
+        ? estado.zonaNombre
+          ? mensajeEnZonaNoHay(estado.zonaNombre, estado.combustible)
+          : mensajeAquiNoHay(estado.combustible)
         : '';
     }
 
@@ -932,16 +937,21 @@ export function montarMapa(
     ultimoEstado = estado;
     ultimaEscala = escala;
 
-    const firma = visibles
+    // El encuadre describe el territorio cargado, no el combustible activo.
+    // Si la nueva zona no vende el producto elegido, sus demás estaciones
+    // siguen aportando los límites que permiten llevar la cámara hasta ella.
+    // Incluir zonaId evita conservar la cámara si dos ámbitos compartieran
+    // accidentalmente el mismo conjunto de IDs.
+    const firmaEncuadre = `${estado.zonaId ?? ''}:${estacionesEncuadre
       .map((e) => e.id)
       .sort()
-      .join(',');
-    if (firma !== firmaEstacionesAnterior) {
-      firmaEstacionesAnterior = firma;
+      .join(',')}`;
+    if (firmaEncuadre !== firmaEncuadreAnterior) {
+      firmaEncuadreAnterior = firmaEncuadre;
       if (omitirSiguienteEncuadrePorProvincia) {
         omitirSiguienteEncuadrePorProvincia = false;
       } else {
-        encuadrarTodas(visibles);
+        encuadrarTodas(estacionesEncuadre);
       }
     }
 
@@ -1025,6 +1035,16 @@ export function montarMapa(
     // soltar.
     mapa.on('moveend', recalcularDisposicion);
     mapa.on('zoomend', recalcularDisposicion);
+
+    // El aviso es una explicación inicial del vacío territorial, no una
+    // etiqueta pegada para siempre a la cámara. Los movimientos de código
+    // (fitBounds/flyTo) no traen originalEvent y lo conservan; un arrastre,
+    // rueda, gesto táctil o control de zoom sí lo descarta.
+    mapa.on('movestart', (evento) => {
+      if (!evento.originalEvent || !avisoSinCombustible || avisoSinCombustible.hidden) return;
+      avisoDescartadoPara = `${ultimoEstado.zonaId ?? ''}:${ultimoEstado.combustible}`;
+      avisoSinCombustible.hidden = true;
+    });
 
     // Tocar el mapa fuera de un marcador deselecciona la estación activa
     // (mismo patrón que Google Maps). Un marcador es un elemento aparte

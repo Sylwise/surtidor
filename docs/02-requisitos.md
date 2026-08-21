@@ -103,7 +103,7 @@ y RF-98.
 |---|---|---|
 | RF-40 | M | Si el JSON de datos no carga, se muestra un mensaje que explica qué ha fallado y ofrece reintentar. |
 | RF-41 | M | Si el mapa no carga, la lista y la ficha siguen funcionando al completo y el hueco del mapa explica el fallo. |
-| RF-42 | M | Si ninguna estación de la zona vende el combustible elegido, se muestra «Aquí no hay {combustible}» en vez de una lista vacía. |
+| RF-42 | M | Si ninguna estación de la zona vende el combustible elegido, la lista muestra «Aquí no hay {combustible}» y el mapa identifica el ámbito con «En {zona} no hay {combustible}». El mapa se encuadra con todas las estaciones de la zona, aunque ninguna venda el combustible activo; su aviso se descarta al mover o ampliar el mapa manualmente. |
 | RF-43 | M | Si los datos tienen más de 6 horas, se avisa de que pueden estar desactualizados. |
 
 ### Coste y navegación (v1)

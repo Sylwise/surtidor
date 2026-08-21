@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { estacionesQueVenden, estacionesVisibles } from './visibilidad.ts';
+import { estacionesParaEncuadreMapa, estacionesQueVenden, estacionesVisibles } from './visibilidad.ts';
 import type { EstacionZona } from './zona.ts';
 
 function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
@@ -62,6 +62,20 @@ test('en una lista mixta, solo sobreviven las de venta al público', () => {
 
 test('sin estaciones, no hay nada visible', () => {
   assert.deepEqual(estacionesVisibles([]), []);
+});
+
+test('el encuadre conserva estaciones aunque no vendan el combustible activo', () => {
+  const sinGasoleoB = estacion({ id: 'sin-gasoleo-b' });
+  assert.deepEqual(estacionesParaEncuadreMapa([sinGasoleoB]).map((e) => e.id), ['sin-gasoleo-b']);
+});
+
+test('el encuadre descarta venta restringida y coordenadas ausentes', () => {
+  const estaciones = [
+    estacion({ id: 'publica' }),
+    estacion({ id: 'restringida', tipoVenta: 'R' }),
+    estacion({ id: 'sin-coordenadas', lat: 0, lon: 0 }),
+  ];
+  assert.deepEqual(estacionesParaEncuadreMapa(estaciones).map((e) => e.id), ['publica']);
 });
 
 test('solo se representan estaciones que venden el combustible seleccionado', () => {

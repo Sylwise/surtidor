@@ -49,7 +49,9 @@ export function combustibleDisponibleEnEvolucion(clave: ClavePrecio): clave is C
 
 /** Nombre dentro de una frase: conserva GLP como sigla y baja el resto. */
 export function etiquetaCombustibleEnFrase(clave: ClavePrecio): string {
-  return clave === 'glp' ? 'GLP' : ETIQUETA[clave].toLocaleLowerCase('es');
+  if (clave === 'glp') return 'GLP';
+  const etiqueta = ETIQUETA[clave];
+  return `${etiqueta[0]?.toLocaleLowerCase('es') ?? ''}${etiqueta.slice(1)}`;
 }
 
 /** Etiqueta larga, para la ficha y los mensajes. */

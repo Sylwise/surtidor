@@ -12,6 +12,10 @@ export function mensajeAquiNoHay(combustible: ClavePrecio): string {
   return `Aquí no hay ${etiquetaCombustibleEnFrase(combustible)}.`;
 }
 
+export function mensajeEnZonaNoHay(zona: string, combustible: ClavePrecio): string {
+  return `En ${zona} no hay ${etiquetaCombustibleEnFrase(combustible)}.`;
+}
+
 export function mensajeSinDato(): string {
   return 'sin dato';
 }

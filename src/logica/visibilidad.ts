@@ -17,6 +17,14 @@ export function estacionesVisibles(estaciones: EstacionZona[]): EstacionZona[] {
   return estaciones.filter((estacion) => estacion.tipoVenta === 'P');
 }
 
+/** Estaciones que delimitan el territorio al encuadrar el mapa. No depende
+ * del combustible: una zona debe poder centrarse aunque el producto activo
+ * no se venda allí. Descarta además (0, 0), el valor con el que la fuente
+ * representa coordenadas ausentes. */
+export function estacionesParaEncuadreMapa(estaciones: EstacionZona[]): EstacionZona[] {
+  return estacionesVisibles(estaciones).filter((estacion) => !(estacion.lat === 0 && estacion.lon === 0));
+}
+
 /** Estaciones que pueden representarse para el combustible activo. `null`
  * significa que no lo venden: no genera marcador ni entra en un racimo. */
 export function estacionesQueVenden(estaciones: EstacionZona[], combustible: ClavePrecio): EstacionZona[] {
