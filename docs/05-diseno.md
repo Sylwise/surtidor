@@ -228,6 +228,9 @@ cabecera y la ficha lista los seis precios. **Las seis filas de combustible que
 la estación vende son pulsables**. Tocar
 "Gasolina 98 · 1,769" lo convierte en el combustible activo. Objetivo de
 pulsación grande y el precio por delante. La fila activa se marca en `--signal`.
+Si el selector de la cabecera cambia a un combustible que la estación abierta
+no vende, la ficha se cierra: conservarla como un resultado ausente dejaría una
+estación en pantalla que ya no existe ni en la lista ni en el mapa.
 
 ### Cerrar la ficha
 

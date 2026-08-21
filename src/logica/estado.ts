@@ -9,6 +9,7 @@ import type { ClavePrecio } from '../../scripts/lib/tipos.ts';
 import type { EstacionZona, FalloProvincia } from './zona.ts';
 import type { PosicionUsuario } from './cercania.ts';
 import { esClavePrecio } from './combustibles.ts';
+import { estacionDisponibleParaCombustible } from './visibilidad.ts';
 
 export type OrdenLista = 'precio' | 'distancia';
 
@@ -140,6 +141,16 @@ const CLAVES_PERSISTIDAS = new Set<keyof EstadoApp>(['zonaId', 'combustible']);
  *  toca zona o combustible, se persiste (RF-34). */
 export function actualizarEstado(cambios: Partial<EstadoApp>): void {
   estado = { ...estado, ...cambios };
+  // La ficha no puede sobrevivir como un resultado fantasma: si cambia el
+  // combustible o el ámbito y la estación seleccionada deja de formar parte
+  // de los resultados, se cierra en la misma actualización. No se elige otro
+  // combustible ni se sustituye la estación automáticamente.
+  if (
+    estado.estacionId
+    && !estacionDisponibleParaCombustible(estado.estaciones, estado.estacionId, estado.combustible)
+  ) {
+    estado = { ...estado, estacionId: null };
+  }
   if (Object.keys(cambios).some((clave) => CLAVES_PERSISTIDAS.has(clave as keyof EstadoApp))) {
     guardarPreferencias(estado);
   }

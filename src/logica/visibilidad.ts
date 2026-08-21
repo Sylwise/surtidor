@@ -30,3 +30,17 @@ export function estacionesParaEncuadreMapa(estaciones: EstacionZona[]): Estacion
 export function estacionesQueVenden(estaciones: EstacionZona[], combustible: ClavePrecio): EstacionZona[] {
   return estaciones.filter((estacion) => estacion.precios[combustible] !== null);
 }
+
+/** Una ficha seleccionada solo puede seguir abierta mientras la estación
+ * pertenezca al ámbito público actual y venda el combustible activo. */
+export function estacionDisponibleParaCombustible(
+  estaciones: EstacionZona[],
+  estacionId: string,
+  combustible: ClavePrecio,
+): boolean {
+  return estaciones.some((estacion) =>
+    estacion.id === estacionId
+    && estacion.tipoVenta === 'P'
+    && estacion.precios[combustible] !== null
+  );
+}

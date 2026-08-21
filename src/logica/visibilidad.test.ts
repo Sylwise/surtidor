@@ -6,7 +6,12 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { estacionesParaEncuadreMapa, estacionesQueVenden, estacionesVisibles } from './visibilidad.ts';
+import {
+  estacionDisponibleParaCombustible,
+  estacionesParaEncuadreMapa,
+  estacionesQueVenden,
+  estacionesVisibles,
+} from './visibilidad.ts';
 import type { EstacionZona } from './zona.ts';
 
 function estacion(extra: Partial<EstacionZona> = {}): EstacionZona {
@@ -76,6 +81,17 @@ test('el encuadre descarta venta restringida y coordenadas ausentes', () => {
     estacion({ id: 'sin-coordenadas', lat: 0, lon: 0 }),
   ];
   assert.deepEqual(estacionesParaEncuadreMapa(estaciones).map((e) => e.id), ['publica']);
+});
+
+test('una ficha solo está disponible si la estación vende el combustible activo', () => {
+  const estaciones = [estacion({ id: 'seleccionada' })];
+  assert.equal(estacionDisponibleParaCombustible(estaciones, 'seleccionada', 'gasolina95e5'), true);
+  assert.equal(estacionDisponibleParaCombustible(estaciones, 'seleccionada', 'glp'), false);
+});
+
+test('una estación restringida nunca puede conservar una ficha abierta', () => {
+  const estaciones = [estacion({ id: 'restringida', tipoVenta: 'R' })];
+  assert.equal(estacionDisponibleParaCombustible(estaciones, 'restringida', 'gasolina95e5'), false);
 });
 
 test('solo se representan estaciones que venden el combustible seleccionado', () => {

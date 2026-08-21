@@ -85,7 +85,7 @@ estado de ejecución de cada versión se mantiene en
 | RF-49 | M | Al entrar en la raíz, la zona se resuelve **sin servidor**: la guardada en `localStorage`, si no la página de aterrizaje por la que se ha entrado, y si no un selector. **Nunca se pide permiso de geolocalización al cargar.** |
 | RF-38 | M | En móvil, hoja inferior con tres posiciones de anclaje (asomada, media, completa), arrastrable. El selector de combustible y el filtro son visibles en las tres. |
 | RF-39 | M | En móvil, la ficha de estación se apila sobre la lista dentro de la hoja; no la sustituye. |
-| RF-80 | M | La hoja tiene dos estados. En **lista** y **ficha**, el selector de combustible permanece accesible en la cabecera; la ficha muestra además los seis precios. |
+| RF-80 | M | La hoja tiene dos estados. En **lista** y **ficha**, el selector de combustible permanece accesible en la cabecera; la ficha muestra además los seis precios. Si se elige un combustible que la estación seleccionada no vende, la ficha se cierra porque esa estación deja de pertenecer a los resultados activos. |
 | RF-81 | M | Con la ficha abierta, las seis filas de combustible que la estación vende son pulsables y cambian el combustible activo. Área de pulsación de 44 px como mínimo. |
 | RF-82 | M | El filtro de abiertas no ocupa fila propia: es una píldora en la cabecera de la lista, junto al contador de estaciones. |
 | RF-83 | M | La ficha se cierra de tres formas, todas válidas: tocando el mapa, arrastrando la hoja hacia abajo, y con una X en la ficha. Ninguna franja de mapa visible queda sin respuesta al toque. |
