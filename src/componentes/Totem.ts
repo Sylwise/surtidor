@@ -7,8 +7,8 @@
 // patrón que Controles.ts) en vez de reconstruirse con innerHTML.
 
 import { actualizarEstado, obtenerEstado, suscribir, type EstadoApp } from '../logica/estado.ts';
-import { crearEscala, ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
-import { calcularAhorro } from '../logica/ahorro.ts';
+import { ordenarPorPrecio, preciosDeCombustible } from '../logica/escala.ts';
+import { calcularAhorro, calcularPrecioMedio } from '../logica/ahorro.ts';
 import { combustibleDisponibleEnEvolucion, ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { mensajeHistoricoInsuficiente, mensajeNoVende } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearEuros, formatearPrecio, nombreVisible } from '../logica/formato.ts';
@@ -177,7 +177,7 @@ export function montarTotem(contenedor: HTMLElement): () => void {
   const ahorroResumen = document.createElement('p');
   ahorroResumen.className = 'totem__ahorro-resumen';
 
-  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, evolucionCambio, ahorro, llegar, enlaceEvolucion);
+  lleno.append(cabeceraFicha, direccion, filaMargen, horario, combustibles, ahorro, evolucionCambio, llegar, enlaceEvolucion);
   contenedor.append(vacio, lleno);
 
   function render(estado: EstadoApp): void {
@@ -275,21 +275,21 @@ export function montarTotem(contenedor: HTMLElement): () => void {
     const sufijoLugar = multiProvincia ? ` · ${nombreVisible(estacion.provinciaNombre, 'provincia')}` : '';
     puesto.textContent = `#${posicion} ${estado.zonaNombre || 'la zona'}${sufijoLugar}`;
 
-    const escala = crearEscala(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
-    if (escala.maximo === null) {
+    const precioMedio = calcularPrecioMedio(preciosDeCombustible(visiblesTipoVenta, estado.combustible));
+    if (precioMedio === null) {
       ahorro.replaceChildren();
       return;
     }
 
-    const euros = calcularAhorro(precioActivo, escala.maximo, LITROS_AHORRO);
+    const euros = calcularAhorro(precioActivo, precioMedio, LITROS_AHORRO);
     if (euros <= 0) {
-      ahorroCifra.textContent = formatearEuros(0);
-      ahorroTexto.textContent = 'Ya es de las más baratas de la zona con este combustible.';
-      ahorroResumen.textContent = 'Sin ahorro adicional';
+      ahorroCifra.textContent = '';
+      ahorroTexto.textContent = `Sin ahorro frente a la media de la zona · ${LITROS_AHORRO} L`;
+      ahorroResumen.textContent = ahorroTexto.textContent;
     } else {
       ahorroCifra.textContent = formatearEuros(euros);
-      ahorroTexto.textContent = `de ahorro repostando aquí en vez de en la más cara de la zona, con ${LITROS_AHORRO} L.`;
-      ahorroResumen.textContent = `Ahorras ${formatearEuros(euros)} frente a la más cara de la zona · ${LITROS_AHORRO} L`;
+      ahorroTexto.textContent = `de ahorro frente a la media de la zona · ${LITROS_AHORRO} L`;
+      ahorroResumen.textContent = `Ahorras ${formatearEuros(euros)} frente a la media de la zona · ${LITROS_AHORRO} L`;
     }
     ahorro.replaceChildren(ahorroCifra, ahorroTexto, ahorroResumen);
   }

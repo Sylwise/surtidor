@@ -232,6 +232,12 @@ Si el selector de la cabecera cambia a un combustible que la estación abierta
 no vende, la ficha se cierra: conservarla como un resultado ausente dejaría una
 estación en pantalla que ya no existe ni en la lista ni en el mapa.
 
+El estado del histórico y el ahorro se presentan dentro de una misma pieza
+informativa. El ahorro comparte fila con el precio, en cuerpo pequeño y alineado
+a la derecha. La tendencia ocupa por sí sola la fila siguiente con todo el ancho,
+de modo que los estados largos como «Sin cambios detectados desde hace N días»
+no quedan comprimidos en media columna.
+
 ### Cerrar la ficha
 
 Con la ficha abierta queda una franja de mapa visible arriba en la que no se
@@ -266,13 +272,17 @@ costando una línea. Ver [ADR-0006](adr/0006-marcadores-dom-con-colisiones.md).
 
 ### Tótem (ficha de estación)
 
-Fondo `--petrol`, borde inferior de 3 px en `--signal`. Réplica del cartel:
-rótulo arriba, filas de combustible con el precio en monoespaciada grande a la
-derecha. El combustible seleccionado se pinta en `--signal`; los demás en
-blanco. "no vende" en gris al 28 % y un cuerpo menor, porque la estación no
-vende ese combustible y el estado no debe competir con los precios.
+Fondo `--petrol`. El ámbar queda reservado al CTA «Cómo llegar»: el puesto usa
+un tono apagado y el precio activo se muestra en el color neutro de la tarjeta,
+sin banda. El precio sigue siendo el elemento de mayor cuerpo, en monoespaciada
+y con cifras tabulares; la etiqueta del combustible queda atenuada. "no vende"
+conserva su gris y cuerpo menor, porque la ausencia no debe competir con los
+precios.
 
-Debajo, el bloque de ahorro: el número en euros es lo más grande del bloque.
+Debajo del precio, la tendencia de siete días tiene la mayor jerarquía del
+bloque informativo. El ahorro queda como una línea secundaria y se calcula
+frente a la media simple de las estaciones públicas de la zona que venden el
+combustible: un valor ausente no entra en la media ni cuenta como cero.
 
 ### Marcador
 
