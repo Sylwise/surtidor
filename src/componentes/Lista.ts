@@ -13,6 +13,7 @@ import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio } from '../logica/municipios.ts';
 import { estaAbierta } from '../../scripts/lib/horario.ts';
 import { mensajeAquiNoHay } from '../logica/mensajesAusencia.ts';
+import { ETIQUETA } from '../logica/combustibles.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import { compararPorDistancia, distanciaKm, formatearDistancia } from '../logica/cercania.ts';
 import type { Precios } from '../../scripts/lib/tipos.ts';
@@ -141,6 +142,29 @@ function crearFilaEnlace(
   return li;
 }
 
+function crearResumenAusentes(
+  filas: { href: string; nombre: string }[],
+  combustible: EstadoApp['combustible'],
+): HTMLLIElement {
+  const li = document.createElement('li');
+  li.className = 'enlaces-bloque__ausentes';
+
+  const etiqueta = document.createElement('span');
+  etiqueta.className = 'enlaces-bloque__ausentes-etiqueta';
+  etiqueta.textContent = `Sin ${ETIQUETA[combustible]}: `;
+  li.append(etiqueta);
+
+  for (const [indice, fila] of filas.entries()) {
+    if (indice > 0) li.append(document.createTextNode(', '));
+    const enlace = document.createElement('a');
+    enlace.href = fila.href;
+    enlace.textContent = fila.nombre;
+    li.append(enlace);
+  }
+
+  return li;
+}
+
 // RF-89 ("los enlaces a otros municipios cierran la lista") + RF-90 (enlace
 // de vuelta a la provincia). En una página de zona, `enlacesEstaticos` es
 // `undefined` y los municipios salen de las estaciones ya cargadas —así que
@@ -177,9 +201,12 @@ function crearEnlacesCierre(estado: EstadoApp, enlacesEstaticos?: EnlacesEstatic
   if (volverA) {
     items.push(crearFilaEnlace(volverA, undefined, '', estado.combustible, `Ver toda ${volverA.nombre}`));
   }
-  for (const fila of filas) {
+  const conPrecio = filas.filter((fila) => fila.precio !== null);
+  const ausentes = filas.filter((fila) => fila.precio === null);
+  for (const fila of conPrecio) {
     items.push(crearFilaEnlace(fila, fila.precio, fila.banda ? ` precio--${fila.banda}` : '', estado.combustible));
   }
+  if (ausentes.length > 0) items.push(crearResumenAusentes(ausentes, estado.combustible));
 
   const nav = document.createElement('nav');
   nav.className = 'enlaces-bloque';

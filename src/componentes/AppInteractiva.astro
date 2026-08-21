@@ -24,7 +24,7 @@
 import { calcularListasPorCombustible } from '../logica/listaEstaciones.ts';
 import { crearEscala, explicacionEscalaSuprimida } from '../logica/escala.ts';
 import { resumenMunicipiosDe, hrefMunicipioZona, calcularEnlacesMunicipio, type FilaMunicipio } from '../logica/municipios.ts';
-import { ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
+import { ETIQUETA, ORDEN_COMBUSTIBLES } from '../logica/combustibles.ts';
 import { mensajeAquiNoHay } from '../logica/mensajesAusencia.ts';
 import { cajaDeTitulo, formatearPrecio, nombreVisible } from '../logica/formato.ts';
 import type { EstacionZona } from '../logica/zona.ts';
@@ -208,41 +208,47 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
           {(enlacesMunicipio !== null || entradasCierre.length > 0) && (
             <nav class="enlaces-bloque" aria-label="Otros municipios">
               <h2 class="enlaces-bloque__titulo micro">{tituloEnlacesCierre}</h2>
-              <ul class="enlaces-bloque__filas">
-                {enlacesMunicipio && (
-                  <li>
-                    <a class="enlaces-bloque__fila" href={enlacesMunicipio.volverA.href}>
-                      <span class="enlaces-bloque__info">
-                        <span class="enlaces-bloque__nombre">Ver toda {enlacesMunicipio.volverA.nombre}</span>
-                      </span>
-                    </a>
-                  </li>
-                )}
-                {entradasCierre.map((entrada, indice) => (
-                  <li>
-                    <a class="enlaces-bloque__fila" href={entrada.href}>
-                      <span class="enlaces-bloque__info">
-                        <span class="enlaces-bloque__nombre">{entrada.nombre}</span>
-                      </span>
-                      {ORDEN_COMBUSTIBLES.map((clave) => {
-                        const fila = filasCierrePorCombustible[clave][indice]!;
-                        return fila.precio === null ? (
-                          <span class="enlaces-bloque__precio enlaces-bloque__precio--ausente" hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
-                            {mensajeAquiNoHay(clave)}
+              {ORDEN_COMBUSTIBLES.map((clave) => {
+                const filas = filasCierrePorCombustible[clave];
+                const conPrecio = filas.filter((fila) => fila.precio !== null);
+                const ausentes = filas.filter((fila) => fila.precio === null);
+                return (
+                  <ul class="enlaces-bloque__filas" data-combustible={clave} hidden={clave !== COMBUSTIBLE_POR_DEFECTO}>
+                    {enlacesMunicipio && (
+                      <li>
+                        <a class="enlaces-bloque__fila" href={enlacesMunicipio.volverA.href}>
+                          <span class="enlaces-bloque__info">
+                            <span class="enlaces-bloque__nombre">Ver toda {enlacesMunicipio.volverA.nombre}</span>
                           </span>
-                        ) : (
-                          <span
-                            class={`enlaces-bloque__precio precio${fila.banda ? ` precio--${fila.banda}` : ''}`}
-                            hidden={clave !== COMBUSTIBLE_POR_DEFECTO}
-                          >
-                            {formatearPrecio(fila.precio)}
+                        </a>
+                      </li>
+                    )}
+                    {conPrecio.map((fila) => (
+                      <li>
+                        <a class="enlaces-bloque__fila" href={fila.href}>
+                          <span class="enlaces-bloque__info">
+                            <span class="enlaces-bloque__nombre">{fila.nombre}</span>
                           </span>
-                        );
-                      })}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+                          <span class={`enlaces-bloque__precio precio${fila.banda ? ` precio--${fila.banda}` : ''}`}>
+                            {formatearPrecio(fila.precio!)}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                    {ausentes.length > 0 && (
+                      <li class="enlaces-bloque__ausentes">
+                        <span class="enlaces-bloque__ausentes-etiqueta">Sin {ETIQUETA[clave]}: </span>
+                        {ausentes.map((fila, indice) => (
+                          <>
+                            {indice > 0 && ', '}
+                            <a href={fila.href}>{fila.nombre}</a>
+                          </>
+                        ))}
+                      </li>
+                    )}
+                  </ul>
+                );
+              })}
             </nav>
           )}
         </section>
@@ -331,13 +337,17 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
   const hoja = elemento('hoja');
   const asaHoja = elemento('hoja-asa') as HTMLButtonElement;
 
-  // El mapa en móvil es `position: fixed` bajo la cabecera (ADR-0006) y
-  // necesita saber su alto real.
-  const actualizarAlturaCabecera = (): void => {
+  // El mapa y la pastilla de actualización son `position: fixed` en móvil
+  // (ADR-0006): necesitan las alturas reales de la cabecera y de los
+  // controles, que pueden variar con su contenido.
+  const actualizarAlturasInterfaz = (): void => {
     document.documentElement.style.setProperty('--cabecera-alto', `${contenedorCabecera.offsetHeight}px`);
+    document.documentElement.style.setProperty('--controles-rapidos-alto', `${contenedorControlesRapidos.offsetHeight}px`);
   };
-  new ResizeObserver(actualizarAlturaCabecera).observe(contenedorCabecera);
-  actualizarAlturaCabecera();
+  const observadorAlturasInterfaz = new ResizeObserver(actualizarAlturasInterfaz);
+  observadorAlturasInterfaz.observe(contenedorCabecera);
+  observadorAlturasInterfaz.observe(contenedorControlesRapidos);
+  actualizarAlturasInterfaz();
 
   montarHoja(hoja, asaHoja, contenedorMapa);
 
@@ -419,11 +429,16 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
     const estaDesactualizado = actualizadoZona
       ? datosDesactualizados(actualizadoZona, new Date())
       : false;
+    const nombreAmbitoDatos = (
+      estado.municipioNombre && !estado.ambitoAmpliado
+        ? estado.municipioNombre
+        : (estado.provinciaNombre ?? estado.zonaNombre)
+    ) || 'la zona';
     const textoCompleto = actualizadoZona
-      ? `Datos del ${formatearFechaHora(actualizadoZona)} · ${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}${estaDesactualizado ? ' · Pueden estar desactualizados' : ''}`
+      ? `Datos del ${formatearFechaHora(actualizadoZona)} · ${estado.estaciones.length} estaciones en ${nombreAmbitoDatos}${estaDesactualizado ? ' · Pueden estar desactualizados' : ''}`
       : estado.cargando
         ? 'Cargando datos de la zona…'
-        : `${estado.estaciones.length} estaciones en ${estado.zonaNombre || 'la zona'}`;
+        : `${estado.estaciones.length} estaciones en ${nombreAmbitoDatos}`;
     const textoMovil = actualizadoZona
       ? `ACT. ${formatearFechaHora(actualizadoZona)}`
       : estado.cargando
@@ -468,7 +483,7 @@ const filasCierrePorCombustible: Record<ClavePrecio, FilaMunicipio[]> = Object.f
     if (!controlesMontados) {
       montarControles(contenedorControlesIdentidad, contenedorControlesRapidos, indice.zonas, indice.provincias, contenedorApp.dataset.municipioEvolucion ?? null);
       controlesMontados = true;
-      actualizarAlturaCabecera();
+      actualizarAlturasInterfaz();
     }
     return indice;
   }

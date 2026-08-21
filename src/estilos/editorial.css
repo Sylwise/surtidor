@@ -147,7 +147,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline:3px solid
 .editorial-canarias__principal > a { color:var(--surface); font-size:var(--fs-4); text-decoration:none; text-transform:uppercase; }
 .editorial-canarias__principal > small { color:var(--paper); font-size:var(--fs-2); }
 .editorial-canarias__principal > time { margin-top:auto; color:var(--signal); font-family:var(--mono); font-size:var(--fs-1); }
-.editorial-canarias__resumen { display:grid; height:126px; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.editorial-canarias__resumen { display:grid; min-height:126px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
 .editorial-canarias__tarjeta { display:flex; min-width:0; padding:16px; border:1px solid var(--line); border-radius:var(--radio); background:var(--surface); flex-direction:column; gap:7px; }
 .editorial-canarias__tarjeta > span { color:var(--muted); font-size:var(--fs-1); font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
 .editorial-canarias__tarjeta > strong { font-family:var(--mono); font-size:var(--fs-6); }

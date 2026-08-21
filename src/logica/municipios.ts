@@ -106,17 +106,24 @@ export function calcularEnlacesMunicipio(
   const escala = crearEscala(
     entradas.map((entrada) => entrada.precios[combustible]).filter((precio): precio is number => precio !== null),
   );
-  return entradas.map((entrada) => {
-    const precio = entrada.precios[combustible];
-    return {
-      href: entrada.href,
-      nombre: entrada.nombre,
-      precio,
-      banda: precio === null
-        ? null
-        : escala.esMasBarata(precio)
-          ? 'barata'
-          : escala.banda(precio),
-    };
-  });
+  return entradas
+    .map((entrada) => {
+      const precio = entrada.precios[combustible];
+      return {
+        href: entrada.href,
+        nombre: entrada.nombre,
+        precio,
+        banda: precio === null
+          ? null
+          : escala.esMasBarata(precio)
+            ? 'barata' as const
+            : escala.banda(precio),
+      };
+    })
+    .sort((a, b) => {
+      if (a.precio === null && b.precio === null) return a.nombre.localeCompare(b.nombre, 'es');
+      if (a.precio === null) return 1;
+      if (b.precio === null) return -1;
+      return a.precio - b.precio || a.nombre.localeCompare(b.nombre, 'es');
+    });
 }

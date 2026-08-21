@@ -40,6 +40,9 @@ const lideres = Object.fromEntries(
 const gasolina95 = ORDEN_COMBUSTIBLES[0];
 const liderGasolina95 = lideres[gasolina95];
 const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
+const combustiblesResumen = ORDEN_COMBUSTIBLES.filter(
+  (combustible) => lideres[combustible] !== null,
+);
 ---
 
 <DocumentoEditorial titulo={titulo} descripcion={descripcion} ruta={ruta} imagenCompartir="/og/hoy/canarias-ceuta-melilla.png" actualizado={agregados.actualizado}>
@@ -64,7 +67,7 @@ const resumenGasolina95 = liderGasolina95?.combustibles[gasolina95] ?? null;
     </header>
 
     <section class="editorial-canarias__resumen" aria-label="Territorio con menor media por combustible">
-      {ORDEN_COMBUSTIBLES.map((combustible) => {
+      {combustiblesResumen.map((combustible) => {
         const lider = lideres[combustible];
         const resumen = lider?.combustibles[combustible] ?? null;
         return (

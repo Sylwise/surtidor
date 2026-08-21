@@ -163,3 +163,17 @@ test('calcularEnlacesMunicipio compara precios GLP entre sí', () => {
   );
   assert.deepEqual(filas.map((fila) => fila.banda), ['barata', 'p5']);
 });
+
+test('calcularEnlacesMunicipio ordena primero los que venden por precio y deja los ausentes al final', () => {
+  const filas = calcularEnlacesMunicipio(
+    [
+      { href: '/sin-b/', nombre: 'Zarza', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } },
+      { href: '/caro/', nombre: 'Caro', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 1.2 } },
+      { href: '/sin-a/', nombre: 'Álamo', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: null } },
+      { href: '/barato/', nombre: 'Barato', precios: { gasolina95e5: null, gasoleoA: null, gasolina98e5: null, gasoleoPremium: null, gasoleoB: null, glp: 0.9 } },
+    ],
+    'glp',
+  );
+
+  assert.deepEqual(filas.map(({ nombre }) => nombre), ['Barato', 'Caro', 'Álamo', 'Zarza']);
+});

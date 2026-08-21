@@ -1672,6 +1672,10 @@ input {
   gap: 4px;
 }
 
+.enlaces-bloque__filas[hidden] {
+  display: none;
+}
+
 .panel-zona .enlaces-bloque__filas {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1879,7 +1883,7 @@ input {
   .cabecera-global--principal .controles-identidad {
     position: fixed;
     z-index: 5;
-    top: 56px;
+    top: var(--cabecera-alto, 56px);
     left: 0;
     width: 80px;
     height: 52px;
@@ -1919,9 +1923,10 @@ input {
   .estado-datos {
     position: fixed;
     /* Por encima del mapa, pero debajo de la hoja cuando esta sube a
-       completa: la actualización no debe tapar el asa ni la lista. */
+       completa: la actualización no debe tapar el asa ni la lista. El margen
+       final evita que la barra de controles la cubra parcialmente. */
     z-index: 2;
-    top: 108px;
+    top: calc(var(--cabecera-alto, 56px) + var(--controles-rapidos-alto, 60px) + 8px);
     left: 8px;
     display: flex;
     min-height: 0;
@@ -1947,7 +1952,7 @@ input {
   .hoja__rapidos {
     position: fixed;
     z-index: 4;
-    top: 56px;
+    top: var(--cabecera-alto, 56px);
     left: 0;
     width: 100%;
     height: 52px;
@@ -2181,6 +2186,30 @@ input {
   font-size: var(--fs-3);
   font-weight: 400;
   color: var(--muted);
+}
+
+.enlaces-bloque__ausentes {
+  margin-top: 6px;
+  padding: 10px;
+  border-top: 1px solid var(--hair);
+  color: var(--muted);
+  font-size: var(--fs-2);
+  line-height: 1.7;
+}
+
+.enlaces-bloque__ausentes-etiqueta {
+  font-weight: 700;
+}
+
+.enlaces-bloque__ausentes a:link,
+.enlaces-bloque__ausentes a:visited {
+  color: var(--petrol);
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.enlaces-bloque__ausentes a:hover {
+  text-decoration-color: currentColor;
 }
 .totem__evolucion {
   display: flex;
